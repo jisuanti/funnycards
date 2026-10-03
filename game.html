@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>学好数理化 - 卡牌对战</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;color:#fff;font-family:"Microsoft YaHei","SimHei",sans-serif;}
+body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
+#main-menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;
+    background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.12),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
+.title-main{font-size:82px;font-weight:900;letter-spacing:22px;color:#f7d774;
+    text-shadow:0 0 14px rgba(247,215,116,0.6),0 0 40px rgba(255,170,96,0.45);}
+.title-sub{margin-top:16px;font-size:16px;letter-spacing:10px;color:#a8966a;}
+.menu-modes{margin-top:70px;display:flex;gap:90px;}
+.mode-btn{width:220px;height:220px;transform:rotate(45deg);border-radius:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:0.25s;}
+.mode-btn .inner{transform:rotate(-45deg);text-align:center;width:100%;}
+.mode-btn.local{background:linear-gradient(135deg,#ffb347,#b54a12);border:3px solid #f7d774;
+    box-shadow:0 0 30px rgba(255,170,96,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
+.mode-btn.local:hover{transform:rotate(45deg) scale(1.06);}
+.mode-btn.offline{background:linear-gradient(135deg,#4a4a4a,#1e1e1e);border:3px solid #7a7a7a;
+    box-shadow:inset 0 0 20px rgba(0,0,0,0.6);cursor:not-allowed;opacity:0.55;}
+.mode-icon{font-size:48px;margin-bottom:10px;}
+.mode-name{font-size:22px;font-weight:bold;letter-spacing:4px;color:#fff;}
+.mode-desc{margin-top:8px;font-size:12px;color:#ffecc2;letter-spacing:2px;}
+#game-screen{display:none;width:100vw;height:100vh;position:relative;overflow:hidden;}
+.game-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(255,220,150,0.05),transparent 60%),linear-gradient(180deg,#2a1f14,#120c08);}
+.table-surface{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1280px;height:680px;border-radius:18px;
+    background:repeating-linear-gradient(90deg,rgba(120,72,30,0.35) 0 2px,rgba(60,30,10,0.35) 2px 7px),linear-gradient(180deg,#4a2e16,#2a1808);
+    border:4px solid #6a4a22;box-shadow:0 0 60px rgba(0,0,0,0.9),inset 0 0 60px rgba(0,0,0,0.7);z-index:1;}
+.table-inner{position:absolute;inset:18px;border-radius:14px;
+    background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#3a2412,#1e1208);
+    border:2px solid #5a3a1a;box-shadow:inset 0 0 40px rgba(0,0,0,0.7);}
+.top-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:18px;align-items:center;
+    background:rgba(0,0,0,0.55);border:1px solid #6a4a22;border-radius:8px;padding:6px 14px;z-index:10;font-size:13px;color:#e8d9b8;}
+.top-bar .title{font-size:16px;font-weight:bold;color:#f7d774;letter-spacing:4px;}
+.top-bar button{background:#3a2e1c;border:1px solid #f7d774;color:#f7d774;padding:2px 10px;border-radius:3px;cursor:pointer;}
+.left-panel{position:absolute;left:12px;top:70px;width:180px;max-height:calc(100vh - 210px);z-index:9;
+    display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding-right:2px;}
+.left-panel::-webkit-scrollbar{width:4px;}
+.left-panel::-webkit-scrollbar-thumb{background:#6a4a22;border-radius:2px;}
+.info-block{background:rgba(0,0,0,0.55);border:1px solid #6a4a22;border-radius:8px;padding:8px 10px;flex-shrink:0;}
+.side-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;border-bottom:1px solid #3a2e1c;padding-bottom:6px;}
+.side-label{color:#f7d774;font-weight:bold;font-size:14px;letter-spacing:2px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;margin:4px 0;}
+.info-row .info-label{font-size:11px;color:#a8966a;letter-spacing:1px;}
+.info-row .info-value{font-size:13px;color:#f7d774;font-weight:bold;}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:13px;border:2px solid #f7d774;background:radial-gradient(circle,#4a3a24,#1a1410);color:#f7d774;flex-shrink:0;}
+.enemy-avatar{border-color:#ff7b7b;}
+.player-avatar{border-color:#7cc1ff;}
+#my-deck-wrap.deck-warn{color:#ff9a9a;}
+.enemy-area{position:absolute;top:70px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;z-index:8;}
+.enemy-hand{display:flex;gap:4px;}
+.enemy-card-back{width:40px;height:56px;border-radius:5px;
+    background:repeating-linear-gradient(45deg,#3a2e1c 0 4px,#1a1410 4px 10px);border:1px solid #6a5a32;box-shadow:0 2px 6px rgba(0,0,0,0.6);}
+.battle-grid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:min(64vw,520px);height:min(56vh,520px);
+    display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);
+    gap:3px;padding:10px;background:rgba(0,0,0,0.3);border:1px solid #6a4a22;border-radius:12px;
+    box-shadow:inset 0 0 20px rgba(0,0,0,0.5);z-index:3;}
+.cell{background:linear-gradient(135deg,rgba(255,220,150,0.05),rgba(0,0,0,0.35));
+    border:1px solid #6a4a22;border-radius:4px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;position:relative;transition:0.15s;}
+.cell:hover{border-color:#f7d774;box-shadow:0 0 8px rgba(247,215,116,0.35);}
+.cell.deployable{background:rgba(90,200,120,0.18);border:2px dashed #7cff9a;box-shadow:0 0 14px rgba(124,255,154,0.45);}
+.cell.targetable{background:rgba(220,80,80,0.18);border:2px dashed #ff7b7b;box-shadow:0 0 14px rgba(255,123,123,0.45);}
+.cell.fire{background-color:rgba(255,90,40,0.35);border-color:#ff6428;}
+.cell.poison{background:rgba(80,30,90,0.3);}
+.cell.radiate{background:rgba(120,255,120,0.18);border-color:#7cff9a;}
+.cell.water{background:rgba(80,140,220,0.25);border-color:#7cc1ff;}
+.cell.selected-unit{outline:2px solid #ffdd44;box-shadow:0 0 12px rgba(255,221,68,0.6);}
+.cell.selected-hq{outline:2px solid #7cc1ff;box-shadow:0 0 16px rgba(124,193,255,0.7);}
+.hq{width:82%;height:82%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;box-shadow:0 0 12px rgba(0,0,0,0.7);}
+.hq.player{background:radial-gradient(circle,#4fa3ff,#12346e);color:#fff;border:2px solid #7cc1ff;}
+.hq.enemy{background:radial-gradient(circle,#ff6a6a,#6e1212);color:#fff;border:2px solid #ff9090;}
+.unit{width:84%;height:84%;border-radius:4px;background:linear-gradient(180deg,#3b2a18,#1c140a);
+    border:1px solid #f1d68a;color:#f1d68a;font-size:9px;text-align:center;padding:2px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(241,214,138,0.25);}
+.unit.noact{opacity:0.55;}
+.unit.stun{opacity:0.45;border:2px solid #44aaff;}
+.unit.suppress{border:2px solid #ff8800;}
+.unit.attacked{opacity:0.85;border:1px dashed #ff9a9a;}
+#arrow-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6;}
+.forced-slot-wrap{position:absolute;left:200px;bottom:130px;width:140px;z-index:14;
+    background:rgba(0,0,0,0.45);border:1px solid #6a4a22;border-radius:8px;padding:8px;}
+.slot-title{font-size:12px;color:#ffe27a;letter-spacing:2px;margin-bottom:6px;}
+.forced-slots{display:flex;gap:8px;}
+.slot-card{width:60px;height:84px;border:1px dashed #998248;border-radius:6px;background:rgba(0,0,0,0.45);
+    display:flex;align-items:center;justify-content:center;color:#a8966a;font-size:11px;cursor:pointer;text-align:center;padding:2px;}
+.slot-card.filled{background:linear-gradient(180deg,#3b2a18,#1c140a);color:#f1d68a;border:1px solid #f1d68a;}
+.btn-end{position:absolute;right:12px;bottom:14px;
+    background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;
+    padding:10px 22px;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;z-index:25;}
+.btn-end:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
+.hand-wrap{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);height:120px;z-index:15;}
+.hand-area{height:100%;display:flex;align-items:flex-end;gap:10px;padding-bottom:10px;}
+.card{width:90px;height:110px;
+    background:radial-gradient(circle at 50% 20%,rgba(255,220,150,0.12),transparent 40%),linear-gradient(180deg,#343c48,#1c222b);
+    border:2px solid #707c8e;border-radius:10px;padding:6px;cursor:pointer;position:relative;
+    box-shadow:0 10px 20px rgba(0,0,0,0.7),inset 0 0 10px rgba(180,200,230,0.08);
+    transition:transform 0.25s,box-shadow 0.25s,height 0.25s;transform-origin:bottom center;flex-shrink:0;}
+.card.rarity-铁{border-color:#888;}
+.card.rarity-铜{border-color:#cd7f32;}
+.card.rarity-银{border-color:#c0c0c0;}
+.card.rarity-金{border-color:#ffd700;}
+.card:hover{transform:translateY(-6px);box-shadow:0 14px 24px rgba(160,180,210,0.2);z-index:30;}
+.card.selected{height:170px;transform:translateY(-60px);border-color:#c2d4f0;box-shadow:0 0 22px rgba(180,200,230,0.6);z-index:31;}
+.card.combo{box-shadow:0 0 12px rgba(124,255,154,0.7);border-color:#7cff9a;}
+.card-cost{position:absolute;top:-10px;left:-10px;width:30px;height:30px;
+    background:radial-gradient(circle,#b8c8e0,#44546e);border:2px solid #c2d4f0;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:bold;color:#1c222b;font-size:14px;}
+.card-icon{height:64px;border-radius:6px;background:#222831;border:1px solid #444c58;
+    display:flex;align-items:center;justify-content:center;font-size:34px;color:#c2d4f0;}
+.card-name{font-size:12px;color:#dee5f0;text-align:center;margin-top:4px;font-weight:bold;letter-spacing:1px;}
+.card-type{font-size:10px;text-align:center;color:#a0abc0;margin-top:2px;}
+.card-vol{position:absolute;bottom:2px;right:4px;font-size:10px;color:#ff9a9a;}
+.card-combo{position:absolute;top:2px;right:2px;font-size:10px;color:#7cff9a;}
+.card-water{position:absolute;bottom:2px;left:4px;font-size:10px;color:#7cc7ff;}
+.card-discard{position:absolute;top:14px;right:2px;font-size:14px;line-height:1;padding:3px 4px;cursor:pointer;
+    opacity:0.8;border-radius:4px;background:rgba(0,0,0,0.35);}
+.card-discard:hover{opacity:1;background:rgba(255,120,120,0.4);}
+.card.drop-target{box-shadow:0 0 18px rgba(124,255,154,0.95);border-color:#7cff9a;transform:translateY(-8px);}
+.card.dragging{opacity:0.6;}
+#choice-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:420;}
+#choice-modal.show{display:flex;}
+.choice-box{background:linear-gradient(180deg,#2a1a0c,#140a04);border:2px solid #f7d774;border-radius:14px;
+    padding:22px;text-align:center;max-width:680px;box-shadow:0 0 40px rgba(247,215,116,0.35);}
+.choice-box h3{color:#f7d774;letter-spacing:4px;margin-bottom:10px;}
+.choice-box .choice-desc{font-size:12px;color:#c7b48a;margin-bottom:14px;line-height:1.6;}
+.choice-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.choice-buttons{margin-top:16px;}
+.choice-buttons button{padding:8px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
+    color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:13px;}
+.choice-buttons button:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
+.ui-side-panel{position:absolute;right:12px;top:70px;width:230px;z-index:12;display:flex;flex-direction:column;gap:8px;}
+.mode-tip{background:rgba(0,0,0,0.55);border:1px solid #3a2e1c;border-radius:6px;padding:8px 12px;font-size:12px;color:#ffe27a;}
+.log{height:260px;background:rgba(0,0,0,0.55);border:1px solid #3a2e1c;border-radius:6px;
+    padding:8px;font-size:11px;line-height:1.6;overflow-y:auto;color:#c7b48a;}
+.log-red{color:#ff9a9a;} .log-yellow{color:#ffdd66;} .log-green{color:#9cffb0;}
+#result-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:300;}
+#result-modal.show{display:flex;}
+.result-box{width:360px;padding:26px;
+    background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#3a2412,#1e1208);
+    border:3px solid #f7d774;border-radius:14px;text-align:center;
+    box-shadow:0 0 40px rgba(247,215,116,0.35),inset 0 0 24px rgba(0,0,0,0.6);}
+.result-box h2{font-size:34px;color:#f7d774;letter-spacing:10px;margin-bottom:18px;}
+.result-box p{font-size:13px;color:#e8d9b8;margin-bottom:20px;letter-spacing:2px;}
+.result-buttons{display:flex;justify-content:center;gap:14px;}
+.result-buttons button{padding:10px 18px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
+    color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;}
+#tooltip{position:fixed;background:#111;color:#fff;border:1px solid #777;padding:8px;z-index:9999;
+    max-width:340px;pointer-events:none;display:none;}
+.t-title{font-weight:bold;margin-bottom:4px;color:#4cf;}
+.t-line{font-size:13px;margin:2px 0;}
+#branch-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:400;}
+#branch-modal.show{display:flex;}
+.branch-box{background:linear-gradient(180deg,#2a1a0c,#140a04);border:2px solid #f7d774;border-radius:14px;padding:22px;text-align:center;max-width:640px;}
+.branch-box h3{color:#f7d774;letter-spacing:4px;margin-bottom:14px;}
+.branch-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.branch-item{width:180px;padding:14px;background:linear-gradient(180deg,#3a2412,#1e1208);border:2px solid #f1d68a;
+    border-radius:8px;cursor:pointer;transition:0.2s;}
+.branch-item:hover{background:linear-gradient(180deg,#5a3820,#2e1c10);transform:translateY(-4px);}
+.branch-item.info{opacity:0.6;cursor:default;}
+.branch-item.info:hover{transform:none;background:linear-gradient(180deg,#3a2412,#1e1208);}
+.branch-item .bn{color:#ffe27a;font-weight:bold;margin-bottom:6px;}
+.branch-item .bd{font-size:11px;color:#c7b48a;line-height:1.4;}
+#draw-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:350;}
+#draw-modal.show{display:flex;}
+.draw-box{width:340px;padding:22px;
+    background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#2a1a0c,#140a04);
+    border:2px solid #f7d774;border-radius:14px;text-align:center;
+    box-shadow:0 0 40px rgba(247,215,116,0.35);}
+.draw-box h3{color:#f7d774;letter-spacing:4px;margin-bottom:12px;font-size:20px;}
+.draw-box p{font-size:13px;color:#e8d9b8;margin-bottom:8px;line-height:1.6;}
+.draw-box .deck-info{font-size:12px;color:#ffb347;margin-bottom:16px;}
+.draw-buttons{display:flex;justify-content:center;gap:14px;}
+.draw-buttons button{padding:10px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);
+    border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;
+    letter-spacing:2px;font-size:14px;}
+.draw-buttons button:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
+</style>
+</head>
+<body>
+<div id="main-menu">
+    <div class="title-main">学好数理化</div>
+    <div class="title-sub">卡牌对战测试版</div>
+    <div class="menu-modes">
+        <div class="mode-btn local" id="btn-local">
+            <div class="inner">
+                <div class="mode-icon">🎲</div>
+                <div class="mode-name">本地对战</div>
+                <div class="mode-desc">人机对战</div>
+            </div>
+        </div>
+        <div class="mode-btn offline">
+            <div class="inner">
+                <div class="mode-icon">🌐</div>
+                <div class="mode-name">多人联机</div>
+                <div class="mode-desc">暂未开放</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="game-screen">
+    <div class="game-bg"></div>
+    <div class="table-surface"><div class="table-inner"></div></div>
+    <div class="top-bar">
+        <div class="title">学好数理化</div>
+        <div>回合 <span id="turn-num">1</span></div>
+        <div id="phase-text">我方行动</div>
+        <div id="main-subject-hint" style="color:#ffb347;font-size:12px;"></div>
+        <button id="btn-back-menu">返回主菜单</button>
+    </div>
+    <div class="left-panel">
+        <div class="info-block">
+            <div class="side-header">
+                <div class="avatar enemy-avatar">AI</div>
+                <span class="side-label">敌方</span>
+            </div>
+            <div class="info-row"><span class="info-label">温度</span><span class="info-value" id="en-temp">37.2℃</span></div>
+            <div class="info-row"><span class="info-label">总部</span><span class="info-value"><span id="en-hp">30</span>/<span id="en-hpmax">30</span></span></div>
+            <div class="info-row"><span class="info-label">牌库</span><span class="info-value" id="en-deck">0</span></div>
+        </div>
+        <div class="info-block">
+            <div class="side-header">
+                <div class="avatar player-avatar">我</div>
+                <span class="side-label">玩家</span>
+            </div>
+            <div class="info-row"><span class="info-label">温度</span><span class="info-value" id="my-temp">37.2℃</span></div>
+            <div class="info-row"><span class="info-label">总部</span><span class="info-value"><span id="my-hp">30</span>/<span id="my-hpmax">30</span></span></div>
+            <div class="info-row"><span class="info-label">指挥点</span><span class="info-value"><span id="my-k">12</span>/<span id="my-kmax">12</span></span></div>
+            <div class="info-row"><span class="info-label">牌库</span><span class="info-value" id="my-deck-wrap"><span id="my-deck">50</span>/<span id="my-deckmax">50</span></span></div>
+            <div class="info-row"><span class="info-label">水</span><span class="info-value" style="font-size:12px;">储<span id="water-view">0</span> 杯<span id="beaker-view">0</span> 炮<span id="cannon-view">0</span>ml</span></div>
+        </div>
+    </div>
+    <div class="enemy-area">
+        <div class="enemy-hand" id="enemy-hand"></div>
+        <div style="color:#c7b48a;font-size:12px;">敌方指挥点：隐藏</div>
+    </div>
+    <div class="battle-grid" id="board"></div>
+    <svg id="arrow-layer"></svg>
+    <div class="forced-slot-wrap">
+        <div class="slot-title">强制塞入槽(2格)</div>
+        <div class="forced-slots">
+            <div class="slot-card" id="slot1">槽1</div>
+            <div class="slot-card" id="slot2">槽2</div>
+        </div>
+    </div>
+    <button class="btn-end" id="btn-end-turn">结束回合</button>
+    <div class="hand-wrap">
+        <div class="hand-area" id="hand-area"></div>
+    </div>
+    <div class="ui-side-panel">
+        <div class="mode-tip" id="mode-tip">点击手牌→选择目标/位置。点击己方单位可选中：相邻格移动（不限次），相邻敌方目标攻击（每回合1次）。点击己方总部可移动（消耗1K，每回合1次）。</div>
+        <div class="log" id="log"></div>
+    </div>
+</div>
+<div id="result-modal">
+    <div class="result-box">
+        <h2 id="result-text">游戏结束</h2>
+        <p id="result-desc">对局结束，可以选择重试或者返回。</p>
+        <div class="result-buttons">
+            <button id="btn-retry">重试</button>
+            <button id="btn-continue">返回</button>
+        </div>
+    </div>
+</div>
+<div id="branch-modal">
+    <div class="branch-box">
+        <h3 id="branch-title">选择研发分支</h3>
+        <div class="branch-list" id="branch-list"></div>
+    </div>
+</div>
+<div id="draw-modal">
+    <div class="draw-box">
+        <h3>回合结束</h3>
+        <p id="draw-desc">是否抽1张牌？</p>
+        <div class="deck-info" id="draw-info">牌库剩余：0 张</div>
+        <div class="draw-buttons">
+            <button id="btn-draw-yes">抽牌</button>
+            <button id="btn-draw-no">不抽</button>
+        </div>
+    </div>
+</div>
+<div id="choice-modal">
+    <div class="choice-box">
+        <h3 id="choice-title">选择</h3>
+        <div class="choice-desc" id="choice-desc"></div>
+        <div class="choice-list" id="choice-list"></div>
+        <div class="choice-buttons"><button id="btn-choice-cancel">取消</button></div>
+    </div>
+</div>
+<div id="tooltip"></div>
+
+<script>
+/* ============================================================
+   ============== 卡牌数据库 ===================================
+   ============================================================ */
+const CardDB = {};
+
+CardDB.greatPhys = { id:'greatPhys', name:'伟大物理研发', cost:3, type:'spell', attribute:'物理', rarity:'金', icon:'⚛', isResearch:true,
+    desc:'一级开发：二选一【防护服】/【扩展物理研发】',
+    onCast(){ openBranchChoice(['physSuit','extPhys'],'伟大物理研发'); return true; } };
+
+CardDB.physSuit = { id:'physSuit', name:'防护服', cost:0, type:'spell', attribute:'物理', rarity:'金', icon:'🥼',
+    desc:'友方全部单位获得免疫，持续1回合',
+    onCast(){ forEachUnit(u=>{ if(u.isPlayerUnit) u.immune=true; }); GS.playerHQ.immune=true; log('防护服：友方全体获得免疫1回合','green'); return true; } };
+
+CardDB.extPhys = { id:'extPhys', name:'扩展物理研发', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'🔬',
+    desc:'二级开发：二选一【220V交流电】/【高级物理研发】',
+    onCast(){ openBranchChoice(['ac220v','advPhys'],'扩展物理研发'); return true; } };
+
+CardDB.ac220v = { id:'ac220v', name:'220V交流电', cost:0, type:'spell', attribute:'物理', rarity:'金', icon:'⚡',
+    desc:'对敌方所有目标造成4点伤害；后续2回合内敌方每打出一张卡牌，敌方总部受1伤、全体单位各受2伤',
+    onCast(){ GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 4);
+        forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.max(0, u.def - 4); });
+        GS.ac220vTurn = 2; cleanupDead(); log('220V交流电：敌方全体-4，附加2回合脉冲','yellow'); return true; } };
+
+CardDB.advPhys = { id:'advPhys', name:'高级物理研发', cost:9, type:'spell', attribute:'物理', rarity:'金', icon:'🧪',
+    desc:'三级开发：二选一【核能链式反应】/【绝密物理研发】',
+    onCast(){ openBranchChoice(['nukeChain','topSecretPhys'],'高级物理研发'); return true; } };
+
+CardDB.nukeChain = { id:'nukeChain', name:'核能链式反应', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'☢',
+    desc:'5×5造成8点伤害并生成3×3放射区（3回合）；敌方-3指挥点槽，接下来2回合无法抽牌',
+    needTarget:true,
+    onCast(cx,cy){
+        for(let y=Math.max(0,cy-2); y<=Math.min(10,cy+2); y++)
+            for(let x=Math.max(0,cx-2); x<=Math.min(10,cx+2); x++){
+                const u = GS.field[y][x];
+                if(u) u.def = Math.max(0, u.def - 8);
+                if(Math.abs(x-cx)<=1 && Math.abs(y-cy)<=1) GS.radiateZones.push({x,y,duration:3});
+            }
+        if(Math.abs(GS.enemyHQ.x-cx)<=2 && Math.abs(GS.enemyHQ.y-cy)<=2) GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 8);
+        if(Math.abs(GS.playerHQ.x-cx)<=2 && Math.abs(GS.playerHQ.y-cy)<=2) GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 8);
+        GS.enemyKMax = Math.max(12, GS.enemyKMax - 3); GS.enemyK = Math.min(GS.enemyK, GS.enemyKMax);
+        GS.enemyNoDrawTurn = Math.max(GS.enemyNoDrawTurn, 2);
+        cleanupDead(); log('核能链式反应！','red'); return true; } };
+
+CardDB.topSecretPhys = { id:'topSecretPhys', name:'绝密物理研发', cost:12, type:'spell', attribute:'物理', rarity:'金', icon:'🔒',
+    desc:'四级开发：二选一【核能热核聚变】/【核能可控核聚变】',
+    onCast(){ openBranchChoice(['nukeFusion','nukeControlled'],'绝密物理研发'); return true; } };
+
+CardDB.nukeFusion = { id:'nukeFusion', name:'核能热核聚变', cost:15, type:'spell', attribute:'物理', rarity:'金', icon:'💥',
+    desc:'7×7造成15点伤害，生成5×5放射区4回合；后续3回合敌方开局-5K、无法抽牌、单位被压制',
+    needTarget:true,
+    onCast(cx,cy){
+        for(let y=Math.max(0,cy-3); y<=Math.min(10,cy+3); y++)
+            for(let x=Math.max(0,cx-3); x<=Math.min(10,cx+3); x++){
+                const u = GS.field[y][x];
+                if(u) u.def = Math.max(0, u.def - 15);
+                if(Math.abs(x-cx)<=2 && Math.abs(y-cy)<=2) GS.radiateZones.push({x,y,duration:4});
+            }
+        if(Math.abs(GS.enemyHQ.x-cx)<=3 && Math.abs(GS.enemyHQ.y-cy)<=3) GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 15);
+        if(Math.abs(GS.playerHQ.x-cx)<=3 && Math.abs(GS.playerHQ.y-cy)<=3) GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 15);
+        GS.enemyLoseKTurn = 3; GS.enemyNoDrawTurn = Math.max(GS.enemyNoDrawTurn, 3);
+        forEachUnit(u=>{ if(!u.isPlayerUnit) u.suppress = true; });
+        cleanupDead(); log('核能热核聚变！','red'); return true; } };
+
+CardDB.nukeControlled = { id:'nukeControlled', name:'核能可控核聚变', cost:15, type:'spell', attribute:'物理', rarity:'金', icon:'🌟',
+    desc:'指挥点槽上限24、手牌上限16，抽4张；常驻：奇数费-5、偶数费单位+3/+3、反制0费、单位行动0耗、指挥点留存、每回合开局抽2',
+    onCast(){ GS.playerKMax = 24; GS.handMax = 16; GS.controlledFusionBuff = true; for(let i=0;i<4;i++) drawCard(true); log('核能可控核聚变启动！','green'); return true; } };
+
+CardDB.physLab = { id:'physLab', name:'物理实验室', cost:12, type:'spell', attribute:'物理', rarity:'金', icon:'🏛',
+    desc:'移除牌库中银铜铁物理卡，重新洗入各一张，抽1张（判定为银）；从3张随机物理金卡中自选1张，5%额外获得伟大物理研发',
+    onCast(){
+        GS.playerDeck = GS.playerDeck.filter(c=> !(c.attribute==='物理' && ['银','铜','铁'].includes(c.rarity)));
+        ['银','铜','铁'].forEach(r=>{
+            const pool = Object.values(CardDB).filter(c=>c.attribute==='物理' && c.rarity===r);
+            if(pool.length) GS.playerDeck.push(cloneCard(pool[Math.floor(Math.random()*pool.length)]));
+        });
+        shuffle(GS.playerDeck);
+        const drawn = drawCard(true); if(drawn) drawn.rarity = '银';
+        GS.physLabActive = true;
+        const goldPool = Object.values(CardDB).filter(c=>c.attribute==='物理' && c.rarity==='金' && c.id !== 'physLab' && c.id !== 'greatPhys');
+        shuffle(goldPool); const choices = goldPool.slice(0,3).map(c=>c.id);
+        openBranchChoice(choices, '物理实验室');
+        if(Math.random()<0.05){ addCardToHand(cloneCard(CardDB.greatPhys), true); log('物理实验室：额外获得【伟大物理研发】','green'); }
+        return true; } };
+
+CardDB.safetyWarn = { id:'safetyWarn', name:'安全警告', cost:0, type:'spell', attribute:'物理', rarity:'铁', icon:'⚠',
+    desc:'主动打出：接下来2回合敌方不能使用化学/物化兼有卡牌',
+    onCast(){ GS.enemySafetyWarningSuppressTurn = 2; log('安全警告：敌方2回合内禁止化学/物化卡牌','yellow'); return true; } };
+
+CardDB.thermometer = { id:'thermometer', name:'温度计', cost:1, type:'spell', attribute:'物理', rarity:'铁', icon:'🌡',
+    desc:'测一单位温度：>43.2℃ 使其下场1回合；否则自身指挥点槽上限+1（每局最多+5）',
+    needTarget:true,
+    onCast(x,y){
+        if(GS.thermometerUsedCount >= 5){ log('温度计：已达上限','red'); return false; }
+        const u = GS.field[y][x];
+        if(u){ const t = u.isPlayerUnit ? GS.playerTemp : GS.enemyTemp;
+            if(t > 43.2){ u.stun = true; log('温度计：目标晕厥下场1回合','yellow'); }
+            else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：指挥点槽上限+1','green'); }
+        } else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：空测，指挥点槽上限+1','green'); }
+        return true; } };
+
+CardDB.eternalChem = { id:'eternalChem', name:'永恒化学研发', cost:3, type:'spell', attribute:'化学', rarity:'金', icon:'🧪', isResearch:true,
+    desc:'一级开发：二选一【热浓硫酸】/【扩展化学研发】',
+    onCast(){ openBranchChoice(['hotAcid','extChem'],'永恒化学研发'); return true; } };
+
+CardDB.hotAcid = { id:'hotAcid', name:'热浓硫酸', cost:0, type:'spell', attribute:'化学', rarity:'铜', icon:'🧫',
+    desc:'对单个敌方单位造成6点伤害，扣敌方1指挥点槽', needTarget:true, volatile:2,
+    onCast(x,y){ const u = GS.field[y][x];
+        if(u && !u.isPlayerUnit){ u.def = Math.max(0, u.def - 6);
+            GS.enemyKMax = Math.max(12, GS.enemyKMax - 1); GS.enemyK = Math.min(GS.enemyK, GS.enemyKMax);
+            cleanupDead(); log('热浓硫酸命中','red'); }
+        return true; } };
+
+CardDB.extChem = { id:'extChem', name:'扩展化学研发', cost:6, type:'spell', attribute:'化学', rarity:'金', icon:'⚗',
+    desc:'二级开发：二选一【硝化爆破】/【高级化学研发】',
+    onCast(){ openBranchChoice(['nitroBlast','advChem'],'扩展化学研发'); return true; } };
+
+CardDB.nitroBlast = { id:'nitroBlast', name:'硝化爆破', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'💣',
+    desc:'直接获取【硝化甘油】、【易燃热锌】两张卡牌',
+    onCast(){ addCardToHand(cloneCard(CardDB.nitroGlycerin)); addCardToHand(cloneCard(CardDB.hotZinc)); log('硝化爆破：获得硝化甘油+易燃热锌','green'); return true; } };
+
+CardDB.nitroGlycerin = { id:'nitroGlycerin', name:'硝化甘油', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'🧨',
+    desc:'使敌方所有目标获得硝化甘油效果', volatile:3,
+    onCast(){ GS.enemyHQ.nitroGlycerin = (GS.enemyHQ.nitroGlycerin||0) + 1;
+        forEachUnit(u=>{ if(!u.isPlayerUnit) u.nitroGlycerin = (u.nitroGlycerin||0) + 1; });
+        log('硝化甘油：敌方全体+1层','yellow'); return true; } };
+
+CardDB.hotZinc = { id:'hotZinc', name:'易燃热锌', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'🔥',
+    desc:'对敌方全体目标造成2点燃烧伤害', volatile:1,
+    onCast(){ GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 2);
+        forEachUnit(u=>{ if(!u.isPlayerUnit) dealDamage(u, 2); });
+        cleanupDead(); log('易燃热锌：敌方全体-2','red'); return true; } };
+
+CardDB.advChem = { id:'advChem', name:'高级化学研发', cost:9, type:'spell', attribute:'化学', rarity:'金', icon:'🧪',
+    desc:'三级开发：二选一【化学武器】/【绝密化学研发】',
+    onCast(){ openBranchChoice(['chemWeapon','topSecretChem'],'高级化学研发'); return true; } };
+
+CardDB.chemWeapon = { id:'chemWeapon', name:'化学武器', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'☣',
+    desc:'从3张随机化学战剂中自选1张，重复执行3次；所有化学卡牌费用-3',
+    onCast(){ GS.chemWeaponBuff = true;
+        const pool = ['sarin','mustard','hcn','chlorine','vx','bz'];
+        for(let i=0;i<3;i++){ shuffle(pool); const pick = pool.slice(0,3)[Math.floor(Math.random()*3)]; addCardToHand(cloneCard(CardDB[pick]), true); }
+        log('化学武器：获得3张化学战剂，化学卡费用-3','green'); return true; } };
+
+CardDB.topSecretChem = { id:'topSecretChem', name:'绝密化学研发', cost:12, type:'spell', attribute:'化学', rarity:'金', icon:'🔐',
+    desc:'四级开发：二选一【致命照射】/【永恒之星】',
+    onCast(){ openBranchChoice(['lethalRad','eternalStar'],'绝密化学研发'); return true; } };
+
+CardDB.lethalRad = { id:'lethalRad', name:'致命照射', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'☢',
+    desc:'敌方总部每回合开局获得1层放射，所有敌方单位同步+1放射',
+    onCast(){ GS.lethalRadiationDebuff = true; log('致命照射：敌方将被持续辐射','red'); return true; } };
+
+CardDB.eternalStar = { id:'eternalStar', name:'永恒之星', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'✨',
+    desc:'友方全体+30防御，清除负面，赋予【无法被抑制】；总部常驻：每回合开局随机清除2友方全部负面',
+    onCast(){
+        GS.playerHQ.defMax += 30; GS.playerHQ.def += 30; GS.playerHQ.immune = true;
+        GS.playerHQ.cannotBeSuppressed = true; GS.playerHQ.radiate = 0; GS.playerHQ.stun = false; GS.playerHQ.suppress = false;
+        forEachUnit(u=>{ if(u.isPlayerUnit){ u.defMax += 30; u.def += 30; u.immune = true; u.cannotBeSuppressed = true;
+            u.radiate = 0; u.stun = false; u.suppress = false; } });
+        GS.eternalStarBuff = true; log('永恒之星：友方全体强化','green'); return true; } };
+
+function makeAgent(id, name, radius, maxStack, icon, desc){
+    return { id, name, cost:5, type:'spell', attribute:'化学', rarity:'银', icon, desc, needTarget:true, agent:{ maxStack },
+        onCast(x,y){ GS.poisonZones.push({ x, y, radius, duration:5, type:id, maxStack });
+            log(`${name}：生成${radius*2+1}×${radius*2+1}毒区`,'yellow'); return true; } };
+}
+CardDB.sarin    = makeAgent('sarin','沙林',1,2,'☠','2×2毒区，最大2层，达2层立即阵亡');
+CardDB.mustard  = makeAgent('mustard','芥子气',1,4,'🟡','3×3毒区，最大4层，达4层80%阵亡');
+CardDB.hcn      = makeAgent('hcn','氰化氢',1,4,'💨','3×3毒区，最大4层，达4层立即阵亡');
+CardDB.chlorine = makeAgent('chlorine','氯气',1,5,'🟢','3×3毒区，最大5层，达5层80%阵亡');
+CardDB.vx       = makeAgent('vx','维埃克斯',1,3,'🟣','3×3毒区，最大3层，无直接阵亡');
+CardDB.bz       = makeAgent('bz','毕兹',1,2,'💜','3×3毒区，最大2层，无直接阵亡');
+
+CardDB.heater = { id:'heater', name:'加热器', cost:3, type:'spell', attribute:'物化', rarity:'银', icon:'🔥',
+    desc:'可打出两次，每次敌方全体温度+3℃',
+    onCast(){ GS.enemyTemp += 3; log('加热器：敌方温度+3℃','red');
+        if(!this._used){ this._used = true; return 'repeat'; } return true; } };
+
+CardDB.alcoholLamp = { id:'alcoholLamp', name:'酒精灯', cost:2, type:'spell', attribute:'物化', rarity:'铜', icon:'🕯',
+    desc:'投掷敌方目标，3%爆头直接消灭（命中2×2烈火3回合）；未命中则4回合烈火', needTarget:true,
+    onCast(x,y){
+        const head = Math.random() < 0.03;
+        if(head){ const u = GS.field[y][x]; if(u) GS.field[y][x]=null; }
+        const dur = head ? 3 : 4;
+        for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+            const nx=x+dx, ny=y+dy;
+            if(nx>=0&&nx<11&&ny>=0&&ny<11) GS.fireZones.push({x:nx,y:ny,duration:dur});
+        }
+        log('酒精灯：生成烈火区'+(head?'（爆头）':''),'red'); return true; } };
+
+CardDB.beaker = { id:'beaker', name:'密封塞烧杯', cost:0, type:'spell', attribute:'物化', rarity:'铁', icon:'🧪',
+    desc:'储水上限900ml。满水(900ml)可用：单点敌方单位本回合无法攻击；或放置2×2水域（途经-2血）。拖动【水】到它上面=合成【空气内能炮】；点击可选择单独使用/灌水/合成', needTarget:true,
+    onCast(x,y){
+        const inBeaker = GS.beakerWater||0;
+        if(inBeaker >= 900){
+            for(let dy=0;dy<2;dy++) for(let dx=0;dx<2;dx++){
+                const nx=x+dx, ny=y+dy;
+                if(nx>=0&&nx<11&&ny>=0&&ny<11) GS.waterZones.push({x:nx,y:ny,duration:1});
+            }
+            GS.beakerWater = 0; log('烧杯：放置2×2水域','green');
+        } else {
+            const u = GS.field[y][x];
+            if(u && !u.isPlayerUnit){ u.suppress = true; log(`烧杯：目标本回合无法攻击（杯内${inBeaker}ml）`,'yellow'); }
+            else { log(`烧杯：水量不足900ml（当前${inBeaker}ml），先用水卡灌水`,'red'); return false; }
+        }
+        return true; } };
+
+CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'❄',
+    desc:'自身温度降为37.4度，随机弃2张手牌',
+    onCast(){ GS.playerTemp = 37.4;
+        for(let i=0;i<2 && GS.playerHand.length>0;i++){
+            const idx = Math.floor(Math.random()*GS.playerHand.length);
+            GS.discardPile.push(GS.playerHand.splice(idx,1)[0]);
+        }
+        log('冰凉贴：温度下降，弃2张牌','green'); return true; } };
+
+CardDB.airCannon = { id:'airCannon', name:'空气内能炮', cost:3, type:'spell', attribute:'化学', rarity:'银', icon:'💨',
+    desc:'合成：水+密封塞烧杯。可无限次打出，每次消耗300ml水（优先炮内→烧杯→储水），对敌方全体造成4点伤害。炮内储水上限900ml，每次使用【水】卡可补充300ml。可主动丢弃（卡牌右上角🗑），丢弃后获得3点指挥点（指挥点已满则无法获取）',
+    onCast(){
+        if(GS.castByEnemy){ log('敌方尝试启动空气内能炮，但缺少装水手段','red'); return true; }
+        if(waterTotalUsable() < 300){ log(`空气内能炮：水不足（当前共${waterTotalUsable()}ml，需要300ml）`,'red'); return false; }
+        consumeWater(300);
+        GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 4);
+        forEachUnit(u=>{ if(!u.isPlayerUnit) dealDamage(u, 4); });
+        cleanupDead();
+        log(`空气内能炮：敌方全体-4（剩余水 储${GS.playerWater||0}／杯${GS.beakerWater||0}／炮${GS.cannonWater||0}）`,'red'); return 'repeat'; } };
+
+CardDB.water = { id:'water', name:'水', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'💧',
+    desc:'获得300ml水；单独打出可恢复我方所有单位3点血量。手牌存在密封塞烧杯时，可拖动【水】合成【空气内能炮】',
+    onCast(){
+        if(GS.castByEnemy){ forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.min(u.defMax, u.def + 3); }); log('敌方【水】：其全体+3','red'); return true; }
+        applyWaterCard('playerWater'); return true; } };
+
+CardDB.chemLab = { id:'chemLab', name:'化学实验室', cost:9, type:'spell', attribute:'化学', rarity:'金', icon:'🏛',
+    desc:'需要消耗一张安全警告；开启三阶段化学领域',
+    onCast(){
+        const swIdx = GS.playerHand.findIndex(c=>c.id==='safetyWarn');
+        if(swIdx < 0){ log('化学实验室：需要一张安全警告','red'); return false; }
+        GS.playerHand.splice(swIdx,1);
+        if(Math.random() < 0.03 && (hasTeacher(false,'化学老师') || hasTeacher(false,'物理老师'))){
+            log('化学实验室被拦截！','red');
+            addCardToHand(cloneCard(CardDB.safetyWarn));
+            addCardToHand(cloneCard(CardDB.alcoholLamp));
+            addCardToHand(cloneCard(CardDB.airCannon));
+            return true;
+        }
+        GS.chemLabActive = true; GS.chemLabStage = 1; GS.chemLabStageTurn = 0; GS.chemLabStageDuration = 4;
+        GS.enemyHQ.defMax = 100; GS.enemyHQ.def = 100;
+        log('化学实验室开启：一阶段','green'); return true; } };
+
+CardDB.chemTeacher = { id:'chemTeacher', name:'化学老师', cost:4, type:'unit', attribute:'化学', rarity:'铜', icon:'👩‍🔬',
+    atk:4, def:5, defMax:5, canDeploy:true,
+    desc:'出场：随机获得3张基础化学/物化卡牌；可概率拦截敌方化学实验室',
+    onDeploy(){
+        /* 冰凉贴不在随机池内：它只能由温度>46.8℃强制塞入 */
+        const baseChemIds = ['hotAcid','nitroGlycerin','hotZinc','sarin','mustard','hcn','chlorine','vx','bz','heater','alcoholLamp','beaker','water'];
+        const isPlayer = this.isPlayerUnit !== false;
+        for(let i=0;i<3;i++){
+            const id = baseChemIds[Math.floor(Math.random()*baseChemIds.length)];
+            const card = CardDB[id];
+            if(!card) continue;
+            /* 只有我方化学老师才把卡给我方，敌方老师给自己的手牌 */
+            if(isPlayer) addCardToHand(cloneCard(card), true);
+            else if(GS.enemyHand.length < GS.handMax) GS.enemyHand.push(cloneCard(card));
+        }
+        log(isPlayer ? '化学老师：获得3张基础化学卡' : '敌方化学老师：获得3张基础化学卡', isPlayer ? 'green' : 'red'); } };
+
+CardDB.physTeacher = { id:'physTeacher', name:'物理老师', cost:4, type:'unit', attribute:'物理', rarity:'铜', icon:'👨‍🔬',
+    atk:3, def:6, defMax:6, canDeploy:true,
+    desc:'常驻：所有物理/物化卡牌伤害×1.1；可概率拦截敌方化学实验室',
+    onDeploy(){ log('物理老师上场：物理伤害×1.1','green'); } };
+
+/* ====== 第二段从这里继续 ====== */
+/* ============================================================
+   ============== 状态注册表 ===================================
+   ============================================================ */
+const StatusRegistry = [
+    { key:'stun',             name:'眩晕',         icon:'💫', check:o=>o.stun,              fmt:()=>'' },
+    { key:'suppress',         name:'压制',         icon:'⛓',  check:o=>o.suppress,          fmt:()=>'' },
+    { key:'immune',           name:'免疫',         icon:'🛡',  check:o=>o.immune,            fmt:()=>'' },
+    { key:'cannotBeSuppressed',name:'无法抑制',    icon:'🔒', check:o=>o.cannotBeSuppressed, fmt:()=>'' },
+    { key:'vomit',            name:'呕吐',         icon:'🤢', check:o=>o.vomit,             fmt:()=>'' },
+    { key:'gasSmoke',         name:'气体烟雾中毒', icon:'🌫', check:o=>o.gasSmoke,          fmt:()=>'' },
+    { key:'gasSmokeAfter',    name:'烟雾后遗症',   icon:'💢', check:o=>(o.gasSmokeAftermath||0)>0, fmt:o=>`${o.gasSmokeAftermath}回合(受伤×1.5)` },
+    { key:'radiate',          name:'放射',         icon:'☢',  check:o=>(o.radiate||0)>0,    fmt:o=>`${o.radiate}层/6` },
+    { key:'nitroGlycerin',    name:'硝化甘油',     icon:'🧨', check:o=>(o.nitroGlycerin||0)>0, fmt:o=>`${o.nitroGlycerin}层` },
+    { key:'poison_sarin',     name:'沙林中毒',     icon:'☠', check:o=>o.poison && o.poison.sarin>0,    fmt:o=>`${o.poison.sarin}层/2` },
+    { key:'poison_mustard',   name:'芥子气中毒',   icon:'🟡', check:o=>o.poison && o.poison.mustard>0,  fmt:o=>`${o.poison.mustard}层/4` },
+    { key:'poison_hcn',       name:'氰化氢中毒',   icon:'💨', check:o=>o.poison && o.poison.hcn>0,      fmt:o=>`${o.poison.hcn}层/4` },
+    { key:'poison_chlorine',  name:'氯气中毒',     icon:'🟢', check:o=>o.poison && o.poison.chlorine>0, fmt:o=>`${o.poison.chlorine}层/5` },
+    { key:'poison_vx',        name:'维埃克斯中毒', icon:'🟣', check:o=>o.poison && o.poison.vx>0,      fmt:o=>`${o.poison.vx}层/3` },
+    { key:'poison_bz',        name:'毕兹中毒',     icon:'💜', check:o=>o.poison && o.poison.bz>0,      fmt:o=>`${o.poison.bz}层/2` },
+];
+
+function renderStatusLines(obj){
+    const owned = StatusRegistry.filter(s => s.check(obj));
+    if(owned.length === 0) return `<div class="t-line">状态：正常</div>`;
+    return owned.map(s => {
+        const extra = s.fmt(obj);
+        return `<div class="t-line">${s.icon} ${s.name}${extra ? '：' + extra : ''}</div>`;
+    }).join('');
+}
+
+/* ============================================================
+   ============== 游戏状态 =====================================
+   ============================================================ */
+const GameState = {
+    turn:1, isPlayerTurn:true, isPlayerFirst:true,
+    playerK:12, playerKMax:12, enemyK:12, enemyKMax:12,
+    playerTemp:37.2, enemyTemp:37.2,
+    playerHQ:{ placed:true, x:1, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false },
+    enemyHQ:{ x:10, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false },
+    handMax:10,
+    playerHand:[], enemyHand:[],
+    playerDeck:[], enemyDeck:[],
+    deckMax: 50, shopCoins: 0,
+    field: Array.from({length:11},()=>Array(11).fill(null)),
+    fireZones:[], radiateZones:[], poisonZones:[], waterZones:[],
+    discardPile:[], forcedSlot:[null,null],
+    fatigueCount:0, enemyFatigueCount:0,
+    enemySafetyWarningSuppressTurn:0,
+    chemLabActive:false, chemLabStage:0, chemLabStageTurn:0, chemLabStageDuration:0,
+    thermometerUsedCount:0,
+    playerWater:0, beakerWater:0, cannonWater:0,
+    ac220vTurn:0, enemyNoDrawTurn:0, enemyLoseKTurn:0,
+    controlledFusionBuff:false, lethalRadiationDebuff:false,
+    eternalStarBuff:false, physLabActive:false, chemWeaponBuff:false,
+    selectedCardIndex:null, pendingDeployCard:null, selectMode:null,
+    selectedUnit:null, selectedHQ:null,
+    castByEnemy:false, dragCardIndex:null, choiceOpen:false, lastDragEndAt:0, icePatchFromHeat:false,
+    gameOver:false, pendingEndTurn: false
+};
+const GS = GameState;
+
+let mainSubject = null;
+const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+/* ============================================================
+   ============== 工具函数 =====================================
+   ============================================================ */
+function log(text,color=""){
+    const d = document.getElementById("log");
+    const div = document.createElement("div");
+    if(color) div.className = "log-"+color;
+    div.textContent = text;
+    d.appendChild(div); d.scrollTop = d.scrollHeight;
+}
+function showTooltip(x,y,html){
+    const t = document.getElementById("tooltip");
+    t.innerHTML = html; t.style.left=(x+12)+"px"; t.style.top=(y+12)+"px"; t.style.display="block";
+}
+function hideTooltip(){ document.getElementById("tooltip").style.display="none"; }
+function clampTemp(){ GS.playerTemp = Math.max(37.2, GS.playerTemp); GS.enemyTemp = Math.max(37.2, GS.enemyTemp); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function cloneCard(c){ return Object.assign({}, c); }
+function isPlayerHQ(x,y){ return x===GS.playerHQ.x && y===GS.playerHQ.y; }
+function isEnemyHQ(x,y){ return x===GS.enemyHQ.x && y===GS.enemyHQ.y; }
+function isHQ(x,y){ return isPlayerHQ(x,y) || isEnemyHQ(x,y); }
+function inMyDeployZone(x){ return x>=0 && x<=4; }
+function inEnemyDeployZone(x){ return x>=6 && x<=10; }
+function forEachUnit(fn){
+    for(let y=0;y<11;y++) for(let x=0;x<11;x++){
+        const u = GS.field[y][x]; if(u) fn(u,x,y);
+    }
+}
+function cleanupDead(){
+    for(let y=0;y<11;y++) for(let x=0;x<11;x++){
+        const u = GS.field[y][x];
+        if(u && u.def <= 0){ log(`【${u.name}】阵亡`, u.isPlayerUnit?'red':'green'); GS.field[y][x]=null; }
+    }
+}
+/* 冰凉贴的唯一天然来源：温度 >46.8℃ 强制塞入（手牌满10张则随机删1张后塞入） */
+function forceAddIcePatchToHand(){
+    GS.icePatchFromHeat = true;
+    if(GS.playerHand.length >= GS.handMax){
+        const idx = Math.floor(Math.random()*GS.playerHand.length);
+        GS.discardPile.push(GS.playerHand.splice(idx,1)[0]);
+        log('手牌已满，随机弃1张后塞入【冰凉贴】','yellow');
+    }
+    GS.playerHand.push(cloneCard(CardDB.icePatch));
+    GS.icePatchFromHeat = false;
+    renderHand();
+}
+function hasTeacher(isPlayer, name){
+    let found = false;
+    forEachUnit(u=>{ if(u.isPlayerUnit===isPlayer && u.name===name) found = true; });
+    return found;
+}
+function dealDamage(u, amount){ if(u.gasSmokeAftermath > 0) amount = amount * 1.5; u.def = Math.max(0, u.def - amount); }
+function addCardToHand(card, forced=false){
+    if(!card) return;
+    /* 冰凉贴只能由温度>46.8℃强制塞入获得，其它任何方式都不行 */
+    if(card.id === 'icePatch' && !GS.icePatchFromHeat){
+        log('冰凉贴只能由温度过高(>46.8℃)触发获得','yellow'); return;
+    }
+    if(GS.playerHand.length >= GS.handMax){
+        if(forced){
+            if(GS.forcedSlot[0]) GS.forcedSlot[1] = GS.forcedSlot[0];
+            GS.forcedSlot[0] = card; renderForcedSlotUI();
+        }
+        return;
+    }
+    GS.playerHand.push(card); renderHand();
+}
+function findCardIndex(id){ return GS.playerHand.findIndex(c=>c.id===id); }
+
+/* ============================================================
+   ============== 水系统 =======================================
+   ============================================================ */
+/* 可用水 = 储水(playerWater) + 烧杯(beakerWater) + 炮内(cannonWater) */
+function waterTotalUsable(){ return (GS.playerWater||0) + (GS.beakerWater||0) + (GS.cannonWater||0); }
+/* 耗水顺序：炮内 → 烧杯 → 储水 */
+function consumeWater(amount){
+    if(waterTotalUsable() < amount) return false;
+    let left = amount;
+    ['cannonWater','beakerWater','playerWater'].forEach(k=>{
+        if(left <= 0) return;
+        const take = Math.min(GS[k]||0, left);
+        GS[k] = (GS[k]||0) - take; left -= take;
+    });
+    return true;
+}
+/* 空气内能炮储水上限900ml；装不下的部分留在储水，不浪费 */
+function fillCannon(amount){
+    const space = Math.max(0, 900 - (GS.cannonWater||0));
+    const stored = Math.min(space, amount);
+    GS.cannonWater = (GS.cannonWater||0) + stored;
+    const rest = amount - stored;
+    if(rest > 0) GS.playerWater = (GS.playerWater||0) + rest;
+    return { stored: stored, rest: rest };
+}
+/* 水卡结算：300ml 进入指定容器（储水/烧杯/炮内），并恢复友方全体3点 */
+function applyWaterCard(container){
+    const amt = 300;
+    if(container === 'beakerWater'){
+        const space = Math.max(0, 900 - (GS.beakerWater||0));
+        const stored = Math.min(space, amt), rest = amt - stored;
+        GS.beakerWater = (GS.beakerWater||0) + stored;
+        if(rest > 0) GS.playerWater = (GS.playerWater||0) + rest;
+        log(`水：烧杯+${stored}ml（杯内${GS.beakerWater}/900ml）${rest>0?`，装不下的${rest}ml留在储水`:''}`,'green');
+    } else if(container === 'cannonWater'){
+        const r = fillCannon(amt);
+        log(`水：空气内能炮装填+${r.stored}ml（炮内${GS.cannonWater}/900ml）${r.rest>0?`，装不下的${r.rest}ml留在储水`:''}`,'green');
+    } else {
+        GS.playerWater = (GS.playerWater||0) + amt;
+        log(`水：储水+${amt}ml（储水${GS.playerWater}ml）`,'green');
+    }
+    forEachUnit(u=>{ if(u.isPlayerUnit) u.def = Math.min(u.defMax, u.def + 3); });
+    log('水：友方全体+3','green');
+}
+
+/* ============================================================
+   ============== 通用选择弹窗 =================================
+   ============================================================ */
+function showChoice(title, desc, options){
+    const modal = document.getElementById('choice-modal'); if(!modal) return;
+    document.getElementById('choice-title').innerText = title;
+    document.getElementById('choice-desc').innerText = desc || '';
+    const list = document.getElementById('choice-list'); list.innerHTML = '';
+    (options||[]).forEach(opt=>{
+        const item = document.createElement('div');
+        item.className = opt.info ? 'branch-item info' : 'branch-item';
+        item.innerHTML = `<div class="bn">${opt.label}</div><div class="bd">${opt.desc||''}</div>`;
+        if(!opt.info) item.onclick = ()=>{ hideChoice(); if(opt.run) opt.run(); };
+        list.appendChild(item);
+    });
+    GS.choiceOpen = true; modal.classList.add('show');
+}
+function hideChoice(){
+    const modal = document.getElementById('choice-modal'); if(modal) modal.classList.remove('show');
+    GS.choiceOpen = false;
+}
+function cardAllowedBySubject(card){
+    if(!mainSubject) return true;
+    if(card.rarity !== '金') return true;
+    if(mainSubject === 'physics' && card.attribute === '化学') return false;
+    if(mainSubject === 'chemistry' && card.attribute === '物理') return false;
+    return true;
+}
+/* 化学战剂统一标识：用于开局手牌与概率控制 */
+const CHEM_AGENTS = ['sarin','mustard','hcn','chlorine','vx','bz'];
+function isChemAgent(card){ return card && CHEM_AGENTS.includes(card.id); }
+
+/* ============================================================
+   ============== 牌库 / 抽牌 ==================================
+   ============================================================ */
+function initDeck(){
+    GS.playerDeck = []; GS.enemyDeck = [];
+
+    /* 牌库构架：化学战剂仅保留 3 张（沙林/氯气/芥子气各1），占 50 张的 6%，概率偏低但可抽到 */
+    const deckList = [
+        { id:'safetyWarn',   count:5 },
+        { id:'thermometer',  count:5 },
+        { id:'water',        count:12 },
+        { id:'beaker',       count:6 },
+        { id:'alcoholLamp',  count:5 },
+        { id:'chemTeacher',  count:2 },
+        { id:'physTeacher',  count:2 },
+        { id:'hotAcid',      count:5 },
+        { id:'heater',       count:2 },
+        { id:'sarin',        count:1 },
+        { id:'chlorine',     count:1 },
+        { id:'mustard',      count:1 },
+        { id:'greatPhys',    count:1 },
+        { id:'eternalChem',  count:1 },
+    ];
+    deckList.forEach(({id, count})=>{
+        const card = CardDB[id]; if(!card) return;
+        if(!cardAllowedBySubject(card)) return;
+        for(let i=0;i<count;i++) GS.playerDeck.push(cloneCard(card));
+    });
+    shuffle(GS.playerDeck);
+    GS.deckMax = Math.max(50, GS.playerDeck.length);
+
+    const enemyList = ['chemTeacher','physTeacher','hotZinc','nitroGlycerin','heater','water','water','alcoholLamp','chlorine','sarin','beaker','safetyWarn','thermometer'];
+    enemyList.forEach(id=>{ if(CardDB[id]) GS.enemyDeck.push(cloneCard(CardDB[id])); });
+    shuffle(GS.enemyDeck);
+}
+
+function drawCard(isPlayer){
+    const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
+    const hand = isPlayer ? GS.playerHand : GS.enemyHand;
+    if(deck.length === 0){
+        if(isPlayer){
+            GS.fatigueCount++;
+            GS.playerHQ.def = Math.max(0, GS.playerHQ.def - GS.fatigueCount);
+            log(`我方牌库空！疲劳伤害 -${GS.fatigueCount}`,'red');
+        } else {
+            GS.enemyFatigueCount++;
+            GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - GS.enemyFatigueCount);
+            log(`敌方牌库空！疲劳伤害 -${GS.enemyFatigueCount}`,'red');
+        }
+        return null;
+    }
+    const card = deck.shift();
+    hand.push(card);
+    if(isPlayer) renderHand();
+    return card;
+}
+
+/* 开局起手：不抽化学战剂、不抽研发入口卡、最多1张金卡 */
+function drawStartingHand(isPlayer, count){
+    const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
+    const hand = isPlayer ? GS.playerHand : GS.enemyHand;
+    let goldCount = 0, added = 0, safety = 0;
+    while(added < count && deck.length > 0 && safety < 500){
+        safety++;
+        const card = deck.shift();
+        /* 化学战剂不进开局手牌 */
+        if(isChemAgent(card)){ deck.push(card); shuffle(deck); continue; }
+        /* 研发入口（伟大物理/永恒化学）不进开局手牌 */
+        if(card.isResearch){ deck.push(card); shuffle(deck); continue; }
+        /* 金卡最多1张 */
+        if(card.rarity === '金' && goldCount >= 1){ deck.push(card); shuffle(deck); continue; }
+        if(card.rarity === '金') goldCount++;
+        hand.push(card); added++;
+    }
+}
+
+/* 保证开局有角色卡 */
+function ensureRoleCardInHand(isPlayer){
+    const hand = isPlayer ? GS.playerHand : GS.enemyHand;
+    const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
+    const roleNames = ['化学老师','物理老师'];
+    if(hand.some(c=>roleNames.includes(c.name))) return;
+    const idx = deck.findIndex(c=>roleNames.includes(c.name));
+    if(idx >= 0){
+        const card = deck.splice(idx,1)[0]; hand.push(card);
+        if(hand.length > GS.handMax){
+            const removeIdx = hand.findIndex(c=>!roleNames.includes(c.name));
+            if(removeIdx >= 0){ const removed = hand.splice(removeIdx,1)[0]; deck.push(removed); shuffle(deck); }
+        }
+    }
+}
+
+function randomEnemyDeployPos(){
+    for(let tries=0; tries<60; tries++){
+        const x = 6 + Math.floor(Math.random()*5);
+        const y = Math.floor(Math.random()*11);
+        if(!GS.field[y][x] && !isHQ(x,y)) return {x,y};
+    }
+    return null;
+}
+
+/* ============================================================
+   ============== 渲染 =========================================
+   ============================================================ */
+function renderBoard(){
+    const b = document.getElementById("board");
+    b.innerHTML = "";
+    for(let y=0;y<11;y++){
+        for(let x=0;x<11;x++){
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            if(GS.poisonZones.some(z=>Math.abs(z.x-x)<=z.radius && Math.abs(z.y-y)<=z.radius)) cell.classList.add("poison");
+            if(GS.fireZones.some(z=>z.x===x&&z.y===y)) cell.classList.add("fire");
+            if(GS.radiateZones.some(z=>z.x===x&&z.y===y)) cell.classList.add("radiate");
+            if(GS.waterZones.some(z=>z.x===x&&z.y===y)) cell.classList.add("water");
+            if(GS.pendingDeployCard && GS.selectMode==="deploy" && inMyDeployZone(x) && !GS.field[y][x] && !isHQ(x,y)) cell.classList.add("deployable");
+            if(GS.pendingDeployCard && GS.selectMode==="target") cell.classList.add("targetable");
+            if(GS.selectedUnit && GS.selectedUnit.x===x && GS.selectedUnit.y===y) cell.classList.add("selected-unit");
+            if(GS.selectedHQ === 'player' && isPlayerHQ(x,y)) cell.classList.add("selected-hq");
+
+            const buildTooltip = ()=>{
+                let html = "";
+                if(isPlayerHQ(x,y) || isEnemyHQ(x,y)){
+                    const hq = isPlayerHQ(x,y) ? GS.playerHQ : GS.enemyHQ;
+                    const temp = isPlayerHQ(x,y) ? GS.playerTemp : GS.enemyTemp;
+                    html = `<div class="t-title">${isPlayerHQ(x,y)?'我方':'敌方'}总部</div>
+                        <div class="t-line">防御：${hq.def.toFixed(1)} / ${hq.defMax.toFixed(1)}</div>
+                        <div class="t-line">温度：${temp.toFixed(1)}℃</div>
+                        ${renderStatusLines(hq)}`;
+                } else if(GS.field[y][x]){
+                    const u = GS.field[y][x];
+                    const temp = u.isPlayerUnit ? GS.playerTemp : GS.enemyTemp;
+                    html = `<div class="t-title">${u.name}</div>
+                        <div class="t-line">攻击：${u.atk.toFixed(1)}  防御：${u.def.toFixed(1)}/${u.defMax}</div>
+                        <div class="t-line">属性：${u.attribute}  稀有度：${u.rarity}</div>
+                        <div class="t-line">温度：${temp.toFixed(1)}℃</div>
+                        <div class="t-line" style="color:${u.hasAttacked ? '#ff9a9a' : '#9cffb0'};">${u.hasAttacked ? '本回合已攻击（仍可移动）' : '本回合可攻击（移动不限次）'}</div>
+                        ${renderStatusLines(u)}`;
+                }
+                return html;
+            };
+
+            if(isTouchDevice){
+                let touchTimer = null, touchMoved = false;
+                cell.addEventListener('touchstart', function(e){
+                    touchMoved = false;
+                    const touch = e.touches[0];
+                    touchTimer = setTimeout(()=>{ const html = buildTooltip(); if(html) showTooltip(touch.clientX, touch.clientY, html); touchTimer = null; }, 350);
+                }, {passive:true});
+                cell.addEventListener('touchmove', function(e){
+                    touchMoved = true;
+                    if(touchTimer){ clearTimeout(touchTimer); touchTimer = null; }
+                    hideTooltip();
+                }, {passive:true});
+                cell.addEventListener('touchend', function(e){
+                    if(touchTimer){ clearTimeout(touchTimer); touchTimer = null; }
+                    if(!touchMoved) onCellClick(x,y);
+                    setTimeout(hideTooltip, 2000);
+                });
+                cell.addEventListener('touchcancel', function(){ if(touchTimer){ clearTimeout(touchTimer); touchTimer = null; } hideTooltip(); });
+            } else {
+                cell.onmouseenter = (e)=>{ const html = buildTooltip(); if(html) showTooltip(e.clientX, e.clientY, html); };
+                cell.onmouseleave = hideTooltip;
+                cell.onclick = ()=>onCellClick(x,y);
+            }
+
+            if(isPlayerHQ(x,y)){ const hq = document.createElement("div"); hq.className="hq player"; hq.innerText="总"; cell.appendChild(hq); }
+            else if(isEnemyHQ(x,y)){ const hq = document.createElement("div"); hq.className="hq enemy"; hq.innerText="敌"; cell.appendChild(hq); }
+            else if(GS.field[y][x]){
+                const u = GS.field[y][x];
+                const unit = document.createElement("div");
+                unit.className = "unit";
+                if(u.stun) unit.classList.add("stun");
+                if(u.suppress) unit.classList.add("suppress");
+                if(u.hasAttacked) unit.classList.add("attacked");
+                unit.innerText = u.name;
+                cell.appendChild(unit);
+            }
+            b.appendChild(cell);
+        }
+    }
+}
+
+function renderHand(){
+    const area = document.getElementById("hand-area");
+    area.innerHTML = "";
+    GS.playerHand.forEach((card, idx)=>{
+        const el = document.createElement("div");
+        el.className = "card rarity-" + card.rarity;
+        if(GS.selectedCardIndex === idx) el.classList.add("selected");
+        if(card.id === 'water' && findCardIndex('beaker') >= 0) el.classList.add("combo");
+        if(card.id === 'beaker' && findCardIndex('water') >= 0) el.classList.add("combo");
+        const cost = document.createElement("div"); cost.className="card-cost";
+        let displayCost = card.cost;
+        if(GS.chemWeaponBuff && card.attribute==='化学') displayCost = Math.max(0, displayCost - 3);
+        if(GS.controlledFusionBuff && displayCost % 2 === 1) displayCost = Math.max(0, displayCost - 5);
+        cost.innerText = displayCost + "K"; el.appendChild(cost);
+        const icon = document.createElement("div"); icon.className="card-icon";
+        icon.innerText = card.icon || "📜"; el.appendChild(icon);
+        const name = document.createElement("div"); name.className="card-name";
+        name.innerText = card.name; el.appendChild(name);
+        const type = document.createElement("div"); type.className="card-type";
+        type.innerText = card.attribute + "·" + (card.type==="unit"?"单位":"法术"); el.appendChild(type);
+        if(card.volatile){ const v = document.createElement("div"); v.className="card-vol"; v.innerText = "⏳" + card.volatile; el.appendChild(v); }
+        if(card.id === 'beaker'){ const w = document.createElement("div"); w.className="card-water"; w.innerText = "💧" + (GS.beakerWater||0); el.appendChild(w); }
+        if(card.id === 'airCannon'){
+            const w = document.createElement("div"); w.className="card-water"; w.innerText = "💧" + (GS.cannonWater||0); el.appendChild(w);
+            /* 右上角垃圾桶：主动丢弃换指挥点 */
+            const d = document.createElement("div"); d.className = "card-discard"; d.innerText = "🗑";
+            d.title = '主动丢弃：获得3点指挥点';
+            d.onclick = (e)=>{ if(e && e.stopPropagation) e.stopPropagation(); openCannonDiscardChoice(); };
+            el.appendChild(d);
+        }
+        if(el.classList.contains("combo")){ const c = document.createElement("div"); c.className="card-combo"; c.innerText="⊕"; el.appendChild(c); }
+        el.onmouseenter = (e)=>{
+            const html = `<div class="t-title">${card.name}</div>
+                <div class="t-line">费用：${displayCost}K  属性：${card.attribute}  稀有度：${card.rarity}</div>
+                <div class="t-line">${card.desc||''}</div>
+                ${card.volatile?`<div class="t-line">挥发性：${card.volatile}回合</div>`:''}
+                ${card.id==='water' ? `<div class="t-line" style="color:#7cff9a;">点击可选择用法；拖动到【密封塞烧杯】上=合成【空气内能炮】，拖动到【空气内能炮】上=装填300ml</div>` : ''}
+                ${card.id==='beaker' ? `<div class="t-line" style="color:#7cff9a;">杯中水：${GS.beakerWater||0}/900ml。把【水】拖上来可合成；点击可选择单独使用/灌水/合成</div>` : ''}
+                ${card.id==='airCannon' ? `<div class="t-line" style="color:#7cff9a;">炮内水：${GS.cannonWater||0}/900ml（可用总水${waterTotalUsable()}ml）</div>
+                <div class="t-line" style="color:#ffb347;">点击卡牌=开火；点击右上角🗑=主动丢弃，获得3点指挥点</div>` : ''}
+                ${card.id==='water' && findCardIndex('beaker')>=0 ? `<div class="t-line" style="color:#7cff9a;">可与【密封塞烧杯】合成</div>` : ''}
+                ${card.id==='beaker' && findCardIndex('water')>=0 ? `<div class="t-line" style="color:#7cff9a;">可与【水】合成</div>` : ''}`;
+            showTooltip(e.clientX, e.clientY, html);
+        };
+        el.onmouseleave = hideTooltip;
+        el.dataset.cardIndex = String(idx);
+        el.onclick = ()=>{
+            /* 刚刚拖拽过就不触发点击 */
+            if(Date.now() - (GS.lastDragEndAt||0) < 350) return;
+            onCardClick(idx);
+        };
+        /* 鼠标 / 触屏通用的拖拽：移动超过8px算拖拽，否则算点击 */
+        el.style.touchAction = 'none';
+        el.addEventListener('pointerdown', (e)=>{
+            if(!GS.isPlayerTurn || GS.gameOver) return;
+            if(e.pointerType === 'mouse' && e.button !== 0) return;
+            const from = idx, sx = e.clientX, sy = e.clientY;
+            let dragging = false, targetEl = null;
+            try{ el.setPointerCapture(e.pointerId); }catch(err){}
+            const clearTarget = ()=>{ if(targetEl){ targetEl.classList.remove('drop-target'); targetEl = null; } };
+            const move = (ev)=>{
+                if(!dragging){
+                    if(Math.hypot(ev.clientX - sx, ev.clientY - sy) < 8) return;
+                    dragging = true; el.classList.add('dragging'); hideTooltip();
+                }
+                if(ev.cancelable) ev.preventDefault();
+                const under = document.elementFromPoint(ev.clientX, ev.clientY);
+                const cardEl = (under && under.closest) ? under.closest('.card') : null;
+                if(cardEl !== targetEl){
+                    clearTarget();
+                    const want = (cardEl && cardEl !== el) ? parseInt(cardEl.dataset.cardIndex, 10) : NaN;
+                    if(!isNaN(want) && canDropCard(from, want)){ targetEl = cardEl; cardEl.classList.add('drop-target'); }
+                }
+            };
+            const finish = ()=>{
+                el.removeEventListener('pointermove', move);
+                el.removeEventListener('pointerup', finish);
+                el.removeEventListener('pointercancel', finish);
+                el.classList.remove('dragging');
+                const hadTarget = targetEl;
+                clearTarget();
+                if(!dragging) return;
+                GS.lastDragEndAt = Date.now();
+                if(hadTarget){
+                    const to = parseInt(hadTarget.dataset.cardIndex, 10);
+                    if(!isNaN(to)) handleCardDrop(from, to);
+                }
+            };
+            el.addEventListener('pointermove', move);
+            el.addEventListener('pointerup', finish);
+            el.addEventListener('pointercancel', finish);
+        });
+        area.appendChild(el);
+    });
+    const enemyArea = document.getElementById("enemy-hand");
+    enemyArea.innerHTML = "";
+    for(let i=0;i<GS.enemyHand.length;i++){
+        const c = document.createElement("div"); c.className = "enemy-card-back"; enemyArea.appendChild(c);
+    }
+}
+
+function renderForcedSlotUI(){
+    for(let i=0;i<2;i++){
+        const el = document.getElementById("slot"+(i+1)); if(!el) continue;
+        const card = GS.forcedSlot[i];
+        if(card){
+            el.classList.add("filled"); el.innerText = card.name;
+            el.onclick = ()=>{
+                if(GS.forcedSlot[i] && GS.playerHand.length < GS.handMax){
+                    GS.playerHand.push(GS.forcedSlot[i]); GS.forcedSlot[i] = null;
+                    renderForcedSlotUI(); renderHand();
+                } else log('手牌已满，无法取出','red');
+            };
+        } else { el.classList.remove("filled"); el.innerText = "槽" + (i+1); el.onclick = null; }
+    }
+}
+
+function syncState(){
+    document.getElementById("my-hp").innerText = Math.max(0, Math.floor(GS.playerHQ.def));
+    document.getElementById("en-hp").innerText = Math.max(0, Math.floor(GS.enemyHQ.def));
+    document.getElementById("my-hpmax").innerText = Math.floor(GS.playerHQ.defMax);
+    document.getElementById("en-hpmax").innerText = Math.floor(GS.enemyHQ.defMax);
+    document.getElementById("my-k").innerText = GS.playerK;
+    document.getElementById("my-kmax").innerText = GS.playerKMax;
+    document.getElementById("my-temp").innerText = GS.playerTemp.toFixed(1) + "℃";
+    document.getElementById("en-temp").innerText = GS.enemyTemp.toFixed(1) + "℃";
+    document.getElementById("turn-num").innerText = GS.turn;
+    document.getElementById("phase-text").innerText = GS.isPlayerTurn ? "我方行动" : "敌方行动";
+    const waterView = document.getElementById("water-view"); if(waterView) waterView.innerText = GS.playerWater||0;
+    const beakerView = document.getElementById("beaker-view"); if(beakerView) beakerView.innerText = GS.beakerWater||0;
+    const cannonView = document.getElementById("cannon-view"); if(cannonView) cannonView.innerText = GS.cannonWater||0;
+    document.getElementById("my-deck").innerText = GS.playerDeck.length;
+    document.getElementById("my-deckmax").innerText = GS.deckMax;
+    const enDeckEl = document.getElementById("en-deck"); if(enDeckEl) enDeckEl.innerText = GS.enemyDeck.length;
+    const dw = document.getElementById("my-deck-wrap");
+    if(GS.playerDeck.length <= 0) dw.classList.add("deck-warn"); else dw.classList.remove("deck-warn");
+    const hint = document.getElementById("main-subject-hint");
+    if(hint && mainSubject) hint.innerText = '主科：' + (mainSubject === 'physics' ? '物理' : '化学');
+}
+
+/* ============================================================
+   ============== 交互 =========================================
+   ============================================================ */
+function resetSelection(){ GS.selectedCardIndex = null; GS.pendingDeployCard = null; GS.selectMode = null; GS.selectedUnit = null; GS.selectedHQ = null; }
+
+function effectiveCost(card){
+    let c = card.cost;
+    if(GS.chemWeaponBuff && card.attribute==='化学') c = Math.max(0, c - 3);
+    if(GS.controlledFusionBuff && c % 2 === 1) c = Math.max(0, c - 5);
+    return c;
+}
+
+function tryCombineWaterBeaker(idx){
+    const card = GS.playerHand[idx];
+    if(!card) return false;
+    let wi = -1, bi = -1;
+    if(card.id === 'water'){ wi = idx; bi = findCardIndex('beaker'); }
+    else if(card.id === 'beaker'){ bi = idx; wi = findCardIndex('water'); }
+    else return false;
+    if(wi < 0 || bi < 0){ log('合成失败：需要【水】+【密封塞烧杯】','red'); return false; }
+    /* 水卡自带300ml，加上烧杯里已有的水，一起装入炮中（炮内储水上限900ml） */
+    const loaded = (GS.beakerWater||0) + 300;
+    const arr = [wi, bi].sort((a,b)=>b-a);
+    GS.playerHand.splice(arr[0],1); GS.playerHand.splice(arr[1],1);
+    GS.beakerWater = 0;
+    const r = fillCannon(loaded);
+    GS.playerHand.push(cloneCard(CardDB.airCannon));
+    log(`合成成功：【空气内能炮】（装入${r.stored}ml水，炮内${GS.cannonWater}/900ml${r.rest>0?`，其余${r.rest}ml留在储水`:''}）`,'green');
+    renderHand(); renderBoard(); syncState(); return true;
+}
+
+function onCellClick(x,y){
+    if(!GS.isPlayerTurn || GS.gameOver) return;
+
+    if(GS.selectedHQ === 'player'){
+        const hq = GS.playerHQ;
+        const dist = Math.abs(hq.x - x) + Math.abs(hq.y - y);
+        if(dist === 1 && !GS.field[y][x] && !isEnemyHQ(x,y) && !isPlayerHQ(x,y)){
+            if(GS.playerK < 1){ log('指挥点不足，无法移动总部','red'); GS.selectedHQ = null; renderBoard(); return; }
+            GS.playerK -= 1; hq.x = x; hq.y = y; hq.hasMoved = true; GS.selectedHQ = null;
+            log('总部移动（消耗1指挥点）','green'); renderBoard(); syncState(); return;
+        } else { GS.selectedHQ = null; renderBoard(); return; }
+    }
+
+    if(GS.selectedUnit){
+        const su = GS.selectedUnit;
+        const u = GS.field[su.y][su.x];
+        if(!u || !u.isPlayerUnit){ GS.selectedUnit = null; renderBoard(); return; }
+        const dist = Math.abs(su.x - x) + Math.abs(su.y - y);
+        if(dist === 1){
+            if(isEnemyHQ(x,y)){
+                if(u.hasAttacked){ log('该单位本回合已攻击过，但仍可继续移动','red'); return; }
+                GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - u.atk);
+                log(`我方【${u.name}】攻击敌方总部 -${u.atk}`,'green');
+                u.hasAttacked = true; u.hqAttackCount = (u.hqAttackCount||0) + 1;
+                if(u.hqAttackCount > 2){ log(`【${u.name}】攻击总部超过2次，被消灭！`,'red'); GS.field[su.y][su.x] = null; GS.selectedUnit = null; }
+                cleanupDead(); renderBoard(); syncState(); checkGameOver(); return;
+            }
+            const t = GS.field[y][x];
+            if(t && !t.isPlayerUnit){
+                if(u.hasAttacked){ log('该单位本回合已攻击过，但仍可继续移动','red'); return; }
+                dealDamage(t, u.atk);
+                log(`我方【${u.name}】攻击【${t.name}】-${u.atk}`,'green');
+                u.hasAttacked = true; cleanupDead(); renderBoard(); syncState(); checkGameOver(); return;
+            }
+            if(!t && !isHQ(x,y)){
+                GS.field[y][x] = u; GS.field[su.y][su.x] = null; GS.selectedUnit = {x:x, y:y};
+                renderBoard(); syncState(); return;
+            }
+        }
+        GS.selectedUnit = null; renderBoard(); return;
+    }
+
+    if(GS.selectMode === "deploy" && GS.pendingDeployCard){
+        if(!inMyDeployZone(x) || GS.field[y][x] || isHQ(x,y)){ log("只能部署在己方区域空格","red"); return; }
+        const card = GS.pendingDeployCard, cardIdx = GS.selectedCardIndex;
+        const cost = effectiveCost(card);
+        if(cost > GS.playerK){ log("指挥点不足","red"); return; }
+        GS.playerK -= cost; GS.playerHand.splice(cardIdx, 1);
+        const unit = {
+            id:card.id, name:card.name, atk:card.atk, def:card.def, defMax:card.defMax,
+            attribute:card.attribute, rarity:card.rarity, isPlayerUnit:true,
+            stun:false, suppress:false, immune:false, radiate:0, nitroGlycerin:0,
+            cannotBeSuppressed:false, poison:{}, fireTurns:0, gasSmoke:false, gasSmokeCooldown:0, gasSmokeAftermath:0,
+            hasAttacked:false, hqAttackCount:0
+        };
+        if(GS.controlledFusionBuff && cost % 2 === 0){ unit.atk += 3; unit.def += 3; unit.defMax += 3; }
+        GS.field[y][x] = unit;
+        if(card.onDeploy) card.onDeploy.call(unit);
+        resetSelection(); renderHand(); renderBoard(); syncState(); checkGameOver(); return;
+    }
+
+    if(GS.selectMode === "target" && GS.pendingDeployCard){
+        const card = GS.pendingDeployCard, cardIdx = GS.selectedCardIndex;
+        const cost = effectiveCost(card);
+        if(cost > GS.playerK){ log("指挥点不足","red"); return; }
+        if(GS.enemySafetyWarningSuppressTurn>0 && (card.attribute==='化学'||card.attribute==='物化')){ log("安全警告生效中，无法打出化学/物化卡","red"); return; }
+        GS.playerK -= cost;
+        const ret = card.onCast ? card.onCast.call(card, x, y) : true;
+        if(ret === false){ GS.playerK += cost; resetSelection(); renderHand(); renderBoard(); syncState(); return; }
+        if(ret === 'repeat'){ resetSelection(); renderHand(); renderBoard(); syncState(); return; }
+        GS.playerHand.splice(cardIdx,1); resetSelection();
+        renderHand(); renderBoard(); syncState(); checkGameOver(); return;
+    }
+
+    if(isPlayerHQ(x,y) && !GS.playerHQ.hasMoved){ GS.selectedHQ = 'player'; log('选中总部，点击相邻空格移动（消耗1K）','yellow'); renderBoard(); return; }
+
+    const u = GS.field[y][x];
+    if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】：可无限次移动，攻击每回合限1次`,'yellow'); renderBoard(); return; }
+}
+
+function onCardClick(idx){
+    if(!GS.isPlayerTurn || GS.gameOver) return;
+    const card = GS.playerHand[idx]; if(!card) return;
+    /* 水 / 烧杯：弹出多种用法，不再强制合成 */
+    if(card.id === 'water'){ openWaterCardChoice(idx); return; }
+    if(card.id === 'beaker'){ openBeakerCardChoice(idx); return; }
+    beginCardUse(idx);
+}
+
+/* 普通出牌流程（原 onCardClick 主体） */
+function beginCardUse(idx){
+    const card = GS.playerHand[idx]; if(!card) return;
+    const cost = effectiveCost(card);
+    if(cost > GS.playerK){ log("指挥点不足","red"); return; }
+    if(GS.selectedCardIndex === idx){ resetSelection(); renderHand(); renderBoard(); return; }
+    GS.selectedCardIndex = idx; GS.pendingDeployCard = card;
+    if(card.type === "unit" && card.canDeploy){ GS.selectMode = "deploy"; log("选择部署位置","yellow"); }
+    else if(card.needTarget){ GS.selectMode = "target"; log("选择目标","yellow"); }
+    else {
+        if(GS.enemySafetyWarningSuppressTurn>0 && (card.attribute==='化学'||card.attribute==='物化')){ log("安全警告生效中，无法打出化学/物化卡","red"); resetSelection(); renderHand(); renderBoard(); return; }
+        GS.playerK -= cost;
+        const ret = card.onCast ? card.onCast.call(card) : true;
+        if(ret === false){ GS.playerK += cost; resetSelection(); renderHand(); renderBoard(); syncState(); return; }
+        if(ret === 'repeat'){ resetSelection(); renderHand(); renderBoard(); syncState(); return; }
+        GS.playerHand.splice(idx,1); resetSelection();
+    }
+    renderHand(); renderBoard(); syncState(); checkGameOver();
+}
+
+/* ---------- 水卡 / 烧杯 的多种用法 ---------- */
+function playWaterInto(idx, container){
+    const card = GS.playerHand[idx];
+    if(!card || card.id !== 'water'){ log('没有可用的【水】卡','red'); return; }
+    if(GS.enemySafetyWarningSuppressTurn>0){ log("安全警告生效中，无法打出化学/物化卡","red"); return; }
+    const cost = effectiveCost(card);
+    if(cost > GS.playerK){ log("指挥点不足","red"); return; }
+    GS.playerK -= cost;
+    applyWaterCard(container);
+    GS.playerHand.splice(idx,1);
+    resetSelection(); renderHand(); renderBoard(); syncState(); checkGameOver();
+}
+
+function pourReserveIntoBeaker(){
+    const bw = GS.beakerWater||0, space = 900 - bw;
+    if(space <= 0){ log('烧杯已满（900ml）','yellow'); return; }
+    const amount = Math.min(space, GS.playerWater||0);
+    if(amount <= 0){ log('储水不足，先用【水】卡攒水','red'); return; }
+    GS.playerWater -= amount; GS.beakerWater = bw + amount;
+    log(`烧杯：灌入${amount}ml（杯内${GS.beakerWater}/900ml）`,'green');
+    renderHand(); renderBoard(); syncState();
+}
+
+function loadBeakerIntoCannon(){
+    const bw = GS.beakerWater||0;
+    if(bw <= 0){ log('烧杯里没有水，先用水卡灌水','yellow'); return; }
+    const space = Math.max(0, 900 - (GS.cannonWater||0));
+    const stored = Math.min(space, bw), rest = bw - stored;
+    GS.cannonWater = (GS.cannonWater||0) + stored;
+    GS.beakerWater = rest;   /* 炮装不下的水留在烧杯里 */
+    log(`空气内能炮：装填${stored}ml（炮内${GS.cannonWater}/900ml）${rest>0?`，烧杯剩余${rest}ml`:''}`,'green');
+    renderHand(); renderBoard(); syncState();
+}
+
+function openWaterCardChoice(idx){
+    if(!GS.playerHand[idx]) return;
+    const hasBeaker = findCardIndex('beaker') >= 0;
+    const hasCannon = findCardIndex('airCannon') >= 0;
+    const bw = GS.beakerWater||0, cw = GS.cannonWater||0;
+    const opts = [
+        { label:'💧 直接打出', desc:`储水+300ml（当前储水${GS.playerWater||0}ml），友方全体+3血量`, run:()=>{ const i = findCardIndex('water'); if(i>=0) beginCardUse(i); } }
+    ];
+    if(hasBeaker) opts.push({ label:'⊕ 合成空气内能炮', desc:`消耗【水】+【密封塞烧杯】，水卡300ml＋杯中${bw}ml 一起装入炮中（拖动【水】到烧杯上也是这个效果）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) tryCombineWaterBeaker(i); } });
+    if(hasBeaker) opts.push({ label:'🧪 灌入密封塞烧杯', desc:`只灌水不合成：烧杯+300ml（上限900ml，当前${bw}ml）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'beakerWater'); } });
+    if(hasCannon) opts.push({ label:'💨 装填空气内能炮', desc:`炮内+300ml（上限900ml，当前${cw}ml），装完即可开火`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'cannonWater'); } });
+    if(!hasBeaker) opts.push({ label:'ℹ 合成提示', info:true, desc:'手牌中同时有【水】和【密封塞烧杯】时，可拖动【水】到烧杯上合成【空气内能炮】' });
+    showChoice('【水】的用法', '水卡被消耗：+300ml水 且 友方全体+3血量（合成时水卡作为材料）。手牌有烧杯时，直接把【水】拖到烧杯上即可合成空气内能炮。', opts);
+}
+
+function openBeakerCardChoice(idx){
+    if(!GS.playerHand[idx]) return;
+    const hasWater = findCardIndex('water') >= 0;
+    const hasCannon = findCardIndex('airCannon') >= 0;
+    const bw = GS.beakerWater||0;
+    const reserve = GS.playerWater||0;
+    /* 没有任何可配合的对象时，直接进入技能目标选择，不再弹窗 */
+    if(!hasWater && !hasCannon && reserve <= 0){ beginCardUse(idx); return; }
+    const opts = [
+        { label:'🧪 单独使用技能', desc:`杯内${bw}/900ml。满900ml可放置2×2水域；否则对单个敌方单位本回合封锁攻击`, run:()=>beginCardUse(idx) }
+    ];
+    if(hasWater) opts.push({ label:'⊕ 合成空气内能炮', desc:`消耗【水】+【密封塞烧杯】，水卡300ml＋杯中${bw}ml 一起装入炮中（拖动【水】到烧杯上也是这个效果）`, run:()=>{ const i = findCardIndex('beaker'); if(i>=0) tryCombineWaterBeaker(i); } });
+    else opts.push({ label:'ℹ 合成需要【水】卡', info:true, desc:'手牌中同时有【水】和【密封塞烧杯】时才可合成；拖动【水】到烧杯上即可' });
+    if(reserve > 0) opts.push({ label:'💧 把储水灌进烧杯', desc:`可从储水(${reserve}ml)中倒入最多${Math.min(900-bw, reserve)}ml`, run:()=>pourReserveIntoBeaker() });
+    if(hasWater) opts.push({ label:'💧 用水卡灌水', desc:`只灌水不合成：烧杯+300ml（当前${bw}ml）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'beakerWater'); } });
+    if(hasCannon && bw > 0) opts.push({ label:'💨 把杯中的水装入炮', desc:`炮内装水（上限900ml），装不下的留在烧杯`, run:()=>loadBeakerIntoCannon() });
+    showChoice('【密封塞烧杯】的用法', `杯中水：${bw}/900ml。可以单独使用技能，也可以灌水或与【水】合成。`, opts);
+}
+
+/* ---------- 空气内能炮：主动丢弃，换取指挥点 ---------- */
+function openCannonDiscardChoice(){
+    if(!GS.isPlayerTurn || GS.gameOver) return;
+    if(findCardIndex('airCannon') < 0) return;
+    const full = GS.playerK >= GS.playerKMax;
+    const cw = GS.cannonWater||0;
+    showChoice('主动丢弃【空气内能炮】',
+        full ? `指挥点已满（${GS.playerK}/${GS.playerKMax}），丢弃后无法获得指挥点。` : `弃掉这张炮，并获得3点指挥点（当前${GS.playerK}/${GS.playerKMax}）。`,
+        [ { label:'🗑 确认丢弃',
+            desc: `${full ? '指挥点已满，不会获得指挥点' : '获得3点指挥点'}${cw>0 ? `；炮内剩余${cw}ml水转回储水` : ''}`,
+            run:()=>discardAirCannon() } ]);
+}
+
+function discardAirCannon(){
+    const i = findCardIndex('airCannon');
+    if(i < 0) return;
+    const cw = GS.cannonWater||0;
+    GS.discardPile.push(GS.playerHand.splice(i,1)[0]);
+    /* 炮里剩下的水转回储水，不浪费 */
+    GS.playerWater = (GS.playerWater||0) + cw; GS.cannonWater = 0;
+    let gained = 0;
+    if(GS.playerK < GS.playerKMax){
+        gained = Math.min(3, GS.playerKMax - GS.playerK);
+        GS.playerK += gained;
+    }
+    if(gained > 0) log(`空气内能炮：主动丢弃，获得${gained}点指挥点（${GS.playerK}/${GS.playerKMax}）${cw>0 ? `，${cw}ml水转回储水` : ''}`,'green');
+    else log(`空气内能炮：主动丢弃，但指挥点已满上限，未获得指挥点${cw>0 ? `（${cw}ml水转回储水）` : ''}`,'yellow');
+    resetSelection(); renderHand(); renderBoard(); syncState();
+}
+
+/* ---------- 手牌拖拽（鼠标） ---------- */
+function canDropCard(from, to){
+    if(from === to) return false;
+    const a = GS.playerHand[from], b = GS.playerHand[to];
+    if(!a || !b) return false;
+    const pair = [a.id, b.id].sort().join('+');
+    return pair === 'beaker+water' || pair === 'airCannon+water' || pair === 'airCannon+beaker';
+}
+
+function handleCardDrop(from, to){
+    if(!GS.isPlayerTurn || GS.gameOver) return;
+    const a = GS.playerHand[from], b = GS.playerHand[to];
+    if(!a || !b) return;
+    /* 设计文档：手牌存在密封塞烧杯时，拖动【水】合成【空气内能炮】 */
+    if(a.id === 'water' && b.id === 'beaker'){ tryCombineWaterBeaker(from); return; }
+    if(a.id === 'beaker' && b.id === 'water'){ tryCombineWaterBeaker(to); return; }
+    if(a.id === 'water' && b.id === 'airCannon'){ playWaterInto(from,'cannonWater'); return; }
+    if(a.id === 'airCannon' && b.id === 'water'){ playWaterInto(to,'cannonWater'); return; }
+    if((a.id === 'beaker' && b.id === 'airCannon') || (a.id === 'airCannon' && b.id === 'beaker')){ loadBeakerIntoCannon(); return; }
+}
+
+/* ============================================================
+   ============== 研发分支 / 主科 ==============================
+   ============================================================ */
+function openBranchChoice(ids, title){
+    const modal = document.getElementById("branch-modal"), list = document.getElementById("branch-list");
+    document.getElementById("branch-title").innerText = title;
+    list.innerHTML = "";
+    ids.forEach(id=>{
+        const card = CardDB[id]; if(!card) return;
+        if(!cardAllowedBySubject(card)) return;
+        const item = document.createElement("div"); item.className = "branch-item";
+        item.innerHTML = `<div class="bn">${card.icon||''} ${card.name}</div><div class="bd">${card.desc||''}</div>
+            <div class="bd" style="margin-top:6px;color:#ffb347;">费用：${card.cost}K</div>`;
+        item.onclick = ()=>{ modal.classList.remove("show"); addCardToHand(cloneCard(card), true); log(`获得研发卡【${card.name}】`,'green'); renderHand(); };
+        list.appendChild(item);
+    });
+    if(list.children.length === 0) list.innerHTML = `<div class="branch-item"><div class="bd">受主科限制，无可选分支</div></div>`;
+    modal.classList.add("show");
+}
+
+function showSubjectChoice(callback){
+    const modal = document.getElementById("branch-modal"), list = document.getElementById("branch-list");
+    document.getElementById("branch-title").innerText = "请选择主科";
+    list.innerHTML = "";
+    const choices = [
+        { id:'physics',   name:'物理', icon:'⚛', desc:'只能携带物理系金卡；化学系金卡（永恒化学研发、致命照射、永恒之星等）全部不可用' },
+        { id:'chemistry', name:'化学', icon:'🧪', desc:'只能携带化学系金卡；物理系金卡（伟大物理研发、物理实验室等）全部不可用' }
+    ];
+    choices.forEach(c=>{
+        const item = document.createElement("div"); item.className = "branch-item";
+        item.innerHTML = `<div class="bn">${c.icon} ${c.name}</div><div class="bd">${c.desc}</div>`;
+        item.onclick = ()=>{ mainSubject = c.id; modal.classList.remove("show"); log(`主科选择：${c.name}`,'green'); if(callback) callback(); };
+        list.appendChild(item);
+    });
+    modal.classList.add("show");
+}
+
+/* ============================================================
+   ============== 温度机制 =====================================
+   ============================================================ */
+function checkTemperatureDebuff(side){
+    const isPlayer = side === "player";
+    const temp = isPlayer ? GS.playerTemp : GS.enemyTemp;
+    const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
+    const prefix = isPlayer ? "我方" : "敌方";
+    if(temp >= 40.9 && temp < 246.8){ hq.def = Math.max(0, hq.def - 1); log(`${prefix}温度过高(≥40.9℃)，总部-1`,'red'); }
+    if(temp >= 246.8){
+        if(isPlayer){ forceAddIcePatchToHand(); log('温度过高！强制塞入【冰凉贴】','red'); }
+    }
+    if(temp > 46.8 && temp < 246.8 && isPlayer){
+        if(!GS.playerHand.some(c=>c.id==='icePatch')){
+            GS.icePatchFromHeat = true;
+            try{ forceAddIcePatchToHand(); } finally { GS.icePatchFromHeat = false; }
+            log('温度过高(>46.8℃)！强制塞入【冰凉贴】','red');
+        }
+    }
+}
+
+/* ============================================================
+   ============== 区域 / 毒区 / 火区 ==========================
+   ============================================================ */
+function applyZones(){
+    GS.fireZones.forEach(f=>{
+        const u = GS.field[f.y]?.[f.x];
+        if(u){ u.def = Math.max(0, u.def - 3); u.fireTurns = (u.fireTurns||0) + 1; if(u.fireTurns >= 2){ u.gasSmoke = true; } }
+        if(isPlayerHQ(f.x,f.y)) GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 3);
+        if(isEnemyHQ(f.x,f.y)) GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 3);
+    });
+    forEachUnit((u,x,y)=>{
+        const inFire = GS.fireZones.some(f=>f.x===x && f.y===y);
+        if(!inFire){
+            if(u.fireTurns > 0) u.fireTurns = 0;
+            if(u.gasSmoke){
+                u.gasSmokeCooldown = (u.gasSmokeCooldown||0) + 1;
+                if(u.gasSmokeCooldown >= 1){ u.gasSmoke = false; u.gasSmokeCooldown = 0; u.gasSmokeAftermath = 2; }
+            }
+        } else u.gasSmokeCooldown = 0;
+    });
+    (GS.waterZones||[]).forEach(w=>{ const u = GS.field[w.y]?.[w.x]; if(u){ u.def = Math.max(0, u.def - 2); } });
+    GS.waterZones = (GS.waterZones||[]).filter(w=>{ w.duration--; return w.duration>0; });
+    GS.radiateZones.forEach(z=>{
+        const u = GS.field[z.y]?.[z.x];
+        if(u) u.radiate = Math.min(6, (u.radiate||0) + 1);
+        if(isPlayerHQ(z.x,z.y)) GS.playerHQ.radiate = Math.min(6, GS.playerHQ.radiate + 1);
+        if(isEnemyHQ(z.x,z.y)) GS.enemyHQ.radiate = Math.min(6, GS.enemyHQ.radiate + 1);
+    });
+    GS.poisonZones.forEach(z=>{
+        const agent = CardDB[z.type]; if(!agent || !agent.agent) return;
+        for(let dy=-z.radius; dy<=z.radius; dy++) for(let dx=-z.radius; dx<=z.radius; dx++){
+            const nx = z.x+dx, ny = z.y+dy;
+            if(nx<0||nx>=11||ny<0||ny>=11) continue;
+            const u = GS.field[ny][nx];
+            if(u){ u.poison = u.poison || {}; u.poison[z.type] = Math.min(agent.agent.maxStack, (u.poison[z.type]||0) + 1); }
+            if(isPlayerHQ(nx,ny)){ GS.playerHQ.poison = GS.playerHQ.poison || {}; GS.playerHQ.poison[z.type] = Math.min(agent.agent.maxStack, (GS.playerHQ.poison[z.type]||0) + 1); }
+            if(isEnemyHQ(nx,ny)){ GS.enemyHQ.poison = GS.enemyHQ.poison || {}; GS.enemyHQ.poison[z.type] = Math.min(agent.agent.maxStack, (GS.enemyHQ.poison[z.type]||0) + 1); }
+        }
+    });
+    cleanupDead();
+}
+function tickZones(){
+    GS.fireZones = GS.fireZones.filter(z=>{ z.duration--; return z.duration>0; });
+    GS.radiateZones = GS.radiateZones.filter(z=>{ z.duration--; return z.duration>0; });
+    GS.poisonZones = GS.poisonZones.filter(z=>{ z.duration--; return z.duration>0; });
+}
+
+/* ============================================================
+   ============== 中毒结算 =====================================
+   ============================================================ */
+function settlePoisonOnUnit(u){
+    if(!u.poison) return;
+    for(const key in u.poison){
+        const x = u.poison[key]; if(x <= 0) continue;
+        switch(key){
+            case 'sarin': u.def = Math.max(0, u.def - 3.5*x); u.atk = Math.max(0, u.atk - x); if(x>=2) u.def = 0; break;
+            case 'mustard': u.def = Math.max(0, u.def - 2*x); u.atk = Math.max(0, u.atk - 0.25*x); if(x>=4 && Math.random()<0.8) u.def = 0; break;
+            case 'hcn': u.def = Math.max(0, u.def - 1.5*x); u.suppress = true; if(x>=4) u.def = 0; break;
+            case 'chlorine': u.def = Math.max(0, u.def - 0.5*x); if(Math.random() < 0.05*x) u.suppress = true; if(x>=5 && Math.random()<0.8) u.def = 0; break;
+            case 'vx': u.atk = Math.max(0, u.atk - x); break;
+            case 'bz': if(Math.random()<0.4*x) u.suppress = true; if(Math.random()<0.4*x) u.atk = 0; break;
+        }
+    }
+}
+function settlePoisonOnHQ(hq, isPlayer){
+    if(!hq.poison) return;
+    for(const key in hq.poison){
+        const x = hq.poison[key]; if(x<=0) continue;
+        switch(key){
+            case 'sarin': hq.def = Math.max(0, hq.def - 3*x); break;
+            case 'mustard': hq.def = Math.max(0, hq.def - 0.25*x);
+                if(isPlayer) GS.playerK = Math.max(0, GS.playerK - Math.floor(x/2));
+                else GS.enemyK = Math.max(0, GS.enemyK - Math.floor(x/2)); break;
+            case 'hcn': hq.def = Math.max(0, hq.def - x); break;
+            case 'chlorine': hq.def = Math.max(0, hq.def - 0.25*x); break;
+            case 'vx': if(Math.random()<0.3*x) log('敌方无法观察战场','red'); break;
+            case 'bz': if(Math.random()<0.25*x) log('敌方可能跳过回合','yellow'); break;
+        }
+    }
+}
+
+/* ============================================================
+   ============== 挥发性 =======================================
+   ============================================================ */
+function tickVolatile(hand, isPlayer){
+    for(let i=hand.length-1; i>=0; i--){
+        const c = hand[i];
+        if(c.volatile){ c.volatile--; if(c.volatile <= 0){ hand.splice(i,1); log(`【${c.name}】挥发性到期，自动弃除`, isPlayer?'yellow':'red'); } }
+    }
+}
+
+/* ============================================================
+   ============== 回合结算 =====================================
+   ============================================================ */
+function settleEndOfTurn(isPlayer){
+    tickVolatile(isPlayer ? GS.playerHand : GS.enemyHand, isPlayer);
+    if(isPlayer){
+        for(let i=0;i<2;i++){
+            if(GS.forcedSlot[i]){
+                if(GS.playerHand.length < GS.handMax){ GS.playerHand.push(GS.forcedSlot[i]); GS.forcedSlot[i] = null; }
+                else {
+                    const idx = Math.floor(Math.random()*GS.playerHand.length);
+                    GS.discardPile.push(GS.playerHand.splice(idx,1)[0]);
+                    GS.playerHand.push(GS.forcedSlot[i]); GS.forcedSlot[i] = null;
+                }
+            }
+        }
+        renderForcedSlotUI();
+        GS.playerTemp = Math.max(37.2, GS.playerTemp - 0.7);
+    } else {
+        GS.enemyTemp = Math.max(37.2, GS.enemyTemp - 0.7);
+    }
+    if(GS.ac220vTurn > 0) GS.ac220vTurn--;
+    if(GS.enemySafetyWarningSuppressTurn > 0) GS.enemySafetyWarningSuppressTurn--;
+    clampTemp(); tickZones();
+    forEachUnit(u=>{ if(u.gasSmokeAftermath > 0) u.gasSmokeAftermath--; });
+}
+
+/* ★ 关键改动：指挥点每回合恢复 1 点，不再补满 */
+function settleStartOfTurn(isPlayer){
+    const prefix = isPlayer ? "我方" : "敌方";
+    const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
+
+    if(isPlayer){
+        if(GS.controlledFusionBuff){
+            GS.playerK = Math.min(GS.playerKMax, GS.playerK + GS.playerKMax);
+            drawCard(true); drawCard(true);
+        } else {
+            /* 每回合 +1，封顶到上限 */
+            GS.playerK = Math.min(GS.playerKMax, GS.playerK + 1);
+        }
+        GS.playerHQ.hasMoved = false;
+        forEachUnit(u=>{ if(u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
+    } else {
+        /* 敌方也是每回合 +1 */
+        GS.enemyK = Math.min(GS.enemyKMax, GS.enemyK + 1);
+        GS.enemyHQ.hasMoved = false;
+        forEachUnit(u=>{ if(!u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
+    }
+
+    if(!isPlayer){
+        if(GS.enemyNoDrawTurn > 0){ GS.enemyNoDrawTurn--; log('敌方无法抽牌','green'); }
+        if(GS.enemyLoseKTurn > 0){ GS.enemyK = Math.max(0, GS.enemyK - 5); GS.enemyLoseKTurn--; log('敌方开局-5指挥点','green'); }
+        if(GS.lethalRadiationDebuff){
+            GS.enemyHQ.radiate = Math.min(6, GS.enemyHQ.radiate + 1);
+            forEachUnit(u=>{ if(!u.isPlayerUnit) u.radiate = Math.min(6, (u.radiate||0)+1); });
+        }
+    }
+    if(isPlayer && GS.eternalStarBuff){
+        let cnt = 0;
+        forEachUnit(u=>{
+            if(u.isPlayerUnit && cnt<2){
+                if(u.radiate>0||u.stun||u.suppress||(u.nitroGlycerin||0)>0){ u.radiate=0; u.stun=false; u.suppress=false; u.nitroGlycerin=0; cnt++; }
+            }
+        });
+    }
+    if(hq.radiate > 0){
+        hq.def = Math.max(0, hq.def - hq.radiate);
+        if(Math.random() < 0.05*hq.radiate) hq.stun = true;
+        if(hq.def <= 10 && Math.random() < 0.10*hq.radiate) hq.suppress = true;
+        log(`${prefix}总部放射-${hq.radiate}`,'red');
+    }
+    forEachUnit(u=>{
+        if(u.radiate > 0){
+            u.def = Math.max(0, u.def - u.radiate);
+            if(Math.random() < 0.10*u.radiate) u.atk = Math.max(0, u.atk - 2);
+            if(Math.random() < 0.15*u.radiate) u.def = 0;
+            if(Math.random() < 0.16*u.radiate) u.suppress = true;
+        }
+    });
+    if((hq.nitroGlycerin||0) > 0){ hq.def = Math.max(0, hq.def - hq.nitroGlycerin * 3); hq.nitroGlycerin = 0; log(`${prefix}总部硝化甘油爆炸！`,'red'); }
+    forEachUnit(u=>{ if((u.nitroGlycerin||0) > 0){ u.def = Math.max(0, u.def - u.nitroGlycerin * 3); u.nitroGlycerin = 0; } });
+
+    settlePoisonOnHQ(hq, isPlayer);
+    forEachUnit(u=>{ if((isPlayer && u.isPlayerUnit) || (!isPlayer && !u.isPlayerUnit)) settlePoisonOnUnit(u); });
+
+    applyZones();
+
+    if(isPlayer){ GS.playerHQ.stun = false; GS.playerHQ.suppress = false; }
+    else { GS.enemyHQ.stun = false; GS.enemyHQ.suppress = false; }
+
+    if(GS.chemLabActive && GS.chemLabStage > 0){
+        GS.chemLabStageTurn++;
+        if(GS.chemLabStageTurn >= GS.chemLabStageDuration){
+            GS.chemLabStage++; GS.chemLabStageTurn = 0;
+            if(GS.chemLabStage === 2){ GS.chemLabStageDuration = 5; GS.enemyHQ.defMax = 50; GS.enemyHQ.def = Math.min(50, GS.enemyHQ.def); log('化学实验室：二阶段','yellow'); }
+            else if(GS.chemLabStage === 3){ GS.chemLabStageDuration = 6; GS.enemyHQ.defMax = 15; GS.enemyHQ.def = Math.min(15, GS.enemyHQ.def); log('化学实验室：三阶段','red'); }
+            else if(GS.chemLabStage > 3){ GS.chemLabActive = false; GS.chemLabStage = 0; log('化学实验室领域结束','green'); }
+        }
+    }
+    checkTemperatureDebuff(isPlayer ? "player" : "enemy");
+    cleanupDead(); checkGameOver();
+}
+
+/* ============================================================
+   ============== 单位行动 / AI ================================
+   ============================================================ */
+function unitAttack(u, tx, ty){
+    if(isPlayerHQ(tx,ty)){
+        GS.playerHQ.def = Math.max(0, GS.playerHQ.def - u.atk);
+        log(`敌方【${u.name}】攻击我方总部 -${u.atk}`,'red');
+        u.hqAttackCount = (u.hqAttackCount||0) + 1;
+        if(u.hqAttackCount > 2){ log(`敌方【${u.name}】攻击总部超过2次，被消灭！`,'red'); forEachUnit((unit,ux,uy)=>{ if(unit === u) GS.field[uy][ux] = null; }); }
+    } else if(isEnemyHQ(tx,ty)){
+        GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - u.atk);
+        log(`我方【${u.name}】攻击敌方总部 -${u.atk}`,'green');
+        u.hqAttackCount = (u.hqAttackCount||0) + 1;
+        if(u.hqAttackCount > 2){ log(`我方【${u.name}】攻击总部超过2次，被消灭！`,'red'); forEachUnit((unit,ux,uy)=>{ if(unit === u) GS.field[uy][ux] = null; }); }
+    } else {
+        const t = GS.field[ty][tx];
+        if(t){ dealDamage(t, u.atk); log(`${u.isPlayerUnit?'我方':'敌方'}【${u.name}】攻击【${t.name}】-${u.atk}`, u.isPlayerUnit?'green':'red'); }
+    }
+}
+
+function enemyTurn(){
+    if(GS.gameOver) return;
+    log("—— 敌方回合开始 ——","red");
+    settleStartOfTurn(false);
+    if(GS.enemyHQ.stun || GS.enemyHQ.suppress){ log("敌方总部被压制，跳过回合","green"); setTimeout(endEnemyTurn, 600); return; }
+    if(GS.enemyNoDrawTurn <= 0){ drawCard(false); }
+
+    let guard = 0;
+    while(guard++ < 6){
+        let played = false;
+        for(let i=GS.enemyHand.length-1; i>=0; i--){
+            const c = GS.enemyHand[i];
+            if(c.cost <= GS.enemyK && c.type === "spell" && !c.needTarget){
+                GS.enemyK -= c.cost; log(`敌方打出【${c.name}】`,'red');
+                GS.castByEnemy = true;
+                try{ if(c.onCast) c.onCast.call(c); } finally { GS.castByEnemy = false; }
+                GS.enemyHand.splice(i,1); played = true;
+                if(GS.ac220vTurn > 0){ GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 1); forEachUnit(u=>{ if(u.isPlayerUnit) u.def = Math.max(0, u.def - 2); }); }
+                break;
+            }
+        }
+        if(played) continue;
+        for(let i=GS.enemyHand.length-1; i>=0; i--){
+            const c = GS.enemyHand[i];
+            if(c.cost <= GS.enemyK && c.type === "unit" && c.canDeploy){
+                const pos = randomEnemyDeployPos();
+                if(pos){
+                    GS.enemyK -= c.cost;
+                    GS.field[pos.y][pos.x] = {
+                        id:c.id, name:c.name, atk:c.atk, def:c.def, defMax:c.defMax,
+                        attribute:c.attribute, rarity:c.rarity, isPlayerUnit:false,
+                        stun:false, suppress:false, immune:false, radiate:0, nitroGlycerin:0,
+                        cannotBeSuppressed:false, poison:{}, fireTurns:0, gasSmoke:false, gasSmokeCooldown:0, gasSmokeAftermath:0,
+                        hasAttacked:false, hqAttackCount:0
+                    };
+                    if(c.onDeploy) c.onDeploy.call(GS.field[pos.y][pos.x]);
+                    log(`敌方部署【${c.name}】`,'red');
+                    GS.enemyHand.splice(i,1); played = true; break;
+                }
+            }
+        }
+        if(!played) break;
+    }
+
+    const snapshot = [];
+    forEachUnit((u,x,y)=>{ if(!u.isPlayerUnit) snapshot.push({u,x,y}); });
+    snapshot.forEach(({u,x,y})=>{
+        if(!GS.field[y][x] || GS.field[y][x] !== u) return;
+        if(u.stun) return;
+        let target = null, minDist = 999;
+        forEachUnit((t,tx,ty)=>{
+            if(t.isPlayerUnit){
+                const d = Math.abs(tx - x) + Math.abs(ty - y);
+                if(d < minDist){ minDist = d; target = {x:tx, y:ty, unit:t}; }
+            }
+        });
+        const hqDist = Math.abs(GS.playerHQ.x - x) + Math.abs(GS.playerHQ.y - y);
+        if(hqDist < minDist){ minDist = hqDist; target = {x:GS.playerHQ.x, y:GS.playerHQ.y, hq:true}; }
+        if(target && minDist === 1){
+            if(!u.hasAttacked){ unitAttack(u, target.x, target.y); u.hasAttacked = true; }
+        } else if(target && minDist > 1){
+            const dx = Math.sign(target.x - x), dy = Math.sign(target.y - y);
+            let nx = x + dx, ny = y + dy;
+            if(dx !== 0 && dy !== 0){
+                if(GS.field[y][ny] || isHQ(x,ny)) ny = y;
+                else if(GS.field[ny][x] || isHQ(nx,y)) nx = x;
+            }
+            if(nx>=0 && nx<11 && ny>=0 && ny<11 && !GS.field[ny][nx] && !isHQ(nx,ny)){ GS.field[ny][nx] = u; GS.field[y][x] = null; }
+        }
+    });
+    renderBoard(); syncState(); cleanupDead(); checkGameOver();
+    setTimeout(endEnemyTurn, 800);
+}
+
+function endEnemyTurn(){
+    if(GS.gameOver) return;
+    log("—— 敌方回合结束 ——","red");
+    settleEndOfTurn(false);
+    GS.turn++; GS.isPlayerTurn = true;
+    log("—— 第" + GS.turn + "回合 · 我方开始 ——","green");
+    settleStartOfTurn(true);
+    renderHand(); renderBoard(); renderForcedSlotUI(); syncState(); checkGameOver();
+}
+
+/* ============================================================
+   ============== 回合结束：抽牌询问 ===========================
+   ============================================================ */
+function endTurn(){
+    if(!GS.isPlayerTurn || GS.gameOver) return;
+    log("—— 我方回合结束 ——","yellow");
+    settleEndOfTurn(true);
+    const handCount = GS.playerHand.length;
+    if(handCount <= 1){ log('手牌不足2张，强制抽牌','yellow'); drawCard(true); finishEndTurn(); }
+    else showDrawModal();
+}
+function finishEndTurn(){
+    checkGameOver();
+    if(GS.gameOver) return;
+    GS.isPlayerTurn = false; renderHand(); renderBoard(); syncState();
+    setTimeout(enemyTurn, 600);
+}
+function showDrawModal(){
+    const modal = document.getElementById("draw-modal");
+    document.getElementById("draw-desc").innerText = '回合结束，是否抽1张牌？';
+    document.getElementById("draw-info").innerText = '手牌：' + GS.playerHand.length + '张  |  牌库剩余：' + GS.playerDeck.length + '张';
+    modal.classList.add("show"); GS.pendingEndTurn = true;
+}
+function hideDrawModal(){ document.getElementById("draw-modal").classList.remove("show"); GS.pendingEndTurn = false; }
+
+/* ============================================================
+   ============== 启动 / 结束 ==================================
+   ============================================================ */
+function startGame(){
+    GS.turn = 1; GS.isPlayerTurn = true; GS.isPlayerFirst = Math.random() < 0.5;
+    GS.playerK = 12; GS.playerKMax = 12; GS.enemyK = 12; GS.enemyKMax = 12;
+    GS.playerTemp = 37.2; GS.enemyTemp = 37.2;
+    GS.playerHQ = { placed:true, x:1, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false };
+    GS.enemyHQ = { x:10, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false };
+    GS.handMax = 10;
+    GS.playerHand = []; GS.enemyHand = [];
+    GS.playerDeck = []; GS.enemyDeck = [];
+    GS.deckMax = 50; GS.shopCoins = 0;
+    GS.field = Array.from({length:11},()=>Array(11).fill(null));
+    GS.fireZones = []; GS.radiateZones = []; GS.poisonZones = []; GS.waterZones = [];
+    GS.discardPile = []; GS.forcedSlot = [null,null];
+    GS.fatigueCount = 0; GS.enemyFatigueCount = 0;
+    GS.enemySafetyWarningSuppressTurn = 0;
+    GS.chemLabActive = false; GS.chemLabStage = 0; GS.chemLabStageTurn = 0; GS.chemLabStageDuration = 0;
+    GS.thermometerUsedCount = 0;
+    GS.playerWater = 0; GS.beakerWater = 0; GS.cannonWater = 0;
+    GS.ac220vTurn = 0; GS.enemyNoDrawTurn = 0; GS.enemyLoseKTurn = 0;
+    GS.controlledFusionBuff = false; GS.lethalRadiationDebuff = false;
+    GS.eternalStarBuff = false; GS.physLabActive = false; GS.chemWeaponBuff = false;
+    GS.selectedCardIndex = null; GS.pendingDeployCard = null; GS.selectMode = null;
+    GS.selectedUnit = null; GS.selectedHQ = null;
+    GS.castByEnemy = false; GS.dragCardIndex = null; GS.choiceOpen = false; GS.lastDragEndAt = 0; GS.icePatchFromHeat = false;
+    GS.gameOver = false; GS.pendingEndTurn = false;
+    document.getElementById("log").innerHTML = "";
+    document.getElementById("branch-modal").classList.remove("show");
+    document.getElementById("draw-modal").classList.remove("show");
+    document.getElementById("choice-modal").classList.remove("show");
+
+    initDeck();
+
+    const first = GS.isPlayerFirst;
+    const playerStart = first ? 4 : 5;
+    const enemyStart = first ? 5 : 4;
+    drawStartingHand(true, playerStart);
+    drawStartingHand(false, enemyStart);
+    ensureRoleCardInHand(true);
+    ensureRoleCardInHand(false);
+
+    log("游戏开始！你是" + (GS.isPlayerFirst ? "先手" : "后手"), "green");
+    log("—— 第1回合 · 我方开始 ——","green");
+    settleStartOfTurn(true);
+    renderBoard(); renderHand(); renderForcedSlotUI(); syncState();
+}
+
+function checkGameOver(){
+    if(GS.gameOver) return;
+    if(GS.playerHQ.def <= 0){ GS.gameOver = true; showResultModal(false); }
+    else if(GS.enemyHQ.def <= 0){ GS.gameOver = true; showResultModal(true); }
+}
+function showResultModal(isWin){
+    const modal = document.getElementById("result-modal");
+    document.getElementById("result-text").textContent = isWin ? "胜利" : "失败";
+    document.getElementById("result-desc").textContent = isWin ? "你击败了敌方总部！" : "我方总部被摧毁。";
+    modal.classList.add("show");
+}
+
+/* ============================================================
+   ============== 事件绑定 =====================================
+   ============================================================ */
+window.onload = function(){
+    hideTooltip();
+
+    document.getElementById("btn-local").addEventListener("click", function(){
+        document.getElementById("main-menu").style.display = "none";
+        document.getElementById("game-screen").style.display = "block";
+        showSubjectChoice(function(){ startGame(); });
+    });
+
+    document.getElementById("btn-back-menu").addEventListener("click", function(){
+        if(confirm("返回主菜单？当前对局进度会丢失。")){
+            document.getElementById("game-screen").style.display = "none";
+            document.getElementById("main-menu").style.display = "flex";
+            document.getElementById("result-modal").classList.remove("show");
+            document.getElementById("branch-modal").classList.remove("show");
+            document.getElementById("draw-modal").classList.remove("show");
+            document.getElementById("choice-modal").classList.remove("show");
+            mainSubject = null;
+        }
+    });
+
+    document.getElementById("btn-retry").addEventListener("click", function(){
+        document.getElementById("result-modal").classList.remove("show");
+        startGame();
+    });
+    document.getElementById("btn-continue").addEventListener("click", function(){
+        document.getElementById("result-modal").classList.remove("show");
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("main-menu").style.display = "flex";
+        mainSubject = null;
+    });
+    document.getElementById("btn-end-turn").addEventListener("click", endTurn);
+    document.getElementById("btn-choice-cancel").addEventListener("click", hideChoice);
+    const choiceModalEl = document.getElementById("choice-modal");
+    choiceModalEl.addEventListener("click", function(e){ if(e.target === choiceModalEl) hideChoice(); });
+
+    document.getElementById("btn-draw-yes").addEventListener("click", function(){
+        if(!GS.pendingEndTurn) return;
+        hideDrawModal(); log('抽牌1张','green'); drawCard(true); finishEndTurn();
+    });
+    document.getElementById("btn-draw-no").addEventListener("click", function(){
+        if(!GS.pendingEndTurn) return;
+        hideDrawModal(); log('放弃抽牌','yellow'); finishEndTurn();
+    });
+};
+</script>
+</body>
+</html>
