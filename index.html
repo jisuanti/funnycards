@@ -7,6 +7,10 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;color:#fff;font-family:"Microsoft YaHei","SimHei",sans-serif;}
 body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
+#global-error-bar{position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;
+  padding:10px 16px;font-size:13px;z-index:99999;display:none;
+  font-family:"Microsoft YaHei",sans-serif;line-height:1.5;white-space:pre-wrap;max-height:40vh;overflow:auto;}
+#global-error-bar b{color:#ffe27a;}
 #main-menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;
     background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.12),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
 .title-main{font-size:82px;font-weight:900;letter-spacing:22px;color:#f7d774;
@@ -18,8 +22,6 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .mode-btn.local{background:linear-gradient(135deg,#ffb347,#b54a12);border:3px solid #f7d774;
     box-shadow:0 0 30px rgba(255,170,96,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
 .mode-btn.local:hover{transform:rotate(45deg) scale(1.06);}
-.mode-btn.offline{background:linear-gradient(135deg,#4a4a4a,#1e1e1e);border:3px solid #7a7a7a;
-    box-shadow:inset 0 0 20px rgba(0,0,0,0.6);cursor:not-allowed;opacity:0.55;}
 .mode-btn.online{background:linear-gradient(135deg,#4aa8ff,#123a6e);border:3px solid #7cc1ff;
     box-shadow:0 0 30px rgba(124,193,255,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
 .mode-btn.online:hover{transform:rotate(45deg) scale(1.06);}
@@ -80,7 +82,6 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .unit{width:84%;height:84%;border-radius:4px;background:linear-gradient(180deg,#3b2a18,#1c140a);
     border:1px solid #f1d68a;color:#f1d68a;font-size:9px;text-align:center;padding:2px;
     display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(241,214,138,0.25);}
-.unit.noact{opacity:0.55;}
 .unit.stun{opacity:0.45;border:2px solid #44aaff;}
 .unit.suppress{border:2px solid #ff8800;}
 .unit.attacked{opacity:0.85;border:1px dashed #ff9a9a;}
@@ -135,7 +136,6 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .choice-buttons{margin-top:16px;}
 .choice-buttons button{padding:8px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
     color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:13px;}
-.choice-buttons button:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
 .ui-side-panel{position:absolute;right:12px;top:70px;width:230px;z-index:12;display:flex;flex-direction:column;gap:8px;}
 .mode-tip{background:rgba(0,0,0,0.55);border:1px solid #3a2e1c;border-radius:6px;padding:8px 12px;font-size:12px;color:#ffe27a;}
 .log{height:260px;background:rgba(0,0,0,0.55);border:1px solid #3a2e1c;border-radius:6px;
@@ -181,9 +181,6 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .draw-buttons button{padding:10px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);
     border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;
     letter-spacing:2px;font-size:14px;}
-.draw-buttons button:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
-
-/* ============ 联机大厅 / 房间 ============ */
 #lobby-screen{position:fixed;inset:0;display:none;flex-direction:column;z-index:210;
     background:radial-gradient(circle at 50% 30%,rgba(255,200,100,0.10),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
 .lobby-header{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid #3a2e1c;flex-wrap:wrap;}
@@ -219,6 +216,7 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 </style>
 </head>
 <body>
+<div id="global-error-bar"></div>
 <div id="main-menu">
     <div class="title-main">学好数理化</div>
     <div class="title-sub">卡牌对战测试版</div>
@@ -239,12 +237,11 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
         </div>
     </div>
 </div>
-
-<!-- ===== 联机大厅 ===== -->
 <div id="lobby-screen">
     <div class="lobby-header">
         <div class="lobby-title">房间大厅</div>
-        <input id="lobby-search" class="lobby-input" placeholder="输入房间码搜索" maxlength="8">
+        <input id="lobby-search" class="lobby-input" placeholder="输入房间码" maxlength="8">
+        <button class="lobby-btn primary" id="btn-lobby-join">直接加入</button>
         <button class="lobby-btn" id="btn-lobby-refresh">刷新</button>
         <button class="lobby-btn primary" id="btn-lobby-create">创建房间</button>
         <button class="lobby-btn" id="btn-lobby-back">返回主菜单</button>
@@ -252,13 +249,10 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
     <div class="lobby-body">
         <div class="room-list" id="room-list"></div>
         <div class="lobby-tip">
-            提示：本联机基于 Supabase Realtime，可跨设备、跨网络对战。<br>
-            房主创建房间后把 6 位房间码发给好友，好友在搜索框里输入房间码后加入即可。
+            提示：房主创建房间后把 6 位房间码发给好友，好友在输入框里输入房间码后点「直接加入」即可。
         </div>
     </div>
 </div>
-
-<!-- ===== 房间 ===== -->
 <div id="room-screen">
     <div class="room-box">
         <div class="room-code-line">
@@ -277,7 +271,6 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
         <div class="room-msg" id="room-msg"></div>
     </div>
 </div>
-
 <div id="game-screen">
     <div class="game-bg"></div>
     <div class="table-surface"><div class="table-inner"></div></div>
@@ -328,14 +321,14 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
         <div class="hand-area" id="hand-area"></div>
     </div>
     <div class="ui-side-panel">
-        <div class="mode-tip" id="mode-tip">点击手牌→选择目标/位置。点击己方单位可选中：相邻格移动（不限次），相邻敌方目标攻击（每回合1次）。点击己方总部可移动（消耗1K，每回合1次）。</div>
+        <div class="mode-tip" id="mode-tip">点击手牌→选择目标/位置。</div>
         <div class="log" id="log"></div>
     </div>
 </div>
 <div id="result-modal">
     <div class="result-box">
         <h2 id="result-text">游戏结束</h2>
-        <p id="result-desc">对局结束，可以选择重试或者返回。</p>
+        <p id="result-desc">对局结束。</p>
         <div class="result-buttons">
             <button id="btn-retry">重试</button>
             <button id="btn-continue">返回</button>
@@ -373,9 +366,22 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 <div id="tooltip"></div>
 
 <script>
-/* ============================================================
-   ============== Supabase 配置 ===============================
-   ============================================================ */
+/* ===== 全局错误捕获 ===== */
+window.addEventListener('error', function(e){
+  const bar = document.getElementById('global-error-bar');
+  if(!bar) return;
+  bar.style.display = 'block';
+  bar.textContent = '⚠ 页面脚本错误：' + (e.message || e.error || '未知错误') +
+    (e.filename ? '  @' + e.filename.split('/').pop() + ':' + e.lineno : '');
+});
+window.addEventListener('unhandledrejection', function(e){
+  const bar = document.getElementById('global-error-bar');
+  if(!bar) return;
+  bar.style.display = 'block';
+  bar.textContent = '⚠ 未处理的 Promise 错误：' + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
+});
+
+/* ===== Supabase 配置 ===== */
 const SUPABASE_URL      = 'https://vdrlevvweeftldzhlovz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkcmxldnZ3ZWVmdGxkemhsb3Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjE1MTIsImV4cCI6MjEwNjU5NzUxMn0.KcVDrmmE4uLr18pz58k9nmuNpqbprLPAS1EVmSxiVuo';
 
@@ -383,37 +389,29 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
    ============== 卡牌数据库 ===================================
    ============================================================ */
 const CardDB = {};
-
 CardDB.greatPhys = { id:'greatPhys', name:'伟大物理研发', cost:3, type:'spell', attribute:'物理', rarity:'金', icon:'⚛', isResearch:true,
     desc:'一级开发：二选一【防护服】/【扩展物理研发】',
     onCast(){ openBranchChoice(['physSuit','extPhys'],'伟大物理研发'); return true; } };
-
 CardDB.physSuit = { id:'physSuit', name:'防护服', cost:0, type:'spell', attribute:'物理', rarity:'金', icon:'🥼',
     desc:'友方全部单位获得免疫，持续1回合',
     onCast(){ forEachUnit(u=>{ if(u.isPlayerUnit) u.immune=true; }); GS.playerHQ.immune=true; log('防护服：友方全体获得免疫1回合','green'); return true; } };
-
 CardDB.extPhys = { id:'extPhys', name:'扩展物理研发', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'🔬',
     desc:'二级开发：二选一【220V交流电】/【高级物理研发】',
     onCast(){ openBranchChoice(['ac220v','advPhys'],'扩展物理研发'); return true; } };
-
 CardDB.ac220v = { id:'ac220v', name:'220V交流电', cost:0, type:'spell', attribute:'物理', rarity:'金', icon:'⚡',
     desc:'对敌方所有目标造成4点伤害；后续2回合内敌方每打出一张卡牌，敌方总部受1伤、全体单位各受2伤',
     onCast(){ GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 4);
         forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.max(0, u.def - 4); });
         GS.ac220vTurn = 2; cleanupDead(); log('220V交流电：敌方全体-4，附加2回合脉冲','yellow'); return true; } };
-
 CardDB.advPhys = { id:'advPhys', name:'高级物理研发', cost:9, type:'spell', attribute:'物理', rarity:'金', icon:'🧪',
     desc:'三级开发：二选一【核能链式反应】/【绝密物理研发】',
     onCast(){ openBranchChoice(['nukeChain','topSecretPhys'],'高级物理研发'); return true; } };
-
 CardDB.nukeChain = { id:'nukeChain', name:'核能链式反应', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'☢',
-    desc:'5×5造成8点伤害并生成3×3放射区（3回合）；敌方-3指挥点槽，接下来2回合无法抽牌',
-    needTarget:true,
+    desc:'5×5造成8点伤害并生成3×3放射区（3回合）；敌方-3指挥点槽，接下来2回合无法抽牌', needTarget:true,
     onCast(cx,cy){
         for(let y=Math.max(0,cy-2); y<=Math.min(10,cy+2); y++)
             for(let x=Math.max(0,cx-2); x<=Math.min(10,cx+2); x++){
-                const u = GS.field[y][x];
-                if(u) u.def = Math.max(0, u.def - 8);
+                const u = GS.field[y][x]; if(u) u.def = Math.max(0, u.def - 8);
                 if(Math.abs(x-cx)<=1 && Math.abs(y-cy)<=1) GS.radiateZones.push({x,y,duration:3});
             }
         if(Math.abs(GS.enemyHQ.x-cx)<=2 && Math.abs(GS.enemyHQ.y-cy)<=2) GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 8);
@@ -421,19 +419,15 @@ CardDB.nukeChain = { id:'nukeChain', name:'核能链式反应', cost:6, type:'sp
         GS.enemyKMax = Math.max(12, GS.enemyKMax - 3); GS.enemyK = Math.min(GS.enemyK, GS.enemyKMax);
         GS.enemyNoDrawTurn = Math.max(GS.enemyNoDrawTurn, 2);
         cleanupDead(); log('核能链式反应！','red'); return true; } };
-
 CardDB.topSecretPhys = { id:'topSecretPhys', name:'绝密物理研发', cost:12, type:'spell', attribute:'物理', rarity:'金', icon:'🔒',
     desc:'四级开发：二选一【核能热核聚变】/【核能可控核聚变】',
     onCast(){ openBranchChoice(['nukeFusion','nukeControlled'],'绝密物理研发'); return true; } };
-
 CardDB.nukeFusion = { id:'nukeFusion', name:'核能热核聚变', cost:15, type:'spell', attribute:'物理', rarity:'金', icon:'💥',
-    desc:'7×7造成15点伤害，生成5×5放射区4回合；后续3回合敌方开局-5K、无法抽牌、单位被压制',
-    needTarget:true,
+    desc:'7×7造成15点伤害，生成5×5放射区4回合；后续3回合敌方开局-5K、无法抽牌、单位被压制', needTarget:true,
     onCast(cx,cy){
         for(let y=Math.max(0,cy-3); y<=Math.min(10,cy+3); y++)
             for(let x=Math.max(0,cx-3); x<=Math.min(10,cx+3); x++){
-                const u = GS.field[y][x];
-                if(u) u.def = Math.max(0, u.def - 15);
+                const u = GS.field[y][x]; if(u) u.def = Math.max(0, u.def - 15);
                 if(Math.abs(x-cx)<=2 && Math.abs(y-cy)<=2) GS.radiateZones.push({x,y,duration:4});
             }
         if(Math.abs(GS.enemyHQ.x-cx)<=3 && Math.abs(GS.enemyHQ.y-cy)<=3) GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 15);
@@ -441,11 +435,9 @@ CardDB.nukeFusion = { id:'nukeFusion', name:'核能热核聚变', cost:15, type:
         GS.enemyLoseKTurn = 3; GS.enemyNoDrawTurn = Math.max(GS.enemyNoDrawTurn, 3);
         forEachUnit(u=>{ if(!u.isPlayerUnit) u.suppress = true; });
         cleanupDead(); log('核能热核聚变！','red'); return true; } };
-
 CardDB.nukeControlled = { id:'nukeControlled', name:'核能可控核聚变', cost:15, type:'spell', attribute:'物理', rarity:'金', icon:'🌟',
     desc:'指挥点槽上限24、手牌上限16，抽4张；常驻：奇数费-5、偶数费单位+3/+3、反制0费、单位行动0耗、指挥点留存、每回合开局抽2',
     onCast(){ GS.playerKMax = 24; GS.handMax = 16; GS.controlledFusionBuff = true; for(let i=0;i<4;i++) drawCard(true); log('核能可控核聚变启动！','green'); return true; } };
-
 CardDB.physLab = { id:'physLab', name:'物理实验室', cost:12, type:'spell', attribute:'物理', rarity:'金', icon:'🏛',
     desc:'移除牌库中银铜铁物理卡，重新洗入各一张，抽1张（判定为银）；从3张随机物理金卡中自选1张，5%额外获得伟大物理研发',
     onCast(){
@@ -462,14 +454,11 @@ CardDB.physLab = { id:'physLab', name:'物理实验室', cost:12, type:'spell', 
         openBranchChoice(choices, '物理实验室');
         if(Math.random()<0.05){ addCardToHand(cloneCard(CardDB.greatPhys), true); log('物理实验室：额外获得【伟大物理研发】','green'); }
         return true; } };
-
 CardDB.safetyWarn = { id:'safetyWarn', name:'安全警告', cost:0, type:'spell', attribute:'物理', rarity:'铁', icon:'⚠',
     desc:'主动打出：接下来2回合敌方不能使用化学/物化兼有卡牌',
     onCast(){ GS.enemySafetyWarningSuppressTurn = 2; log('安全警告：敌方2回合内禁止化学/物化卡牌','yellow'); return true; } };
-
 CardDB.thermometer = { id:'thermometer', name:'温度计', cost:1, type:'spell', attribute:'物理', rarity:'铁', icon:'🌡',
-    desc:'测一单位温度：>43.2℃ 使其下场1回合；否则自身指挥点槽上限+1（每局最多+5）',
-    needTarget:true,
+    desc:'测一单位温度：>43.2℃ 使其下场1回合；否则自身指挥点槽上限+1（每局最多+5）', needTarget:true,
     onCast(x,y){
         if(GS.thermometerUsedCount >= 5){ log('温度计：已达上限','red'); return false; }
         const u = GS.field[y][x];
@@ -478,11 +467,9 @@ CardDB.thermometer = { id:'thermometer', name:'温度计', cost:1, type:'spell',
             else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：指挥点槽上限+1','green'); }
         } else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：空测，指挥点槽上限+1','green'); }
         return true; } };
-
 CardDB.eternalChem = { id:'eternalChem', name:'永恒化学研发', cost:3, type:'spell', attribute:'化学', rarity:'金', icon:'🧪', isResearch:true,
     desc:'一级开发：二选一【热浓硫酸】/【扩展化学研发】',
     onCast(){ openBranchChoice(['hotAcid','extChem'],'永恒化学研发'); return true; } };
-
 CardDB.hotAcid = { id:'hotAcid', name:'热浓硫酸', cost:0, type:'spell', attribute:'化学', rarity:'铜', icon:'🧫',
     desc:'对单个敌方单位造成6点伤害，扣敌方1指挥点槽', needTarget:true, volatile:2,
     onCast(x,y){ const u = GS.field[y][x];
@@ -490,46 +477,37 @@ CardDB.hotAcid = { id:'hotAcid', name:'热浓硫酸', cost:0, type:'spell', attr
             GS.enemyKMax = Math.max(12, GS.enemyKMax - 1); GS.enemyK = Math.min(GS.enemyK, GS.enemyKMax);
             cleanupDead(); log('热浓硫酸命中','red'); }
         return true; } };
-
 CardDB.extChem = { id:'extChem', name:'扩展化学研发', cost:6, type:'spell', attribute:'化学', rarity:'金', icon:'⚗',
     desc:'二级开发：二选一【硝化爆破】/【高级化学研发】',
     onCast(){ openBranchChoice(['nitroBlast','advChem'],'扩展化学研发'); return true; } };
-
 CardDB.nitroBlast = { id:'nitroBlast', name:'硝化爆破', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'💣',
     desc:'直接获取【硝化甘油】、【易燃热锌】两张卡牌',
     onCast(){ addCardToHand(cloneCard(CardDB.nitroGlycerin)); addCardToHand(cloneCard(CardDB.hotZinc)); log('硝化爆破：获得硝化甘油+易燃热锌','green'); return true; } };
-
 CardDB.nitroGlycerin = { id:'nitroGlycerin', name:'硝化甘油', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'🧨',
     desc:'使敌方所有目标获得硝化甘油效果', volatile:3,
     onCast(){ GS.enemyHQ.nitroGlycerin = (GS.enemyHQ.nitroGlycerin||0) + 1;
         forEachUnit(u=>{ if(!u.isPlayerUnit) u.nitroGlycerin = (u.nitroGlycerin||0) + 1; });
         log('硝化甘油：敌方全体+1层','yellow'); return true; } };
-
 CardDB.hotZinc = { id:'hotZinc', name:'易燃热锌', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'🔥',
     desc:'对敌方全体目标造成2点燃烧伤害', volatile:1,
     onCast(){ GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 2);
         forEachUnit(u=>{ if(!u.isPlayerUnit) dealDamage(u, 2); });
         cleanupDead(); log('易燃热锌：敌方全体-2','red'); return true; } };
-
 CardDB.advChem = { id:'advChem', name:'高级化学研发', cost:9, type:'spell', attribute:'化学', rarity:'金', icon:'🧪',
     desc:'三级开发：二选一【化学武器】/【绝密化学研发】',
     onCast(){ openBranchChoice(['chemWeapon','topSecretChem'],'高级化学研发'); return true; } };
-
 CardDB.chemWeapon = { id:'chemWeapon', name:'化学武器', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'☣',
     desc:'从3张随机化学战剂中自选1张，重复执行3次；所有化学卡牌费用-3',
     onCast(){ GS.chemWeaponBuff = true;
         const pool = ['sarin','mustard','hcn','chlorine','vx','bz'];
         for(let i=0;i<3;i++){ shuffle(pool); const pick = pool.slice(0,3)[Math.floor(Math.random()*3)]; addCardToHand(cloneCard(CardDB[pick]), true); }
         log('化学武器：获得3张化学战剂，化学卡费用-3','green'); return true; } };
-
 CardDB.topSecretChem = { id:'topSecretChem', name:'绝密化学研发', cost:12, type:'spell', attribute:'化学', rarity:'金', icon:'🔐',
     desc:'四级开发：二选一【致命照射】/【永恒之星】',
     onCast(){ openBranchChoice(['lethalRad','eternalStar'],'绝密化学研发'); return true; } };
-
 CardDB.lethalRad = { id:'lethalRad', name:'致命照射', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'☢',
     desc:'敌方总部每回合开局获得1层放射，所有敌方单位同步+1放射',
     onCast(){ GS.lethalRadiationDebuff = true; log('致命照射：敌方将被持续辐射','red'); return true; } };
-
 CardDB.eternalStar = { id:'eternalStar', name:'永恒之星', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'✨',
     desc:'友方全体+30防御，清除负面，赋予【无法被抑制】；总部常驻：每回合开局随机清除2友方全部负面',
     onCast(){
@@ -538,7 +516,6 @@ CardDB.eternalStar = { id:'eternalStar', name:'永恒之星', cost:15, type:'spe
         forEachUnit(u=>{ if(u.isPlayerUnit){ u.defMax += 30; u.def += 30; u.immune = true; u.cannotBeSuppressed = true;
             u.radiate = 0; u.stun = false; u.suppress = false; } });
         GS.eternalStarBuff = true; log('永恒之星：友方全体强化','green'); return true; } };
-
 function makeAgent(id, name, radius, maxStack, icon, desc){
     return { id, name, cost:5, type:'spell', attribute:'化学', rarity:'银', icon, desc, needTarget:true, agent:{ maxStack },
         onCast(x,y){ GS.poisonZones.push({ x, y, radius, duration:5, type:id, maxStack });
@@ -550,12 +527,10 @@ CardDB.hcn      = makeAgent('hcn','氰化氢',1,4,'💨','3×3毒区，最大4�
 CardDB.chlorine = makeAgent('chlorine','氯气',1,5,'🟢','3×3毒区，最大5层，达5层80%阵亡');
 CardDB.vx       = makeAgent('vx','维埃克斯',1,3,'🟣','3×3毒区，最大3层，无直接阵亡');
 CardDB.bz       = makeAgent('bz','毕兹',1,2,'💜','3×3毒区，最大2层，无直接阵亡');
-
 CardDB.heater = { id:'heater', name:'加热器', cost:3, type:'spell', attribute:'物化', rarity:'银', icon:'🔥',
     desc:'可打出两次，每次敌方全体温度+3℃',
     onCast(){ GS.enemyTemp += 3; log('加热器：敌方温度+3℃','red');
         if(!this._used){ this._used = true; return 'repeat'; } return true; } };
-
 CardDB.alcoholLamp = { id:'alcoholLamp', name:'酒精灯', cost:2, type:'spell', attribute:'物化', rarity:'铜', icon:'🕯',
     desc:'投掷敌方目标，3%爆头直接消灭（命中2×2烈火3回合）；未命中则4回合烈火', needTarget:true,
     onCast(x,y){
@@ -567,9 +542,8 @@ CardDB.alcoholLamp = { id:'alcoholLamp', name:'酒精灯', cost:2, type:'spell',
             if(nx>=0&&nx<11&&ny>=0&&ny<11) GS.fireZones.push({x:nx,y:ny,duration:dur});
         }
         log('酒精灯：生成烈火区'+(head?'（爆头）':''),'red'); return true; } };
-
 CardDB.beaker = { id:'beaker', name:'密封塞烧杯', cost:0, type:'spell', attribute:'物化', rarity:'铁', icon:'🧪',
-    desc:'储水上限900ml。满水(900ml)可用：单点敌方单位本回合无法攻击；或放置2×2水域（途经-2血）。拖动【水】到它上面=合成【空气内能炮】；点击可选择单独使用/灌水/合成', needTarget:true,
+    desc:'储水上限900ml。满水(900ml)可用：单点敌方单位本回合无法攻击；或放置2×2水域。拖动【水】到它上面=合成【空气内能炮】', needTarget:true,
     onCast(x,y){
         const inBeaker = GS.beakerWater||0;
         if(inBeaker >= 900){
@@ -584,7 +558,6 @@ CardDB.beaker = { id:'beaker', name:'密封塞烧杯', cost:0, type:'spell', att
             else { log(`烧杯：水量不足900ml（当前${inBeaker}ml），先用水卡灌水`,'red'); return false; }
         }
         return true; } };
-
 CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'❄',
     desc:'自身温度降为37.4度，随机弃2张手牌',
     onCast(){ GS.playerTemp = 37.4;
@@ -593,9 +566,8 @@ CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attri
             GS.discardPile.push(GS.playerHand.splice(idx,1)[0]);
         }
         log('冰凉贴：温度下降，弃2张牌','green'); return true; } };
-
 CardDB.airCannon = { id:'airCannon', name:'空气内能炮', cost:3, type:'spell', attribute:'化学', rarity:'银', icon:'💨',
-    desc:'合成：水+密封塞烧杯。可无限次打出，每次消耗300ml水（优先炮内→烧杯→储水），对敌方全体造成4点伤害。炮内储水上限900ml，每次使用【水】卡可补充300ml。可主动丢弃（卡牌右上角🗑），丢弃后获得3点指挥点（指挥点已满则无法获取）',
+    desc:'合成：水+密封塞烧杯。每次消耗300ml水对敌方全体造成4点伤害。可主动丢弃（卡牌右上角🗑），丢弃后获得3点指挥点',
     onCast(){
         if(GS.castByEnemy){ log('敌方尝试启动空气内能炮，但缺少装水手段','red'); return true; }
         if(waterTotalUsable() < 300){ log(`空气内能炮：水不足（当前共${waterTotalUsable()}ml，需要300ml）`,'red'); return false; }
@@ -604,13 +576,11 @@ CardDB.airCannon = { id:'airCannon', name:'空气内能炮', cost:3, type:'spell
         forEachUnit(u=>{ if(!u.isPlayerUnit) dealDamage(u, 4); });
         cleanupDead();
         log(`空气内能炮：敌方全体-4（剩余水 储${GS.playerWater||0}／杯${GS.beakerWater||0}／炮${GS.cannonWater||0}）`,'red'); return 'repeat'; } };
-
 CardDB.water = { id:'water', name:'水', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'💧',
     desc:'获得300ml水；单独打出可恢复我方所有单位3点血量。手牌存在密封塞烧杯时，可拖动【水】合成【空气内能炮】',
     onCast(){
         if(GS.castByEnemy){ forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.min(u.defMax, u.def + 3); }); log('敌方【水】：其全体+3','red'); return true; }
         applyWaterCard('playerWater'); return true; } };
-
 CardDB.chemLab = { id:'chemLab', name:'化学实验室', cost:9, type:'spell', attribute:'化学', rarity:'金', icon:'🏛',
     desc:'需要消耗一张安全警告；开启三阶段化学领域',
     onCast(){
@@ -627,7 +597,6 @@ CardDB.chemLab = { id:'chemLab', name:'化学实验室', cost:9, type:'spell', a
         GS.chemLabActive = true; GS.chemLabStage = 1; GS.chemLabStageTurn = 0; GS.chemLabStageDuration = 4;
         GS.enemyHQ.defMax = 100; GS.enemyHQ.def = 100;
         log('化学实验室开启：一阶段','green'); return true; } };
-
 CardDB.chemTeacher = { id:'chemTeacher', name:'化学老师', cost:4, type:'unit', attribute:'化学', rarity:'铜', icon:'👩‍🔬',
     atk:4, def:5, defMax:5, canDeploy:true,
     desc:'出场：随机获得3张基础化学/物化卡牌；可概率拦截敌方化学实验室',
@@ -636,13 +605,11 @@ CardDB.chemTeacher = { id:'chemTeacher', name:'化学老师', cost:4, type:'unit
         const isPlayer = this.isPlayerUnit !== false;
         for(let i=0;i<3;i++){
             const id = baseChemIds[Math.floor(Math.random()*baseChemIds.length)];
-            const card = CardDB[id];
-            if(!card) continue;
+            const card = CardDB[id]; if(!card) continue;
             if(isPlayer) addCardToHand(cloneCard(card), true);
             else if(GS.enemyHand.length < GS.handMax) GS.enemyHand.push(cloneCard(card));
         }
         log(isPlayer ? '化学老师：获得3张基础化学卡' : '敌方化学老师：获得3张基础化学卡', isPlayer ? 'green' : 'red'); } };
-
 CardDB.physTeacher = { id:'physTeacher', name:'物理老师', cost:4, type:'unit', attribute:'物理', rarity:'铜', icon:'👨‍🔬',
     atk:3, def:6, defMax:6, canDeploy:true,
     desc:'常驻：所有物理/物化卡牌伤害×1.1；可概率拦截敌方化学实验室',
@@ -652,30 +619,25 @@ CardDB.physTeacher = { id:'physTeacher', name:'物理老师', cost:4, type:'unit
    ============== 状态注册表 ===================================
    ============================================================ */
 const StatusRegistry = [
-    { key:'stun',             name:'眩晕',         icon:'💫', check:o=>o.stun,              fmt:()=>'' },
-    { key:'suppress',         name:'压制',         icon:'⛓',  check:o=>o.suppress,          fmt:()=>'' },
-    { key:'immune',           name:'免疫',         icon:'🛡',  check:o=>o.immune,            fmt:()=>'' },
-    { key:'cannotBeSuppressed',name:'无法抑制',    icon:'🔒', check:o=>o.cannotBeSuppressed, fmt:()=>'' },
-    { key:'vomit',            name:'呕吐',         icon:'🤢', check:o=>o.vomit,             fmt:()=>'' },
-    { key:'gasSmoke',         name:'气体烟雾中毒', icon:'🌫', check:o=>o.gasSmoke,          fmt:()=>'' },
-    { key:'gasSmokeAfter',    name:'烟雾后遗症',   icon:'💢', check:o=>(o.gasSmokeAftermath||0)>0, fmt:o=>`${o.gasSmokeAftermath}回合(受伤×1.5)` },
-    { key:'radiate',          name:'放射',         icon:'☢',  check:o=>(o.radiate||0)>0,    fmt:o=>`${o.radiate}层/6` },
-    { key:'nitroGlycerin',    name:'硝化甘油',     icon:'🧨', check:o=>(o.nitroGlycerin||0)>0, fmt:o=>`${o.nitroGlycerin}层` },
-    { key:'poison_sarin',     name:'沙林中毒',     icon:'☠', check:o=>o.poison && o.poison.sarin>0,    fmt:o=>`${o.poison.sarin}层/2` },
-    { key:'poison_mustard',   name:'芥子气中毒',   icon:'🟡', check:o=>o.poison && o.poison.mustard>0,  fmt:o=>`${o.poison.mustard}层/4` },
-    { key:'poison_hcn',       name:'氰化氢中毒',   icon:'💨', check:o=>o.poison && o.poison.hcn>0,      fmt:o=>`${o.poison.hcn}层/4` },
-    { key:'poison_chlorine',  name:'氯气中毒',     icon:'🟢', check:o=>o.poison && o.poison.chlorine>0, fmt:o=>`${o.poison.chlorine}层/5` },
-    { key:'poison_vx',        name:'维埃克斯中毒', icon:'🟣', check:o=>o.poison && o.poison.vx>0,      fmt:o=>`${o.poison.vx}层/3` },
-    { key:'poison_bz',        name:'毕兹中毒',     icon:'💜', check:o=>o.poison && o.poison.bz>0,      fmt:o=>`${o.poison.bz}层/2` },
+    { key:'stun', name:'眩晕', icon:'💫', check:o=>o.stun, fmt:()=>'' },
+    { key:'suppress', name:'压制', icon:'⛓', check:o=>o.suppress, fmt:()=>'' },
+    { key:'immune', name:'免疫', icon:'🛡', check:o=>o.immune, fmt:()=>'' },
+    { key:'cannotBeSuppressed', name:'无法抑制', icon:'🔒', check:o=>o.cannotBeSuppressed, fmt:()=>'' },
+    { key:'gasSmoke', name:'气体烟雾中毒', icon:'🌫', check:o=>o.gasSmoke, fmt:()=>'' },
+    { key:'gasSmokeAfter', name:'烟雾后遗症', icon:'💢', check:o=>(o.gasSmokeAftermath||0)>0, fmt:o=>`${o.gasSmokeAftermath}回合` },
+    { key:'radiate', name:'放射', icon:'☢', check:o=>(o.radiate||0)>0, fmt:o=>`${o.radiate}层/6` },
+    { key:'nitroGlycerin', name:'硝化甘油', icon:'🧨', check:o=>(o.nitroGlycerin||0)>0, fmt:o=>`${o.nitroGlycerin}层` },
+    { key:'poison_sarin', name:'沙林中毒', icon:'☠', check:o=>o.poison && o.poison.sarin>0, fmt:o=>`${o.poison.sarin}层/2` },
+    { key:'poison_mustard', name:'芥子气中毒', icon:'🟡', check:o=>o.poison && o.poison.mustard>0, fmt:o=>`${o.poison.mustard}层/4` },
+    { key:'poison_hcn', name:'氰化氢中毒', icon:'💨', check:o=>o.poison && o.poison.hcn>0, fmt:o=>`${o.poison.hcn}层/4` },
+    { key:'poison_chlorine', name:'氯气中毒', icon:'🟢', check:o=>o.poison && o.poison.chlorine>0, fmt:o=>`${o.poison.chlorine}层/5` },
+    { key:'poison_vx', name:'维埃克斯中毒', icon:'🟣', check:o=>o.poison && o.poison.vx>0, fmt:o=>`${o.poison.vx}层/3` },
+    { key:'poison_bz', name:'毕兹中毒', icon:'💜', check:o=>o.poison && o.poison.bz>0, fmt:o=>`${o.poison.bz}层/2` },
 ];
-
 function renderStatusLines(obj){
     const owned = StatusRegistry.filter(s => s.check(obj));
     if(owned.length === 0) return `<div class="t-line">状态：正常</div>`;
-    return owned.map(s => {
-        const extra = s.fmt(obj);
-        return `<div class="t-line">${s.icon} ${s.name}${extra ? '：' + extra : ''}</div>`;
-    }).join('');
+    return owned.map(s => { const extra = s.fmt(obj); return `<div class="t-line">${s.icon} ${s.name}${extra ? '：' + extra : ''}</div>`; }).join('');
 }
 
 /* ============================================================
@@ -708,7 +670,6 @@ const GameState = {
     gameOver:false, pendingEndTurn: false
 };
 const GS = GameState;
-
 let mainSubject = null;
 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
@@ -716,12 +677,10 @@ const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 
    ============== 工具函数 =====================================
    ============================================================ */
 function log(text,color=""){
-    const d = document.getElementById("log");
-    if(!d) return;
+    const d = document.getElementById("log"); if(!d) return;
     const div = document.createElement("div");
     if(color) div.className = "log-"+color;
-    div.textContent = text;
-    d.appendChild(div); d.scrollTop = d.scrollHeight;
+    div.textContent = text; d.appendChild(div); d.scrollTop = d.scrollHeight;
 }
 function showTooltip(x,y,html){
     const t = document.getElementById("tooltip");
@@ -736,11 +695,7 @@ function isEnemyHQ(x,y){ return x===GS.enemyHQ.x && y===GS.enemyHQ.y; }
 function isHQ(x,y){ return isPlayerHQ(x,y) || isEnemyHQ(x,y); }
 function inMyDeployZone(x){ return x>=0 && x<=4; }
 function inEnemyDeployZone(x){ return x>=6 && x<=10; }
-function forEachUnit(fn){
-    for(let y=0;y<11;y++) for(let x=0;x<11;x++){
-        const u = GS.field[y][x]; if(u) fn(u,x,y);
-    }
-}
+function forEachUnit(fn){ for(let y=0;y<11;y++) for(let x=0;x<11;x++){ const u = GS.field[y][x]; if(u) fn(u,x,y); } }
 function cleanupDead(){
     for(let y=0;y<11;y++) for(let x=0;x<11;x++){
         const u = GS.field[y][x];
@@ -766,9 +721,7 @@ function hasTeacher(isPlayer, name){
 function dealDamage(u, amount){ if(u.gasSmokeAftermath > 0) amount = amount * 1.5; u.def = Math.max(0, u.def - amount); }
 function addCardToHand(card, forced=false){
     if(!card) return;
-    if(card.id === 'icePatch' && !GS.icePatchFromHeat){
-        log('冰凉贴只能由温度过高(>46.8℃)触发获得','yellow'); return;
-    }
+    if(card.id === 'icePatch' && !GS.icePatchFromHeat){ log('冰凉贴只能由温度过高(>46.8℃)触发获得','yellow'); return; }
     if(GS.playerHand.length >= GS.handMax){
         if(forced){
             if(GS.forcedSlot[0]) GS.forcedSlot[1] = GS.forcedSlot[0];
@@ -858,20 +811,13 @@ function isChemAgent(card){ return card && CHEM_AGENTS.includes(card.id); }
 function initDeck(){
     GS.playerDeck = []; GS.enemyDeck = [];
     const deckList = [
-        { id:'safetyWarn',   count:5 },
-        { id:'thermometer',  count:5 },
-        { id:'water',        count:12 },
-        { id:'beaker',       count:6 },
-        { id:'alcoholLamp',  count:5 },
-        { id:'chemTeacher',  count:2 },
-        { id:'physTeacher',  count:2 },
-        { id:'hotAcid',      count:5 },
-        { id:'heater',       count:2 },
-        { id:'sarin',        count:1 },
-        { id:'chlorine',     count:1 },
-        { id:'mustard',      count:1 },
-        { id:'greatPhys',    count:1 },
-        { id:'eternalChem',  count:1 },
+        { id:'safetyWarn',   count:5 }, { id:'thermometer', count:5 },
+        { id:'water',        count:12 }, { id:'beaker', count:6 },
+        { id:'alcoholLamp',  count:5 }, { id:'chemTeacher', count:2 },
+        { id:'physTeacher',  count:2 }, { id:'hotAcid', count:5 },
+        { id:'heater',       count:2 }, { id:'sarin', count:1 },
+        { id:'chlorine',     count:1 }, { id:'mustard', count:1 },
+        { id:'greatPhys',    count:1 }, { id:'eternalChem', count:1 },
     ];
     deckList.forEach(({id, count})=>{
         const card = CardDB[id]; if(!card) return;
@@ -880,33 +826,22 @@ function initDeck(){
     });
     shuffle(GS.playerDeck);
     GS.deckMax = Math.max(50, GS.playerDeck.length);
-
     const enemyList = ['chemTeacher','physTeacher','hotZinc','nitroGlycerin','heater','water','water','alcoholLamp','chlorine','sarin','beaker','safetyWarn','thermometer'];
     enemyList.forEach(id=>{ if(CardDB[id]) GS.enemyDeck.push(cloneCard(CardDB[id])); });
     shuffle(GS.enemyDeck);
 }
-
 function drawCard(isPlayer){
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
     if(deck.length === 0){
-        if(isPlayer){
-            GS.fatigueCount++;
-            GS.playerHQ.def = Math.max(0, GS.playerHQ.def - GS.fatigueCount);
-            log(`我方牌库空！疲劳伤害 -${GS.fatigueCount}`,'red');
-        } else {
-            GS.enemyFatigueCount++;
-            GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - GS.enemyFatigueCount);
-            log(`敌方牌库空！疲劳伤害 -${GS.enemyFatigueCount}`,'red');
-        }
+        if(isPlayer){ GS.fatigueCount++; GS.playerHQ.def = Math.max(0, GS.playerHQ.def - GS.fatigueCount); log(`我方牌库空！疲劳伤害 -${GS.fatigueCount}`,'red'); }
+        else { GS.enemyFatigueCount++; GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - GS.enemyFatigueCount); log(`敌方牌库空！疲劳伤害 -${GS.enemyFatigueCount}`,'red'); }
         return null;
     }
-    const card = deck.shift();
-    hand.push(card);
+    const card = deck.shift(); hand.push(card);
     if(isPlayer) renderHand();
     return card;
 }
-
 function drawStartingHand(isPlayer, count){
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
@@ -921,7 +856,6 @@ function drawStartingHand(isPlayer, count){
         hand.push(card); added++;
     }
 }
-
 function ensureRoleCardInHand(isPlayer){
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
@@ -936,7 +870,6 @@ function ensureRoleCardInHand(isPlayer){
         }
     }
 }
-
 function randomEnemyDeployPos(){
     for(let tries=0; tries<60; tries++){
         const x = 6 + Math.floor(Math.random()*5);
@@ -955,10 +888,8 @@ function scheduleSnapshot(){
     if(snapshotTimer) return;
     snapshotTimer = setTimeout(()=>{ snapshotTimer = null; pushSnapshot(); }, 60);
 }
-
 function renderBoard(){
-    const b = document.getElementById("board");
-    if(!b) return;
+    const b = document.getElementById("board"); if(!b) return;
     b.innerHTML = "";
     for(let y=0;y<11;y++){
         for(let x=0;x<11;x++){
@@ -972,7 +903,6 @@ function renderBoard(){
             if(GS.pendingDeployCard && GS.selectMode==="target") cell.classList.add("targetable");
             if(GS.selectedUnit && GS.selectedUnit.x===x && GS.selectedUnit.y===y) cell.classList.add("selected-unit");
             if(GS.selectedHQ === 'player' && isPlayerHQ(x,y)) cell.classList.add("selected-hq");
-
             const buildTooltip = ()=>{
                 let html = "";
                 if(isPlayerHQ(x,y) || isEnemyHQ(x,y)){
@@ -980,8 +910,7 @@ function renderBoard(){
                     const temp = isPlayerHQ(x,y) ? GS.playerTemp : GS.enemyTemp;
                     html = `<div class="t-title">${isPlayerHQ(x,y)?'我方':'敌方'}总部</div>
                         <div class="t-line">防御：${(hq.def||0).toFixed(1)} / ${(hq.defMax||0).toFixed(1)}</div>
-                        <div class="t-line">温度：${temp.toFixed(1)}℃</div>
-                        ${renderStatusLines(hq)}`;
+                        <div class="t-line">温度：${temp.toFixed(1)}℃</div>${renderStatusLines(hq)}`;
                 } else if(GS.field[y][x]){
                     const u = GS.field[y][x];
                     const temp = u.isPlayerUnit ? GS.playerTemp : GS.enemyTemp;
@@ -994,7 +923,6 @@ function renderBoard(){
                 }
                 return html;
             };
-
             if(isTouchDevice){
                 let touchTimer = null, touchMoved = false;
                 cell.addEventListener('touchstart', function(e){
@@ -1018,7 +946,6 @@ function renderBoard(){
                 cell.onmouseleave = hideTooltip;
                 cell.onclick = ()=>onCellClick(x,y);
             }
-
             if(isPlayerHQ(x,y)){ const hq = document.createElement("div"); hq.className="hq player"; hq.innerText="总"; cell.appendChild(hq); }
             else if(isEnemyHQ(x,y)){ const hq = document.createElement("div"); hq.className="hq enemy"; hq.innerText="敌"; cell.appendChild(hq); }
             else if(GS.field[y][x]){
@@ -1036,10 +963,8 @@ function renderBoard(){
     }
     scheduleSnapshot();
 }
-
 function renderHand(){
-    const area = document.getElementById("hand-area");
-    if(!area) return;
+    const area = document.getElementById("hand-area"); if(!area) return;
     area.innerHTML = "";
     GS.playerHand.forEach((card, idx)=>{
         if(!card) return;
@@ -1074,12 +999,8 @@ function renderHand(){
                 <div class="t-line">费用：${displayCost}K  属性：${card.attribute}  稀有度：${card.rarity}</div>
                 <div class="t-line">${card.desc||''}</div>
                 ${card.volatile?`<div class="t-line">挥发性：${card.volatile}回合</div>`:''}
-                ${card.id==='water' ? `<div class="t-line" style="color:#7cff9a;">点击可选择用法；拖动到【密封塞烧杯】上=合成【空气内能炮】，拖动到【空气内能炮】上=装填300ml</div>` : ''}
-                ${card.id==='beaker' ? `<div class="t-line" style="color:#7cff9a;">杯中水：${GS.beakerWater||0}/900ml。把【水】拖上来可合成；点击可选择单独使用/灌水/合成</div>` : ''}
                 ${card.id==='airCannon' ? `<div class="t-line" style="color:#7cff9a;">炮内水：${GS.cannonWater||0}/900ml（可用总水${waterTotalUsable()}ml）</div>
-                <div class="t-line" style="color:#ffb347;">点击卡牌=开火；点击右上角🗑=主动丢弃，获得3点指挥点</div>` : ''}
-                ${card.id==='water' && findCardIndex('beaker')>=0 ? `<div class="t-line" style="color:#7cff9a;">可与【密封塞烧杯】合成</div>` : ''}
-                ${card.id==='beaker' && findCardIndex('water')>=0 ? `<div class="t-line" style="color:#7cff9a;">可与【水】合成</div>` : ''}`;
+                <div class="t-line" style="color:#ffb347;">点击卡牌=开火；点击右上角🗑=主动丢弃，获得3点指挥点</div>` : ''}`;
             showTooltip(e.clientX, e.clientY, html);
         };
         el.onmouseleave = hideTooltip;
@@ -1141,7 +1062,6 @@ function renderHand(){
         }
     }
 }
-
 function renderForcedSlotUI(){
     for(let i=0;i<2;i++){
         const el = document.getElementById("slot"+(i+1)); if(!el) continue;
@@ -1157,15 +1077,13 @@ function renderForcedSlotUI(){
         } else { el.classList.remove("filled"); el.innerText = "槽" + (i+1); el.onclick = null; }
     }
 }
-
 function syncState(){
     const setTxt = (id,v)=>{ const e=document.getElementById(id); if(e) e.innerText = v; };
     setTxt("my-hp", Math.max(0, Math.floor(GS.playerHQ.def)));
     setTxt("en-hp", Math.max(0, Math.floor(GS.enemyHQ.def)));
     setTxt("my-hpmax", Math.floor(GS.playerHQ.defMax));
     setTxt("en-hpmax", Math.floor(GS.enemyHQ.defMax));
-    setTxt("my-k", GS.playerK);
-    setTxt("my-kmax", GS.playerKMax);
+    setTxt("my-k", GS.playerK); setTxt("my-kmax", GS.playerKMax);
     setTxt("my-temp", GS.playerTemp.toFixed(1) + "℃");
     setTxt("en-temp", GS.enemyTemp.toFixed(1) + "℃");
     setTxt("turn-num", GS.turn);
@@ -1184,8 +1102,7 @@ function syncState(){
     const hint = document.getElementById("main-subject-hint");
     if(hint){
         if(net.mode === 'single' && mainSubject) hint.innerText = '主科：' + (mainSubject === 'physics' ? '物理' : '化学');
-        else if(net.mode === 'host') hint.innerText = '联机 · 房间 ' + net.roomCode;
-        else if(net.mode === 'guest') hint.innerText = '联机 · 房间 ' + net.roomCode;
+        else if(net.mode === 'host' || net.mode === 'guest') hint.innerText = '联机 · 房间 ' + net.roomCode;
         else hint.innerText = '';
     }
 }
@@ -1194,17 +1111,14 @@ function syncState(){
    ============== 交互 =========================================
    ============================================================ */
 function resetSelection(){ GS.selectedCardIndex = null; GS.pendingDeployCard = null; GS.selectMode = null; GS.selectedUnit = null; GS.selectedHQ = null; }
-
 function effectiveCost(card){
     let c = card.cost;
     if(GS.chemWeaponBuff && card.attribute==='化学') c = Math.max(0, c - 3);
     if(GS.controlledFusionBuff && c % 2 === 1) c = Math.max(0, c - 5);
     return c;
 }
-
 function tryCombineWaterBeaker(idx){
-    const card = GS.playerHand[idx];
-    if(!card) return false;
+    const card = GS.playerHand[idx]; if(!card) return false;
     let wi = -1, bi = -1;
     if(card.id === 'water'){ wi = idx; bi = findCardIndex('beaker'); }
     else if(card.id === 'beaker'){ bi = idx; wi = findCardIndex('water'); }
@@ -1219,11 +1133,9 @@ function tryCombineWaterBeaker(idx){
     log(`合成成功：【空气内能炮】（装入${r.stored}ml水，炮内${GS.cannonWater}/900ml${r.rest>0?`，其余${r.rest}ml留在储水`:''}）`,'green');
     renderHand(); renderBoard(); syncState(); return true;
 }
-
 function onCellClick(x,y){
     if(net.mode === 'guest'){ guestCellClick(x,y); return; }
     if(!GS.isPlayerTurn || GS.gameOver) return;
-
     if(GS.selectedHQ === 'player'){
         const hq = GS.playerHQ;
         const dist = Math.abs(hq.x - x) + Math.abs(hq.y - y);
@@ -1233,7 +1145,6 @@ function onCellClick(x,y){
             log('总部移动（消耗1指挥点）','green'); renderBoard(); syncState(); return;
         } else { GS.selectedHQ = null; renderBoard(); return; }
     }
-
     if(GS.selectedUnit){
         const su = GS.selectedUnit;
         const u = GS.field[su.y][su.x];
@@ -1262,7 +1173,6 @@ function onCellClick(x,y){
         }
         GS.selectedUnit = null; renderBoard(); return;
     }
-
     if(GS.selectMode === "deploy" && GS.pendingDeployCard){
         if(!inMyDeployZone(x) || GS.field[y][x] || isHQ(x,y)){ log("只能部署在己方区域空格","red"); return; }
         const card = GS.pendingDeployCard, cardIdx = GS.selectedCardIndex;
@@ -1281,7 +1191,6 @@ function onCellClick(x,y){
         if(card.onDeploy) card.onDeploy.call(unit);
         resetSelection(); renderHand(); renderBoard(); syncState(); checkGameOver(); return;
     }
-
     if(GS.selectMode === "target" && GS.pendingDeployCard){
         const card = GS.pendingDeployCard, cardIdx = GS.selectedCardIndex;
         const cost = effectiveCost(card);
@@ -1294,13 +1203,10 @@ function onCellClick(x,y){
         GS.playerHand.splice(cardIdx,1); resetSelection();
         renderHand(); renderBoard(); syncState(); checkGameOver(); return;
     }
-
     if(isPlayerHQ(x,y) && !GS.playerHQ.hasMoved){ GS.selectedHQ = 'player'; log('选中总部，点击相邻空格移动（消耗1K）','yellow'); renderBoard(); return; }
-
     const u = GS.field[y][x];
     if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】：可无限次移动，攻击每回合限1次`,'yellow'); renderBoard(); return; }
 }
-
 function onCardClick(idx){
     if(net.mode === 'guest'){ guestCardClick(idx); return; }
     if(!GS.isPlayerTurn || GS.gameOver) return;
@@ -1309,7 +1215,6 @@ function onCardClick(idx){
     if(card.id === 'beaker'){ openBeakerCardChoice(idx); return; }
     beginCardUse(idx);
 }
-
 function beginCardUse(idx){
     const card = GS.playerHand[idx]; if(!card) return;
     const cost = effectiveCost(card);
@@ -1328,7 +1233,6 @@ function beginCardUse(idx){
     }
     renderHand(); renderBoard(); syncState(); checkGameOver();
 }
-
 function playWaterInto(idx, container){
     const card = GS.playerHand[idx];
     if(!card || card.id !== 'water'){ log('没有可用的【水】卡','red'); return; }
@@ -1340,7 +1244,6 @@ function playWaterInto(idx, container){
     GS.playerHand.splice(idx,1);
     resetSelection(); renderHand(); renderBoard(); syncState(); checkGameOver();
 }
-
 function pourReserveIntoBeaker(){
     const bw = GS.beakerWater||0, space = 900 - bw;
     if(space <= 0){ log('烧杯已满（900ml）','yellow'); return; }
@@ -1350,7 +1253,6 @@ function pourReserveIntoBeaker(){
     log(`烧杯：灌入${amount}ml（杯内${GS.beakerWater}/900ml）`,'green');
     renderHand(); renderBoard(); syncState();
 }
-
 function loadBeakerIntoCannon(){
     const bw = GS.beakerWater||0;
     if(bw <= 0){ log('烧杯里没有水，先用水卡灌水','yellow'); return; }
@@ -1361,7 +1263,6 @@ function loadBeakerIntoCannon(){
     log(`空气内能炮：装填${stored}ml（炮内${GS.cannonWater}/900ml）${rest>0?`，烧杯剩余${rest}ml`:''}`,'green');
     renderHand(); renderBoard(); syncState();
 }
-
 function openWaterCardChoice(idx){
     if(!GS.playerHand[idx]) return;
     const hasBeaker = findCardIndex('beaker') >= 0;
@@ -1370,13 +1271,11 @@ function openWaterCardChoice(idx){
     const opts = [
         { label:'💧 直接打出', desc:`储水+300ml（当前储水${GS.playerWater||0}ml），友方全体+3血量`, run:()=>{ const i = findCardIndex('water'); if(i>=0) beginCardUse(i); } }
     ];
-    if(hasBeaker) opts.push({ label:'⊕ 合成空气内能炮', desc:`消耗【水】+【密封塞烧杯】，水卡300ml＋杯中${bw}ml 一起装入炮中（拖动【水】到烧杯上也是这个效果）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) tryCombineWaterBeaker(i); } });
-    if(hasBeaker) opts.push({ label:'🧪 灌入密封塞烧杯', desc:`只灌水不合成：烧杯+300ml（上限900ml，当前${bw}ml）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'beakerWater'); } });
-    if(hasCannon) opts.push({ label:'💨 装填空气内能炮', desc:`炮内+300ml（上限900ml，当前${cw}ml），装完即可开火`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'cannonWater'); } });
-    if(!hasBeaker) opts.push({ label:'ℹ 合成提示', info:true, desc:'手牌中同时有【水】和【密封塞烧杯】时，可拖动【水】到烧杯上合成【空气内能炮】' });
-    showChoice('【水】的用法', '水卡被消耗：+300ml水 且 友方全体+3血量（合成时水卡作为材料）。手牌有烧杯时，直接把【水】拖到烧杯上即可合成空气内能炮。', opts);
+    if(hasBeaker) opts.push({ label:'⊕ 合成空气内能炮', desc:`消耗【水】+【密封塞烧杯】`, run:()=>{ const i = findCardIndex('water'); if(i>=0) tryCombineWaterBeaker(i); } });
+    if(hasBeaker) opts.push({ label:'🧪 灌入密封塞烧杯', desc:`只灌水不合成：烧杯+300ml（当前${bw}ml）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'beakerWater'); } });
+    if(hasCannon) opts.push({ label:'💨 装填空气内能炮', desc:`炮内+300ml（当前${cw}ml）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'cannonWater'); } });
+    showChoice('【水】的用法', '水卡被消耗：+300ml水 且 友方全体+3血量。', opts);
 }
-
 function openBeakerCardChoice(idx){
     if(!GS.playerHand[idx]) return;
     const hasWater = findCardIndex('water') >= 0;
@@ -1385,28 +1284,25 @@ function openBeakerCardChoice(idx){
     const reserve = GS.playerWater||0;
     if(!hasWater && !hasCannon && reserve <= 0){ beginCardUse(idx); return; }
     const opts = [
-        { label:'🧪 单独使用技能', desc:`杯内${bw}/900ml。满900ml可放置2×2水域；否则对单个敌方单位本回合封锁攻击`, run:()=>beginCardUse(idx) }
+        { label:'🧪 单独使用技能', desc:`杯内${bw}/900ml`, run:()=>beginCardUse(idx) }
     ];
-    if(hasWater) opts.push({ label:'⊕ 合成空气内能炮', desc:`消耗【水】+【密封塞烧杯】，水卡300ml＋杯中${bw}ml 一起装入炮中（拖动【水】到烧杯上也是这个效果）`, run:()=>{ const i = findCardIndex('beaker'); if(i>=0) tryCombineWaterBeaker(i); } });
-    else opts.push({ label:'ℹ 合成需要【水】卡', info:true, desc:'手牌中同时有【水】和【密封塞烧杯】时才可合成；拖动【水】到烧杯上即可' });
-    if(reserve > 0) opts.push({ label:'💧 把储水灌进烧杯', desc:`可从储水(${reserve}ml)中倒入最多${Math.min(900-bw, reserve)}ml`, run:()=>pourReserveIntoBeaker() });
-    if(hasWater) opts.push({ label:'💧 用水卡灌水', desc:`只灌水不合成：烧杯+300ml（当前${bw}ml）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'beakerWater'); } });
-    if(hasCannon && bw > 0) opts.push({ label:'💨 把杯中的水装入炮', desc:`炮内装水（上限900ml），装不下的留在烧杯`, run:()=>loadBeakerIntoCannon() });
-    showChoice('【密封塞烧杯】的用法', `杯中水：${bw}/900ml。可以单独使用技能，也可以灌水或与【水】合成。`, opts);
+    if(hasWater) opts.push({ label:'⊕ 合成空气内能炮', desc:`消耗【水】+【密封塞烧杯】`, run:()=>{ const i = findCardIndex('beaker'); if(i>=0) tryCombineWaterBeaker(i); } });
+    if(reserve > 0) opts.push({ label:'💧 把储水灌进烧杯', desc:`最多${Math.min(900-bw, reserve)}ml`, run:()=>pourReserveIntoBeaker() });
+    if(hasWater) opts.push({ label:'💧 用水卡灌水', desc:`烧杯+300ml（当前${bw}ml）`, run:()=>{ const i = findCardIndex('water'); if(i>=0) playWaterInto(i,'beakerWater'); } });
+    if(hasCannon && bw > 0) opts.push({ label:'💨 把杯中的水装入炮', desc:`装不下的留在烧杯`, run:()=>loadBeakerIntoCannon() });
+    showChoice('【密封塞烧杯】的用法', `杯中水：${bw}/900ml`, opts);
 }
-
 function openCannonDiscardChoice(){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     if(findCardIndex('airCannon') < 0) return;
     const full = GS.playerK >= GS.playerKMax;
     const cw = GS.cannonWater||0;
     showChoice('主动丢弃【空气内能炮】',
-        full ? `指挥点已满（${GS.playerK}/${GS.playerKMax}），丢弃后无法获得指挥点。` : `弃掉这张炮，并获得3点指挥点（当前${GS.playerK}/${GS.playerKMax}）。`,
+        full ? `指挥点已满（${GS.playerK}/${GS.playerKMax}），丢弃后无法获得指挥点。` : `弃掉这张炮，并获得3点指挥点。`,
         [ { label:'🗑 确认丢弃',
             desc: `${full ? '指挥点已满，不会获得指挥点' : '获得3点指挥点'}${cw>0 ? `；炮内剩余${cw}ml水转回储水` : ''}`,
             run:()=>discardAirCannon() } ]);
 }
-
 function discardAirCannon(){
     const i = findCardIndex('airCannon');
     if(i < 0) return;
@@ -1418,11 +1314,10 @@ function discardAirCannon(){
         gained = Math.min(3, GS.playerKMax - GS.playerK);
         GS.playerK += gained;
     }
-    if(gained > 0) log(`空气内能炮：主动丢弃，获得${gained}点指挥点（${GS.playerK}/${GS.playerKMax}）${cw>0 ? `，${cw}ml水转回储水` : ''}`,'green');
-    else log(`空气内能炮：主动丢弃，但指挥点已满上限，未获得指挥点${cw>0 ? `（${cw}ml水转回储水）` : ''}`,'yellow');
+    if(gained > 0) log(`空气内能炮：主动丢弃，获得${gained}点指挥点（${GS.playerK}/${GS.playerKMax}）`,'green');
+    else log(`空气内能炮：主动丢弃，但指挥点已满上限`,'yellow');
     resetSelection(); renderHand(); renderBoard(); syncState();
 }
-
 function canDropCard(from, to){
     if(from === to) return false;
     const a = GS.playerHand[from], b = GS.playerHand[to];
@@ -1430,7 +1325,6 @@ function canDropCard(from, to){
     const pair = [a.id, b.id].sort().join('+');
     return pair === 'beaker+water' || pair === 'airCannon+water' || pair === 'airCannon+beaker';
 }
-
 function handleCardDrop(from, to){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     const a = GS.playerHand[from], b = GS.playerHand[to];
@@ -1461,14 +1355,13 @@ function openBranchChoice(ids, title){
     if(list.children.length === 0) list.innerHTML = `<div class="branch-item"><div class="bd">受主科限制，无可选分支</div></div>`;
     modal.classList.add("show");
 }
-
 function showSubjectChoice(callback){
     const modal = document.getElementById("branch-modal"), list = document.getElementById("branch-list");
     document.getElementById("branch-title").innerText = "请选择主科";
     list.innerHTML = "";
     const choices = [
-        { id:'physics',   name:'物理', icon:'⚛', desc:'只能携带物理系金卡；化学系金卡（永恒化学研发、致命照射、永恒之星等）全部不可用' },
-        { id:'chemistry', name:'化学', icon:'🧪', desc:'只能携带化学系金卡；物理系金卡（伟大物理研发、物理实验室等）全部不可用' }
+        { id:'physics',   name:'物理', icon:'⚛', desc:'只能携带物理系金卡；化学系金卡全部不可用' },
+        { id:'chemistry', name:'化学', icon:'🧪', desc:'只能携带化学系金卡；物理系金卡全部不可用' }
     ];
     choices.forEach(c=>{
         const item = document.createElement("div"); item.className = "branch-item";
@@ -1488,9 +1381,7 @@ function checkTemperatureDebuff(side){
     const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
     const prefix = isPlayer ? "我方" : "敌方";
     if(temp >= 40.9 && temp < 246.8){ hq.def = Math.max(0, hq.def - 1); log(`${prefix}温度过高(≥40.9℃)，总部-1`,'red'); }
-    if(temp >= 246.8){
-        if(isPlayer){ forceAddIcePatchToHand(); log('温度过高！强制塞入【冰凉贴】','red'); }
-    }
+    if(temp >= 246.8){ if(isPlayer){ forceAddIcePatchToHand(); log('温度过高！强制塞入【冰凉贴】','red'); } }
     if(temp > 46.8 && temp < 246.8 && isPlayer){
         if(!GS.playerHand.some(c=>c.id==='icePatch')){
             GS.icePatchFromHeat = true;
@@ -1580,10 +1471,6 @@ function settlePoisonOnHQ(hq, isPlayer){
         }
     }
 }
-
-/* ============================================================
-   ============== 挥发性 =======================================
-   ============================================================ */
 function tickVolatile(hand, isPlayer){
     for(let i=hand.length-1; i>=0; i--){
         const c = hand[i];
@@ -1609,26 +1496,18 @@ function settleEndOfTurn(isPlayer){
         }
         renderForcedSlotUI();
         GS.playerTemp = Math.max(37.2, GS.playerTemp - 0.7);
-    } else {
-        GS.enemyTemp = Math.max(37.2, GS.enemyTemp - 0.7);
-    }
+    } else GS.enemyTemp = Math.max(37.2, GS.enemyTemp - 0.7);
     if(GS.ac220vTurn > 0) GS.ac220vTurn--;
     if(GS.enemySafetyWarningSuppressTurn > 0) GS.enemySafetyWarningSuppressTurn--;
     clampTemp(); tickZones();
     forEachUnit(u=>{ if(u.gasSmokeAftermath > 0) u.gasSmokeAftermath--; });
 }
-
 function settleStartOfTurn(isPlayer){
     const prefix = isPlayer ? "我方" : "敌方";
     const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
-
     if(isPlayer){
-        if(GS.controlledFusionBuff){
-            GS.playerK = Math.min(GS.playerKMax, GS.playerK + GS.playerKMax);
-            drawCard(true); drawCard(true);
-        } else {
-            GS.playerK = Math.min(GS.playerKMax, GS.playerK + 1);
-        }
+        if(GS.controlledFusionBuff){ GS.playerK = Math.min(GS.playerKMax, GS.playerK + GS.playerKMax); drawCard(true); drawCard(true); }
+        else GS.playerK = Math.min(GS.playerKMax, GS.playerK + 1);
         GS.playerHQ.hasMoved = false;
         forEachUnit(u=>{ if(u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
     } else {
@@ -1636,7 +1515,6 @@ function settleStartOfTurn(isPlayer){
         GS.enemyHQ.hasMoved = false;
         forEachUnit(u=>{ if(!u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
     }
-
     if(!isPlayer){
         if(GS.enemyNoDrawTurn > 0){ GS.enemyNoDrawTurn--; log('敌方无法抽牌','green'); }
         if(GS.enemyLoseKTurn > 0){ GS.enemyK = Math.max(0, GS.enemyK - 5); GS.enemyLoseKTurn--; log('敌方开局-5指挥点','green'); }
@@ -1669,15 +1547,11 @@ function settleStartOfTurn(isPlayer){
     });
     if((hq.nitroGlycerin||0) > 0){ hq.def = Math.max(0, hq.def - hq.nitroGlycerin * 3); hq.nitroGlycerin = 0; log(`${prefix}总部硝化甘油爆炸！`,'red'); }
     forEachUnit(u=>{ if((u.nitroGlycerin||0) > 0){ u.def = Math.max(0, u.def - u.nitroGlycerin * 3); u.nitroGlycerin = 0; } });
-
     settlePoisonOnHQ(hq, isPlayer);
     forEachUnit(u=>{ if((isPlayer && u.isPlayerUnit) || (!isPlayer && !u.isPlayerUnit)) settlePoisonOnUnit(u); });
-
     applyZones();
-
     if(isPlayer){ GS.playerHQ.stun = false; GS.playerHQ.suppress = false; }
     else { GS.enemyHQ.stun = false; GS.enemyHQ.suppress = false; }
-
     if(GS.chemLabActive && GS.chemLabStage > 0){
         GS.chemLabStageTurn++;
         if(GS.chemLabStageTurn >= GS.chemLabStageDuration){
@@ -1710,10 +1584,8 @@ function unitAttack(u, tx, ty){
         if(t){ dealDamage(t, u.atk); log(`${u.isPlayerUnit?'我方':'敌方'}【${u.name}】攻击【${t.name}】-${u.atk}`, u.isPlayerUnit?'green':'red'); }
     }
 }
-
 function enemyTurn(){
     if(GS.gameOver) return;
-
     if(net.mode === 'host'){
         log("—— 客机回合开始 ——","red");
         settleStartOfTurn(false);
@@ -1727,12 +1599,10 @@ function enemyTurn(){
         renderBoard(); syncState(); pushSnapshot();
         return;
     }
-
     log("—— 敌方回合开始 ——","red");
     settleStartOfTurn(false);
     if(GS.enemyHQ.stun || GS.enemyHQ.suppress){ log("敌方总部被压制，跳过回合","green"); setTimeout(endEnemyTurn, 600); return; }
     if(GS.enemyNoDrawTurn <= 0){ drawCard(false); }
-
     let guard = 0;
     while(guard++ < 6){
         let played = false;
@@ -1769,7 +1639,6 @@ function enemyTurn(){
         }
         if(!played) break;
     }
-
     const snapshot = [];
     forEachUnit((u,x,y)=>{ if(!u.isPlayerUnit) snapshot.push({u,x,y}); });
     snapshot.forEach(({u,x,y})=>{
@@ -1799,7 +1668,6 @@ function enemyTurn(){
     renderBoard(); syncState(); cleanupDead(); checkGameOver();
     setTimeout(endEnemyTurn, 800);
 }
-
 function endEnemyTurn(){
     if(GS.gameOver) return;
     log("—— 敌方回合结束 ——","red");
@@ -1810,12 +1678,8 @@ function endEnemyTurn(){
     renderHand(); renderBoard(); renderForcedSlotUI(); syncState(); checkGameOver();
     if(net.mode === 'host' && net.started) pushSnapshot();
 }
-
 function endTurn(){
-    if(net.mode === 'guest'){
-        if(GS.isPlayerTurn && !GS.gameOver) sendAction({type:'endTurn'});
-        return;
-    }
+    if(net.mode === 'guest'){ if(GS.isPlayerTurn && !GS.gameOver) sendAction({type:'endTurn'}); return; }
     if(!GS.isPlayerTurn || GS.gameOver) return;
     log("—— 我方回合结束 ——","yellow");
     settleEndOfTurn(true);
@@ -1866,13 +1730,11 @@ function startGame(){
     GS.selectedUnit = null; GS.selectedHQ = null;
     GS.castByEnemy = false; GS.dragCardIndex = null; GS.choiceOpen = false; GS.lastDragEndAt = 0; GS.icePatchFromHeat = false;
     GS.gameOver = false; GS.pendingEndTurn = false;
-    document.getElementById("log").innerHTML = "";
+    const logEl = document.getElementById("log"); if(logEl) logEl.innerHTML = "";
     document.getElementById("branch-modal").classList.remove("show");
     document.getElementById("draw-modal").classList.remove("show");
     document.getElementById("choice-modal").classList.remove("show");
-
     initDeck();
-
     const first = GS.isPlayerFirst;
     const playerStart = first ? 4 : 5;
     const enemyStart = first ? 5 : 4;
@@ -1880,19 +1742,16 @@ function startGame(){
     drawStartingHand(false, enemyStart);
     ensureRoleCardInHand(true);
     ensureRoleCardInHand(false);
-
     log("游戏开始！你是" + (GS.isPlayerFirst ? "先手" : "后手"), "green");
     log("—— 第1回合 · 我方开始 ——","green");
     settleStartOfTurn(true);
     renderBoard(); renderHand(); renderForcedSlotUI(); syncState();
 }
-
 function checkGameOver(){
     if(GS.gameOver) return;
     if(GS.playerHQ.def <= 0){ GS.gameOver = true; showResultModal(false); }
     else if(GS.enemyHQ.def <= 0){ GS.gameOver = true; showResultModal(true); }
 }
-
 function showResultModal(isWin){
     if(net.mode === 'host' && net.started){
         net.started = false;
@@ -1915,9 +1774,12 @@ function showResultModal(isWin){
 }
 
 /* ============================================================
-   ============== 联机模块（Supabase 版本） ===================
+   ============== 联机模块（REST + 轮询） =====================
    ============================================================ */
 let supabaseClient = null;
+let lobbyTimer = null;
+let roomPollTimer = null;
+let roomPingTimer = null;
 
 const net = {
   mode: 'single',
@@ -1933,23 +1795,23 @@ const net = {
   hostRematch: false,
   guestRematch: false,
   inRoom: false,
-  lobbyChannel: null,
-  roomChannel: null,
   connected: false,
   hostNameConnected: false,
+  lastEventTime: 0,
+  busy: false,
 };
 
 const roomRegistry = new Map();
 
-/* ---------- 初始化 ---------- */
 function initSupabase() {
   if (supabaseClient) return supabaseClient;
   if (!window.supabase || !window.supabase.createClient) {
-    alert('Supabase SDK 未加载，请检查网络或 CDN。');
+    const bar = document.getElementById('global-error-bar');
+    if (bar) { bar.style.display = 'block'; bar.textContent = '⚠ Supabase SDK 未加载成功，请刷新重试。'; }
     return null;
   }
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    realtime: { params: { eventsPerSecond: 20 } }
+    auth: { persistSession: false },
   });
   return supabaseClient;
 }
@@ -1960,67 +1822,61 @@ function genRoomCode() {
   for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
   return s;
 }
+function $(id){ return document.getElementById(id); }
+function setRoomMsg(t, color){
+  const e = $('room-msg'); if (!e) return;
+  e.textContent = t || '';
+  e.style.color = color || '#ffb347';
+}
 
-/* ---------- 大厅 ---------- */
+/* ============ 大厅 ============ */
 function openLobby() {
   const sb = initSupabase();
   if (!sb) return;
-  document.getElementById('main-menu').style.display = 'none';
-  document.getElementById('lobby-screen').style.display = 'flex';
-  document.getElementById('room-screen').style.display = 'none';
-  joinLobbyChannel();
+  $('main-menu').style.display = 'none';
+  $('lobby-screen').style.display = 'flex';
+  $('room-screen').style.display = 'none';
+  startLobbyPolling();
 }
 
-function joinLobbyChannel() {
+function startLobbyPolling() {
+  stopLobbyPolling();
+  refreshRooms();
+  lobbyTimer = setInterval(refreshRooms, 2000);
+}
+function stopLobbyPolling() {
+  if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; }
+}
+
+async function refreshRooms() {
   const sb = initSupabase();
   if (!sb) return;
-  if (net.lobbyChannel) return;
-
-  net.lobbyChannel = sb.channel('slh-lobby', {
-    config: { presence: { key: net.myId } }
-  });
-
-  net.lobbyChannel
-    .on('presence', { event: 'sync' },  () => rebuildRoomRegistry())
-    .on('presence', { event: 'join' },  () => rebuildRoomRegistry())
-    .on('presence', { event: 'leave' }, () => rebuildRoomRegistry())
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') net.connected = true;
-    });
-}
-
-function rebuildRoomRegistry() {
+  const cutoff = Date.now() - 30000;
+  const { data, error } = await sb.from('game_rooms')
+    .select('*').gt('host_ping', cutoff).order('updated_at', { ascending: false });
+  if (error) { console.warn('refreshRooms', error); return; }
   roomRegistry.clear();
-  if (!net.lobbyChannel) return;
-  const state = net.lobbyChannel.presenceState();
-  for (const key in state) {
-    for (const p of state[key]) {
-      if (p && p.code && p.isHost) {
-        roomRegistry.set(p.code, {
-          code: p.code,
-          host: p.host || '房主',
-          state: p.started ? 'playing' : 'waiting',
-          ts: p.ts || 0,
-        });
-      }
-    }
-  }
+  (data || []).forEach(r => {
+    roomRegistry.set(r.code, {
+      code: r.code,
+      host: r.host_name || '房主',
+      state: r.started ? 'playing' : 'waiting',
+      ts: r.updated_at || 0,
+    });
+  });
   renderRoomList();
 }
 
-function requestRoomList() {
-  rebuildRoomRegistry();
-}
+function requestRoomList() { refreshRooms(); }
 
-/* ---------- 房间列表渲染 ---------- */
 function renderRoomList() {
-  const box = document.getElementById('room-list'); if (!box) return;
-  const kw = (document.getElementById('lobby-search').value || '').trim().toUpperCase();
+  const box = $('room-list'); if (!box) return;
+  const kw = ($('lobby-search').value || '').trim().toUpperCase();
   const items = [...roomRegistry.values()]
     .filter(r => !kw || r.code.includes(kw))
     .sort((a, b) => (b.ts || 0) - (a.ts || 0));
   if (items.length === 0) {
-    box.innerHTML = `<div class="room-empty">${kw ? '没有找到匹配的房间码' : '暂无房间，点击右上角「创建房间」开一个吧'}</div>`;
+    box.innerHTML = `<div class="room-empty">${kw ? '没有找到匹配的房间码' : '暂无房间。点「创建房间」开一个，或输入房间码后点「直接加入」。'}</div>`;
     return;
   }
   box.innerHTML = '';
@@ -2042,133 +1898,216 @@ function renderRoomList() {
   });
 }
 
-/* ---------- 创建房间 ---------- */
-function createRoom() {
-  if (!net.lobbyChannel) { joinLobbyChannel(); }
+/* ============ 创建 / 加入房间 ============ */
+async function createRoom() {
+  const sb = initSupabase();
+  if (!sb) return;
   const code = genRoomCode();
+  const now = Date.now();
+
+  try {
+    await sb.from('game_events').delete().eq('room_code', code);
+    await sb.from('game_rooms').delete().eq('code', code);
+    const { error } = await sb.from('game_rooms').insert({
+      code, host_name: '房主', guest_name: '', guest_ready: false,
+      started: false, host_ping: now, guest_ping: 0, updated_at: now,
+    });
+    if (error) { alert('创建房间失败：' + error.message); return; }
+  } catch (e) { alert('创建房间出错：' + e.message); return; }
 
   net.roomCode = code;
   net.isHost = true;
   net.mode = 'host';
   net.inRoom = true;
-  net.hostName = '房主';
+  net.lastEventTime = 0;
+  net.hostNameConnected = true;
   net.guestName = '';
   net.guestReady = false;
   net.myReady = false;
   net.started = false;
 
-  if (net.lobbyChannel) {
-    net.lobbyChannel.track({
-      code,
-      host: '房主',
-      isHost: true,
-      started: false,
-      ts: Date.now(),
-    });
-  }
-
-  joinRoomChannel(code);
   openRoomScreen();
   setRoomMsg('房间已创建，等待客机加入…');
+  startRoomPolling();
 }
 
-/* ---------- 加入房间 ---------- */
-function joinRoom(code) {
-  const room = roomRegistry.get(code);
-  if (!room) { alert('房间不存在或已关闭'); return; }
-  if (room.state === 'playing') { alert('该房间正在对局中'); return; }
+function joinRoomByCode() {
+  const code = ($('lobby-search').value || '').trim().toUpperCase();
+  if (!code || code.length < 4) { alert('请输入有效的房间码'); return; }
+  joinRoom(code);
+}
+
+async function joinRoom(code) {
+  const sb = initSupabase();
+  if (!sb) return;
+
+  const { data: room, error } = await sb.from('game_rooms')
+    .select('*').eq('code', code).maybeSingle();
+  if (error || !room) { alert('房间不存在或已关闭'); return; }
+  if (Date.now() - (room.host_ping || 0) > 20000) { alert('房主已离线'); return; }
+  if (room.started) { alert('该房间正在对局中'); return; }
+  const guestActive = room.guest_name && (Date.now() - (room.guest_ping || 0) < 8000);
+  if (guestActive) { alert('房间已满'); return; }
+
+  const now = Date.now();
+  const { error: upErr } = await sb.from('game_rooms').update({
+    guest_name: '玩家2', guest_ready: false, guest_ping: now,
+  }).eq('code', code);
+  if (upErr) { alert('加入失败：' + upErr.message); return; }
+
+  const { data: maxEv } = await sb.from('game_events')
+    .select('created_at').eq('room_code', code)
+    .order('created_at', { ascending: false }).limit(1);
 
   net.roomCode = code;
   net.isHost = false;
   net.mode = 'guest';
   net.inRoom = true;
+  net.lastEventTime = (maxEv && maxEv[0]) ? Number(maxEv[0].created_at) : 0;
+  net.hostNameConnected = false;
+  net.guestName = '';
+  net.guestReady = false;
   net.myReady = false;
   net.started = false;
-  net.hostNameConnected = false;
 
-  joinRoomChannel(code);
   openRoomScreen();
   setRoomMsg('已加入房间 ' + code + '，等待房主…');
+  startRoomPolling();
 }
 
-/* ---------- 房间频道 ---------- */
-function joinRoomChannel(code) {
-  const sb = initSupabase();
-  if (!sb) return;
-  if (net.roomChannel) { try { net.roomChannel.unsubscribe(); } catch (e) {} net.roomChannel = null; }
+/* ============ 房间轮询 ============ */
+function startRoomPolling() {
+  stopRoomPolling();
+  roomPollTimer = setInterval(pollRoom, 600);
+  roomPingTimer = setInterval(sendPing, 3000);
+  pollRoom();
+}
+function stopRoomPolling() {
+  if (roomPollTimer) { clearInterval(roomPollTimer); roomPollTimer = null; }
+  if (roomPingTimer) { clearInterval(roomPingTimer); roomPingTimer = null; }
+}
 
-  net.roomChannel = sb.channel('slh-room-' + code, {
-    config: {
-      presence:  { key: net.myId },
-      broadcast: { self: false },
+async function sendPing() {
+  if (!net.inRoom || !net.roomCode) return;
+  const sb = initSupabase(); if (!sb) return;
+  const now = Date.now();
+  try {
+    if (net.isHost) {
+      await sb.from('game_rooms').update({ host_ping: now, updated_at: now }).eq('code', net.roomCode);
+    } else {
+      await sb.from('game_rooms').update({ guest_ping: now }).eq('code', net.roomCode);
     }
-  });
+  } catch (e) { /* 忽略 */ }
+}
 
-  net.roomChannel
-    .on('presence', { event: 'sync' },  () => onRoomPresence())
-    .on('presence', { event: 'join' },  () => onRoomPresence())
-    .on('presence', { event: 'leave' }, () => onRoomPresence())
-    .on('broadcast', { event: 'msg' }, ({ payload }) => handleRoomMessage(payload))
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        net.roomChannel.track({
-          role: net.isHost ? 'host' : 'guest',
-          name: net.isHost ? '房主' : '玩家2',
-          joinedAt: Date.now(),
-        });
-        if (net.isHost) setRoomMsg('等待客机加入…');
+async function pollRoom() {
+  if (!net.inRoom || !net.roomCode) return;
+  if (net.busy) return;
+  net.busy = true;
+  const sb = initSupabase();
+  if (!sb) { net.busy = false; return; }
+
+  try {
+    const { data: room, error } = await sb.from('game_rooms')
+      .select('*').eq('code', net.roomCode).maybeSingle();
+
+    if (error) { net.busy = false; return; }
+
+    if (!room) {
+      if (!net.isHost) {
+        setRoomMsg('房主已解散房间', '#ff9a9a');
+        setTimeout(() => leaveRoom(true), 900);
+      }
+      net.busy = false;
+      return;
+    }
+
+    const now = Date.now();
+
+    if (net.isHost) {
+      const guestActive = room.guest_name && (now - (room.guest_ping || 0) < 8000);
+      const newGuest = guestActive ? room.guest_name : '';
+      const newReady = guestActive ? !!room.guest_ready : false;
+      if (net.guestName !== newGuest || net.guestReady !== newReady) {
+        const had = !!net.guestName;
+        net.guestName = newGuest;
+        net.guestReady = newReady;
+        if (!newGuest && had) setRoomMsg('客机已离开房间', '#ff9a9a');
+        else if (newGuest && !had) setRoomMsg('客机已加入，等待准备');
+        else if (newGuest && newReady) setRoomMsg('客机已准备，可开始');
         renderRoomScreen();
       }
-    });
-}
+    } else {
+      const hostActive = (now - (room.host_ping || 0)) < 15000;
+      if (!hostActive && net.hostNameConnected) {
+        setRoomMsg('房主已离线', '#ff9a9a');
+        setTimeout(() => leaveRoom(true), 900);
+        net.busy = false;
+        return;
+      }
+      if (hostActive && !net.hostNameConnected) {
+        net.hostNameConnected = true;
+        setRoomMsg('已连接到房主');
+      }
+      if (net.guestReady !== !!room.guest_ready) {
+        net.guestReady = !!room.guest_ready;
+        net.myReady = !!room.guest_ready;
+        renderRoomScreen();
+      }
+      if (room.started && !net.started) {
+        net.started = true;
+        $('room-screen').style.display = 'none';
+        $('game-screen').style.display = 'block';
+        $('result-modal').classList.remove('show');
+        GS.gameOver = false;
+        log('进入对局…', 'green');
+        startGame();
+      }
+    }
 
-function onRoomPresence() {
-  if (!net.roomChannel) return;
-  const state = net.roomChannel.presenceState();
+    const { data: events } = await sb.from('game_events')
+      .select('*')
+      .eq('room_code', net.roomCode)
+      .neq('sender', net.myId)
+      .gt('created_at', net.lastEventTime)
+      .order('created_at', { ascending: true })
+      .limit(80);
 
-  if (net.isHost) {
-    let guestName = '';
-    for (const key in state) {
-      if (key === net.myId) continue;
-      for (const p of state[key]) if (p.role === 'guest') guestName = p.name || '玩家2';
+    if (events && events.length > 0) {
+      for (const ev of events) {
+        net.lastEventTime = Math.max(net.lastEventTime, Number(ev.created_at));
+        handleRoomMessage(ev.payload);
+      }
     }
-    const hadGuest = !!net.guestName;
-    net.guestName = guestName;
-    if (!guestName) {
-      net.guestReady = false;
-      if (hadGuest) setRoomMsg('客机已离开房间', '#ff9a9a');
-    } else if (!hadGuest) {
-      setRoomMsg('客机已加入，等待准备');
+
+    if (net.isHost && (!net._lastClean || now - net._lastClean > 30000)) {
+      net._lastClean = now;
+      sb.from('game_events').delete().lt('created_at', now - 120000).then(()=>{});
     }
-    renderRoomScreen();
-  } else {
-    let hostFound = false;
-    for (const key in state) {
-      if (key === net.myId) continue;
-      for (const p of state[key]) if (p.role === 'host') hostFound = true;
-    }
-    if (!hostFound && net.hostNameConnected) {
-      setRoomMsg('房主已离开房间', '#ff9a9a');
-      setTimeout(() => leaveRoom(true), 900);
-    }
-    if (hostFound) net.hostNameConnected = true;
+  } catch (e) {
+    console.warn('pollRoom', e);
+  } finally {
+    net.busy = false;
   }
 }
 
-/* ---------- 房间消息 ---------- */
-function roomSend(payload) {
-  if (!net.roomChannel) return;
-  net.roomChannel.send({
-    type: 'broadcast',
-    event: 'msg',
-    payload: Object.assign({ from: net.myId, ts: Date.now() }, payload),
-  });
+/* ============ 房间消息 ============ */
+async function roomSend(payload) {
+  if (!net.inRoom || !net.roomCode) return;
+  const sb = initSupabase(); if (!sb) return;
+  try {
+    await sb.from('game_events').insert({
+      room_code: net.roomCode,
+      sender: net.myId,
+      payload: Object.assign({ from: net.myId, ts: Date.now() }, payload),
+      created_at: Date.now(),
+    });
+  } catch (e) { console.warn('roomSend', e); }
 }
 
 function handleRoomMessage(m) {
   if (!m || m.from === net.myId) return;
   switch (m.t) {
-
     case 'ready':
       if (net.isHost) {
         net.guestReady = !!m.ready;
@@ -2176,28 +2115,24 @@ function handleRoomMessage(m) {
         setRoomMsg(m.ready ? '客机已准备，可开始' : '客机取消了准备');
       }
       break;
-
     case 'start':
-      if (!net.isHost) {
+      if (!net.isHost && !net.started) {
         net.started = true;
         net.hostNameConnected = true;
-        document.getElementById('room-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'block';
-        document.getElementById('result-modal').classList.remove('show');
+        $('room-screen').style.display = 'none';
+        $('game-screen').style.display = 'block';
+        $('result-modal').classList.remove('show');
         GS.gameOver = false;
         log('进入对局…', 'green');
         startGame();
       }
       break;
-
     case 'snapshot':
       if (!net.isHost) applySnapshot(m.data);
       break;
-
     case 'action':
       if (net.isHost) hostHandleGuestAction(m.action);
       break;
-
     case 'result':
       if (!net.isHost) {
         GS.gameOver = true;
@@ -2205,30 +2140,21 @@ function handleRoomMessage(m) {
         showResultModal(!!m.win);
       }
       break;
-
     case 'rematch':
-      if (net.isHost) {
-        net.guestRematch = true;
-        setRoomMsg('客机想再来一局', '#9cffb0');
-        checkRematch();
-      } else {
-        net.hostRematch = true;
-        setRoomMsg('房主想再来一局！', '#9cffb0');
-      }
+      if (net.isHost) { net.guestRematch = true; setRoomMsg('客机想再来一局', '#9cffb0'); checkRematch(); }
+      else { net.hostRematch = true; setRoomMsg('房主想再来一局！', '#9cffb0'); }
       break;
-
     case 'restart':
       if (!net.isHost) {
         net.started = true;
         net.hostRematch = net.guestRematch = false;
-        document.getElementById('result-modal').classList.remove('show');
-        document.getElementById('room-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'block';
+        $('result-modal').classList.remove('show');
+        $('room-screen').style.display = 'none';
+        $('game-screen').style.display = 'block';
         GS.gameOver = false;
         log('—— 新对局开始 ——', 'green');
       }
       break;
-
     case 'leave':
       if (net.isHost && m.isGuest) {
         net.guestName = '';
@@ -2243,92 +2169,80 @@ function handleRoomMessage(m) {
   }
 }
 
-/* ---------- 房间界面 ---------- */
+/* ============ 房间界面 ============ */
 function openRoomScreen() {
-  document.getElementById('lobby-screen').style.display = 'none';
-  document.getElementById('main-menu').style.display = 'none';
-  document.getElementById('game-screen').style.display = 'none';
-  document.getElementById('room-screen').style.display = 'flex';
+  $('lobby-screen').style.display = 'none';
+  $('main-menu').style.display = 'none';
+  $('game-screen').style.display = 'none';
+  $('room-screen').style.display = 'flex';
   renderRoomScreen();
 }
 
 function renderRoomScreen() {
-  document.getElementById('room-code').textContent = net.roomCode || '------';
-  document.getElementById('room-host').textContent = net.isHost ? '房主（你）' : '房主';
-  document.getElementById('room-guest').textContent = net.isHost
-    ? (net.guestName || '等待加入…')
-    : '你';
-
+  $('room-code').textContent = net.roomCode || '------';
+  $('room-host').textContent = net.isHost ? '房主（你）' : '房主';
+  $('room-guest').textContent = net.isHost ? (net.guestName || '等待加入…') : '你';
   let st = '等待中';
   if (net.started) st = '对局中';
   else if (net.isHost && net.guestName && net.guestReady) st = '客机已准备，可开始';
   else if (net.isHost && net.guestName) st = '客机未准备';
   else if (!net.isHost && net.myReady) st = '已准备，等待房主开始';
   else if (!net.isHost) st = '未准备';
-  document.getElementById('room-status').textContent = st;
-
-  const readyBtn = document.getElementById('btn-room-ready');
+  $('room-status').textContent = st;
+  const readyBtn = $('btn-room-ready');
   readyBtn.style.display = net.isHost ? 'none' : '';
   readyBtn.textContent = net.myReady ? '取消准备' : '准备';
-
-  const startBtn = document.getElementById('btn-room-start');
+  const startBtn = $('btn-room-start');
   startBtn.style.display = net.isHost ? '' : 'none';
   startBtn.disabled = !(net.guestName && net.guestReady);
 }
 
-function setRoomMsg(t, color) {
-  const e = document.getElementById('room-msg'); if (!e) return;
-  e.textContent = t || '';
-  e.style.color = color || '#ffb347';
-}
-
-/* ---------- 按钮动作 ---------- */
-function toggleReady() {
+/* ============ 按钮动作 ============ */
+async function toggleReady() {
   if (net.isHost) return;
+  const sb = initSupabase(); if (!sb) return;
   net.myReady = !net.myReady;
+  try {
+    await sb.from('game_rooms').update({ guest_ready: net.myReady }).eq('code', net.roomCode);
+  } catch (e) {}
   renderRoomScreen();
-  roomSend({ t: 'ready', ready: net.myReady });
   setRoomMsg(net.myReady ? '已准备，等待房主开始' : '已取消准备');
+  roomSend({ t: 'ready', ready: net.myReady });
 }
 
-function hostStartGame() {
+async function hostStartGame() {
   if (!net.isHost) return;
-  if (!net.guestName || !net.guestReady) {
-    setRoomMsg('需要客机先点「准备」', '#ff9a9a');
-    return;
-  }
+  if (!net.guestName || !net.guestReady) { setRoomMsg('需要客机先点「准备」', '#ff9a9a'); return; }
+  const sb = initSupabase(); if (!sb) return;
   net.started = true;
-
-  if (net.lobbyChannel) {
-    net.lobbyChannel.track({
-      code: net.roomCode,
-      host: '房主',
-      isHost: true,
-      started: true,
-      ts: Date.now(),
-    });
-  }
-
+  try {
+    await sb.from('game_rooms').update({ started: true, updated_at: Date.now() }).eq('code', net.roomCode);
+  } catch (e) {}
   roomSend({ t: 'start' });
-
-  document.getElementById('room-screen').style.display = 'none';
-  document.getElementById('game-screen').style.display = 'block';
-  document.getElementById('result-modal').classList.remove('show');
+  $('room-screen').style.display = 'none';
+  $('game-screen').style.display = 'block';
+  $('result-modal').classList.remove('show');
   GS.gameOver = false;
   startGame();
   pushSnapshot();
 }
 
-function leaveRoom(silent) {
-  if (net.roomChannel) {
-    roomSend({ t: 'leave', isHost: net.isHost, isGuest: !net.isHost });
-    try { net.roomChannel.unsubscribe(); } catch (e) {}
-    net.roomChannel = null;
+async function leaveRoom(silent) {
+  const sb = initSupabase();
+  stopRoomPolling();
+  if (net.inRoom && net.roomCode && sb) {
+    try {
+      if (net.isHost) {
+        await sb.from('game_events').delete().eq('room_code', net.roomCode);
+        await sb.from('game_rooms').delete().eq('code', net.roomCode);
+      } else {
+        roomSend({ t: 'leave', isGuest: true });
+        await sb.from('game_rooms').update({
+          guest_name: '', guest_ready: false, guest_ping: 0,
+        }).eq('code', net.roomCode);
+      }
+    } catch (e) {}
   }
-  if (net.isHost && net.lobbyChannel) {
-    try { net.lobbyChannel.untrack(); } catch (e) {}
-  }
-
   net.roomCode = '';
   net.isHost = false;
   net.guestName = '';
@@ -2338,26 +2252,24 @@ function leaveRoom(silent) {
   net.inRoom = false;
   net.mode = 'single';
   net.hostRematch = net.guestRematch = false;
-
-  document.getElementById('room-screen').style.display = 'none';
-  document.getElementById('game-screen').style.display = 'none';
-  document.getElementById('result-modal').classList.remove('show');
-  if (!silent) document.getElementById('main-menu').style.display = 'flex';
+  net.hostNameConnected = false;
+  net.lastEventTime = 0;
+  $('room-screen').style.display = 'none';
+  $('game-screen').style.display = 'none';
+  $('result-modal').classList.remove('show');
+  if (!silent) $('main-menu').style.display = 'flex';
   mainSubject = null;
 }
 
-/* ---------- 快照 / 操作 ---------- */
+/* ============ 快照 / 操作 ============ */
 function pushSnapshot() {
   if (net.mode !== 'host' || !net.started) return;
   roomSend({ t: 'snapshot', data: buildSnapshot() });
 }
-
 function sendAction(a) {
   if (net.mode !== 'guest') return;
   roomSend({ t: 'action', action: a });
 }
-
-/* ---------- 结算 / 再来一局 ---------- */
 function requestRematch() {
   if (net.mode === 'host') {
     net.hostRematch = true;
@@ -2370,7 +2282,6 @@ function requestRematch() {
     document.getElementById('result-desc').textContent = '已请求再来一局，等待房主…';
   }
 }
-
 function checkRematch() {
   if (net.mode !== 'host') return;
   if (net.hostRematch && net.guestRematch) {
@@ -2383,7 +2294,6 @@ function checkRematch() {
     log('—— 新对局开始 ——', 'green');
   }
 }
-
 function backToRoomFromResult() {
   document.getElementById('result-modal').classList.remove('show');
   document.getElementById('game-screen').style.display = 'none';
@@ -2395,21 +2305,17 @@ function backToRoomFromResult() {
   setRoomMsg('已返回房间');
 }
 
-/* ---------- 快照构建 / 应用（与原版一致） ---------- */
+/* ============ 快照构建 / 应用 ============ */
 function mirrorHQObj(hq, mirror){
-    return {
-        placed:true, x: mirror ? 10 - hq.x : hq.x, y: hq.y,
+    return { placed:true, x: mirror ? 10 - hq.x : hq.x, y: hq.y,
         def: hq.def, defMax: hq.defMax,
         radiate: hq.radiate||0, stun: !!hq.stun, suppress: !!hq.suppress,
         immune: !!hq.immune, nitroGlycerin: hq.nitroGlycerin||0,
         cannotBeSuppressed: !!hq.cannotBeSuppressed,
-        poison: JSON.parse(JSON.stringify(hq.poison||{})),
-        hasMoved: false
-    };
+        poison: JSON.parse(JSON.stringify(hq.poison||{})), hasMoved: false };
 }
 function mirrorUnit(u, mirror){
-    return {
-        id:u.id, name:u.name, atk:u.atk, def:u.def, defMax:u.defMax,
+    return { id:u.id, name:u.name, atk:u.atk, def:u.def, defMax:u.defMax,
         attribute:u.attribute, rarity:u.rarity,
         isPlayerUnit: mirror ? !u.isPlayerUnit : u.isPlayerUnit,
         stun:!!u.stun, suppress:!!u.suppress, immune:!!u.immune,
@@ -2418,19 +2324,15 @@ function mirrorUnit(u, mirror){
         poison: JSON.parse(JSON.stringify(u.poison||{})),
         fireTurns:u.fireTurns||0, gasSmoke:!!u.gasSmoke,
         gasSmokeAftermath:u.gasSmokeAftermath||0,
-        hasAttacked:!!u.hasAttacked, hqAttackCount:u.hqAttackCount||0
-    };
+        hasAttacked:!!u.hasAttacked, hqAttackCount:u.hqAttackCount||0 };
 }
-
 function buildSnapshot(){
     const field = Array.from({length:11},()=>Array(11).fill(null));
     for(let y=0;y<11;y++) for(let x=0;x<11;x++){
         const u = GS.field[y][x];
         if(u) field[y][10-x] = mirrorUnit(u, true);
     }
-    return {
-        turn: GS.turn,
-        isPlayerTurn: !GS.isPlayerTurn,
+    return { turn: GS.turn, isPlayerTurn: !GS.isPlayerTurn,
         playerK: GS.enemyK, playerKMax: GS.enemyKMax,
         enemyK: GS.playerK, enemyKMax: GS.playerKMax,
         playerTemp: GS.enemyTemp, enemyTemp: GS.playerTemp,
@@ -2440,21 +2342,17 @@ function buildSnapshot(){
         enemyHandCount: GS.playerHand.length,
         playerDeckCount: GS.enemyDeck.length,
         enemyDeckCount: GS.playerDeck.length,
-        deckMax: GS.deckMax,
-        handMax: GS.handMax,
+        deckMax: GS.deckMax, handMax: GS.handMax,
         field,
         fireZones: GS.fireZones.map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
         radiateZones: GS.radiateZones.map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
         poisonZones: GS.poisonZones.map(z=>({x:10-z.x, y:z.y, radius:z.radius, duration:z.duration, type:z.type})),
         waterZones: (GS.waterZones||[]).map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
-        gameOver: GS.gameOver
-    };
+        gameOver: GS.gameOver };
 }
-
 function applySnapshot(d){
     if(!d) return;
-    GS.turn = d.turn;
-    GS.isPlayerTurn = d.isPlayerTurn;
+    GS.turn = d.turn; GS.isPlayerTurn = d.isPlayerTurn;
     GS.playerK = d.playerK; GS.playerKMax = d.playerKMax;
     GS.enemyK = d.enemyK; GS.enemyKMax = d.enemyKMax;
     GS.playerTemp = d.playerTemp; GS.enemyTemp = d.enemyTemp;
@@ -2477,7 +2375,7 @@ function applySnapshot(d){
     renderBoard(); renderHand(); syncState();
 }
 
-/* ---------- 客机输入 ---------- */
+/* ============ 客机输入 ============ */
 function guestCardClick(idx){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     const card = GS.playerHand[idx]; if(!card) return;
@@ -2487,13 +2385,9 @@ function guestCardClick(idx){
     GS.selectedCardIndex = idx; GS.pendingDeployCard = card;
     if(card.type === 'unit' && card.canDeploy){ GS.selectMode = 'deploy'; log('选择部署位置','yellow'); }
     else if(card.needTarget){ GS.selectMode = 'target'; log('选择目标','yellow'); }
-    else {
-        sendAction({ type:'cast', idx });
-        resetSelection();
-    }
+    else { sendAction({ type:'cast', idx }); resetSelection(); }
     renderHand(); renderBoard();
 }
-
 function guestCellClick(x,y){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     if(GS.selectedUnit){
@@ -2501,16 +2395,10 @@ function guestCellClick(x,y){
         const u = GS.field[su.y][su.x];
         if(!u || !u.isPlayerUnit){ GS.selectedUnit = null; renderBoard(); return; }
         if(Math.abs(su.x - x) + Math.abs(su.y - y) === 1){
-            if(isEnemyHQ(x,y)){
-                sendAction({ type:'attackHQ', ux: su.x, uy: su.y });
-                GS.selectedUnit = null; renderBoard(); return;
-            }
+            if(isEnemyHQ(x,y)){ sendAction({ type:'attackHQ', ux: su.x, uy: su.y }); GS.selectedUnit = null; renderBoard(); return; }
             const t = GS.field[y][x];
-            if(t && !t.isPlayerUnit){
-                sendAction({ type:'attack', ux: su.x, uy: su.y, x, y });
-            } else if(!t && !isHQ(x,y)){
-                sendAction({ type:'move', ux: su.x, uy: su.y, x, y });
-            }
+            if(t && !t.isPlayerUnit) sendAction({ type:'attack', ux: su.x, uy: su.y, x, y });
+            else if(!t && !isHQ(x,y)) sendAction({ type:'move', ux: su.x, uy: su.y, x, y });
         }
         GS.selectedUnit = null; renderBoard(); return;
     }
@@ -2527,14 +2415,11 @@ function guestCellClick(x,y){
     if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】`,'yellow'); renderBoard(); }
 }
 
-/* ---------- 主机：执行客机动作 ---------- */
+/* ============ 主机：执行客机动作 ============ */
 function hostHandleGuestAction(a){
     if(!a || !net.started) return;
-    if(!net.guestTurnActive){
-        return;
-    }
+    if(!net.guestTurnActive) return;
     const cost0 = (card)=>{ let c = card.cost||0; return c; };
-
     switch(a.type){
         case 'deploy': {
             const card = GS.enemyHand[a.idx];
@@ -2559,8 +2444,7 @@ function hostHandleGuestAction(a){
         }
         case 'cast': {
             const card = GS.enemyHand[a.idx];
-            if(!card) return;
-            if(card.type === 'unit') return;
+            if(!card || card.type === 'unit') return;
             const c = cost0(card);
             if(c > GS.enemyK) return;
             const x = a.x === undefined ? 0 : 10 - a.x;
@@ -2620,7 +2504,6 @@ function hostHandleGuestAction(a){
         }
         default: return;
     }
-
     cleanupDead();
     renderBoard(); syncState(); checkGameOver();
     pushSnapshot();
@@ -2629,105 +2512,116 @@ function hostHandleGuestAction(a){
 /* ============================================================
    ============== 事件绑定 =====================================
    ============================================================ */
-window.onload = function(){
-    hideTooltip();
+function bindAllEvents() {
+  console.log('[Init] 开始绑定事件');
+  const $id = (id) => document.getElementById(id);
+  const safeOn = (id, ev, fn) => {
+    const el = $id(id);
+    if (!el) { console.warn('[Init] 找不到元素 #' + id); return; }
+    if (el.__bound) return;
+    el.addEventListener(ev, fn);
+    el.__bound = true;
+  };
 
-    /* ---- 本地对战 ---- */
-    document.getElementById("btn-local").addEventListener("click", function(){
-        net.mode = 'single';
-        document.getElementById("main-menu").style.display = "none";
-        document.getElementById("game-screen").style.display = "block";
-        showSubjectChoice(function(){ startGame(); });
-    });
+  safeOn("btn-local", "click", function(){
+    net.mode = 'single';
+    $id("main-menu").style.display = "none";
+    $id("game-screen").style.display = "block";
+    showSubjectChoice(function(){ startGame(); });
+  });
 
-    /* ---- 多人联机 ---- */
-    document.getElementById("btn-online").addEventListener("click", function(){
-        openLobby();
-    });
-    document.getElementById("btn-lobby-back").addEventListener("click", function(){
-        document.getElementById("lobby-screen").style.display = "none";
-        document.getElementById("main-menu").style.display = "flex";
-    });
-    document.getElementById("btn-lobby-refresh").addEventListener("click", function(){
-        requestRoomList();
-    });
-    document.getElementById("lobby-search").addEventListener("input", function(){
-        renderRoomList();
-    });
-    document.getElementById("btn-lobby-create").addEventListener("click", function(){
-        createRoom();
-    });
-    document.getElementById("btn-room-copy").addEventListener("click", function(){
-        const code = net.roomCode || '';
-        if(navigator.clipboard && navigator.clipboard.writeText){
-            navigator.clipboard.writeText(code).then(()=>setRoomMsg('房间码已复制：' + code, '#9cffb0'))
-                .catch(()=>setRoomMsg('房间码：' + code));
-        } else setRoomMsg('房间码：' + code);
-    });
-    document.getElementById("btn-room-ready").addEventListener("click", toggleReady);
-    document.getElementById("btn-room-start").addEventListener("click", hostStartGame);
-    document.getElementById("btn-room-leave").addEventListener("click", function(){ leaveRoom(); });
+  safeOn("btn-online", "click", openLobby);
+  safeOn("btn-lobby-back", "click", function(){
+    stopLobbyPolling();
+    $id("lobby-screen").style.display = "none";
+    $id("main-menu").style.display = "flex";
+  });
+  safeOn("btn-lobby-refresh", "click", requestRoomList);
+  safeOn("btn-lobby-join", "click", joinRoomByCode);
+  safeOn("lobby-search", "input", renderRoomList);
+  safeOn("lobby-search", "keydown", function(e){ if(e.key === 'Enter') joinRoomByCode(); });
+  safeOn("btn-lobby-create", "click", createRoom);
+  safeOn("btn-room-copy", "click", function(){
+    const code = net.roomCode || '';
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(code).then(()=>setRoomMsg('房间码已复制：' + code, '#9cffb0'))
+        .catch(()=>setRoomMsg('房间码：' + code));
+    } else setRoomMsg('房间码：' + code);
+  });
+  safeOn("btn-room-ready", "click", toggleReady);
+  safeOn("btn-room-start", "click", hostStartGame);
+  safeOn("btn-room-leave", "click", function(){ leaveRoom(); });
 
-    /* ---- 结算按钮 ---- */
-    document.getElementById("btn-retry").addEventListener("click", function(){
-        document.getElementById("result-modal").classList.remove("show");
-        startGame();
-    });
-    document.getElementById("btn-continue").addEventListener("click", function(){
-        document.getElementById("result-modal").classList.remove("show");
-        document.getElementById("game-screen").style.display = "none";
-        document.getElementById("main-menu").style.display = "flex";
-        mainSubject = null;
-    });
-    document.getElementById("btn-rematch").addEventListener("click", requestRematch);
-    document.getElementById("btn-back-room").addEventListener("click", backToRoomFromResult);
-    document.getElementById("btn-leave-room").addEventListener("click", function(){
-        leaveRoom();
-    });
+  safeOn("btn-retry", "click", function(){
+    $id("result-modal").classList.remove("show");
+    startGame();
+  });
+  safeOn("btn-continue", "click", function(){
+    $id("result-modal").classList.remove("show");
+    $id("game-screen").style.display = "none";
+    $id("main-menu").style.display = "flex";
+    mainSubject = null;
+  });
+  safeOn("btn-rematch", "click", requestRematch);
+  safeOn("btn-back-room", "click", backToRoomFromResult);
+  safeOn("btn-leave-room", "click", function(){ leaveRoom(); });
 
-    /* ---- 对局内 ---- */
-    document.getElementById("btn-back-menu").addEventListener("click", function(){
-        if(net.mode === 'host' || net.mode === 'guest'){
-            if(confirm("离开房间？当前对局进度会丢失。")){
-                leaveRoom();
-            }
-            return;
-        }
-        if(confirm("返回主菜单？当前对局进度会丢失。")){
-            document.getElementById("game-screen").style.display = "none";
-            document.getElementById("main-menu").style.display = "flex";
-            document.getElementById("result-modal").classList.remove("show");
-            document.getElementById("branch-modal").classList.remove("show");
-            document.getElementById("draw-modal").classList.remove("show");
-            document.getElementById("choice-modal").classList.remove("show");
-            mainSubject = null;
-            net.mode = 'single';
-        }
-    });
+  safeOn("btn-back-menu", "click", function(){
+    if(net.mode === 'host' || net.mode === 'guest'){
+      if(confirm("离开房间？当前对局进度会丢失。")){ leaveRoom(); }
+      return;
+    }
+    if(confirm("返回主菜单？当前对局进度会丢失。")){
+      $id("game-screen").style.display = "none";
+      $id("main-menu").style.display = "flex";
+      $id("result-modal").classList.remove("show");
+      $id("branch-modal").classList.remove("show");
+      $id("draw-modal").classList.remove("show");
+      $id("choice-modal").classList.remove("show");
+      mainSubject = null;
+      net.mode = 'single';
+    }
+  });
 
-    document.getElementById("btn-end-turn").addEventListener("click", endTurn);
-    document.getElementById("btn-choice-cancel").addEventListener("click", hideChoice);
-    const choiceModalEl = document.getElementById("choice-modal");
+  safeOn("btn-end-turn", "click", endTurn);
+  safeOn("btn-choice-cancel", "click", hideChoice);
+  const choiceModalEl = $id("choice-modal");
+  if(choiceModalEl && !choiceModalEl.__bound){
     choiceModalEl.addEventListener("click", function(e){ if(e.target === choiceModalEl) hideChoice(); });
+    choiceModalEl.__bound = true;
+  }
 
-    document.getElementById("btn-draw-yes").addEventListener("click", function(){
-        if(!GS.pendingEndTurn) return;
-        hideDrawModal(); log('抽牌1张','green'); drawCard(true); finishEndTurn();
-    });
-    document.getElementById("btn-draw-no").addEventListener("click", function(){
-        if(!GS.pendingEndTurn) return;
-        hideDrawModal(); log('放弃抽牌','yellow'); finishEndTurn();
-    });
+  safeOn("btn-draw-yes", "click", function(){
+    if(!GS.pendingEndTurn) return;
+    hideDrawModal(); log('抽牌1张','green'); drawCard(true); finishEndTurn();
+  });
+  safeOn("btn-draw-no", "click", function(){
+    if(!GS.pendingEndTurn) return;
+    hideDrawModal(); log('放弃抽牌','yellow'); finishEndTurn();
+  });
 
-    window.addEventListener('beforeunload', function(){
-        if(net.roomChannel){
-            try{ roomSend({ t:'leave', isHost: net.isHost, isGuest: !net.isHost }); }catch(e){}
-        }
-        if(net.isHost && net.lobbyChannel){
-            try{ net.lobbyChannel.untrack(); }catch(e){}
-        }
-    });
-};
+  console.log('[Init] 事件绑定完成');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindAllEvents);
+} else {
+  bindAllEvents();
+}
+window.addEventListener('load', bindAllEvents);
+
+window.addEventListener('beforeunload', function(){
+  if (net.inRoom && net.roomCode) {
+    try {
+      const sb = supabaseClient;
+      if (sb && net.isHost) {
+        sb.from('game_rooms').delete().eq('code', net.roomCode).then(()=>{});
+      } else if (sb && !net.isHost) {
+        sb.from('game_rooms').update({ guest_name: '', guest_ready: false, guest_ping: 0 }).eq('code', net.roomCode).then(()=>{});
+      }
+    } catch (e) {}
+  }
+});
 </script>
 </body>
-</html>
+</html> 
