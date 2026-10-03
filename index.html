@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <title>学好数理化 - 卡牌对战</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;color:#fff;font-family:"Microsoft YaHei","SimHei",sans-serif;}
 body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
@@ -19,6 +20,9 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .mode-btn.local:hover{transform:rotate(45deg) scale(1.06);}
 .mode-btn.offline{background:linear-gradient(135deg,#4a4a4a,#1e1e1e);border:3px solid #7a7a7a;
     box-shadow:inset 0 0 20px rgba(0,0,0,0.6);cursor:not-allowed;opacity:0.55;}
+.mode-btn.online{background:linear-gradient(135deg,#4aa8ff,#123a6e);border:3px solid #7cc1ff;
+    box-shadow:0 0 30px rgba(124,193,255,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
+.mode-btn.online:hover{transform:rotate(45deg) scale(1.06);}
 .mode-icon{font-size:48px;margin-bottom:10px;}
 .mode-name{font-size:22px;font-weight:bold;letter-spacing:4px;color:#fff;}
 .mode-desc{margin-top:8px;font-size:12px;color:#ffecc2;letter-spacing:2px;}
@@ -117,7 +121,7 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .card-combo{position:absolute;top:2px;right:2px;font-size:10px;color:#7cff9a;}
 .card-water{position:absolute;bottom:2px;left:4px;font-size:10px;color:#7cc7ff;}
 .card-discard{position:absolute;top:14px;right:2px;font-size:14px;line-height:1;padding:3px 4px;cursor:pointer;
-    opacity:0.8;border-radius:4px;background:rgba(0,0,0,0.35);}
+    opacity:0.8;border-radius:4px;background:rgba(0,0,0,0.35);z-index:5;}
 .card-discard:hover{opacity:1;background:rgba(255,120,120,0.4);}
 .card.drop-target{box-shadow:0 0 18px rgba(124,255,154,0.95);border-color:#7cff9a;transform:translateY(-8px);}
 .card.dragging{opacity:0.6;}
@@ -139,13 +143,13 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .log-red{color:#ff9a9a;} .log-yellow{color:#ffdd66;} .log-green{color:#9cffb0;}
 #result-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:300;}
 #result-modal.show{display:flex;}
-.result-box{width:360px;padding:26px;
+.result-box{width:400px;padding:26px;
     background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#3a2412,#1e1208);
     border:3px solid #f7d774;border-radius:14px;text-align:center;
     box-shadow:0 0 40px rgba(247,215,116,0.35),inset 0 0 24px rgba(0,0,0,0.6);}
 .result-box h2{font-size:34px;color:#f7d774;letter-spacing:10px;margin-bottom:18px;}
 .result-box p{font-size:13px;color:#e8d9b8;margin-bottom:20px;letter-spacing:2px;}
-.result-buttons{display:flex;justify-content:center;gap:14px;}
+.result-buttons{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
 .result-buttons button{padding:10px 18px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
     color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;}
 #tooltip{position:fixed;background:#111;color:#fff;border:1px solid #777;padding:8px;z-index:9999;
@@ -178,6 +182,40 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
     border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;
     letter-spacing:2px;font-size:14px;}
 .draw-buttons button:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
+
+/* ============ 联机大厅 / 房间 ============ */
+#lobby-screen{position:fixed;inset:0;display:none;flex-direction:column;z-index:210;
+    background:radial-gradient(circle at 50% 30%,rgba(255,200,100,0.10),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
+.lobby-header{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid #3a2e1c;flex-wrap:wrap;}
+.lobby-title{font-size:22px;font-weight:bold;color:#f7d774;letter-spacing:6px;margin-right:10px;}
+.lobby-input{flex:0 0 240px;padding:8px 12px;background:rgba(0,0,0,0.5);border:1px solid #6a4a22;
+    border-radius:6px;color:#f7d774;outline:none;letter-spacing:3px;font-size:14px;}
+.lobby-input::placeholder{color:#7a6a4a;letter-spacing:1px;}
+.lobby-btn{padding:8px 16px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
+    color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:13px;}
+.lobby-btn:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
+.lobby-btn.primary{background:linear-gradient(180deg,#c08b3a,#7a4a12);}
+.lobby-btn:disabled{opacity:0.45;cursor:not-allowed;}
+.lobby-body{flex:1;padding:22px 28px;display:flex;flex-direction:column;gap:14px;overflow:auto;}
+.room-list{display:flex;flex-direction:column;gap:10px;}
+.room-item{display:flex;align-items:center;gap:16px;padding:14px 18px;background:rgba(0,0,0,0.45);
+    border:1px solid #6a4a22;border-radius:8px;}
+.room-item .rc{font-size:20px;color:#f7d774;font-weight:bold;letter-spacing:5px;min-width:150px;}
+.room-item .rs{font-size:12px;color:#c7b48a;}
+.room-item .grow{flex:1;}
+.room-item.playing{opacity:0.5;}
+.room-empty{color:#7a6a4a;font-size:13px;padding:26px;text-align:center;border:1px dashed #4a3a24;border-radius:8px;}
+.lobby-tip{font-size:12px;color:#a8966a;line-height:1.8;margin-top:auto;}
+#room-screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:210;
+    background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.10),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
+.room-box{width:440px;padding:26px;background:linear-gradient(180deg,#2a1a0c,#140a04);
+    border:2px solid #f7d774;border-radius:14px;box-shadow:0 0 40px rgba(247,215,116,0.3);}
+.room-code-line{display:flex;align-items:center;gap:12px;margin-bottom:18px;font-size:14px;color:#a8966a;}
+.room-code-line b{font-size:26px;color:#f7d774;letter-spacing:8px;flex:1;}
+.room-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #3a2e1c;font-size:14px;color:#a8966a;}
+.room-row b{color:#f1d68a;}
+.room-actions{display:flex;gap:12px;margin-top:22px;justify-content:center;flex-wrap:wrap;}
+.room-msg{margin-top:14px;font-size:12px;color:#ffb347;text-align:center;min-height:18px;}
 </style>
 </head>
 <body>
@@ -192,15 +230,54 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
                 <div class="mode-desc">人机对战</div>
             </div>
         </div>
-        <div class="mode-btn offline">
+        <div class="mode-btn online" id="btn-online">
             <div class="inner">
                 <div class="mode-icon">🌐</div>
                 <div class="mode-name">多人联机</div>
-                <div class="mode-desc">暂未开放</div>
+                <div class="mode-desc">房间对战</div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- ===== 联机大厅 ===== -->
+<div id="lobby-screen">
+    <div class="lobby-header">
+        <div class="lobby-title">房间大厅</div>
+        <input id="lobby-search" class="lobby-input" placeholder="输入房间码搜索" maxlength="8">
+        <button class="lobby-btn" id="btn-lobby-refresh">刷新</button>
+        <button class="lobby-btn primary" id="btn-lobby-create">创建房间</button>
+        <button class="lobby-btn" id="btn-lobby-back">返回主菜单</button>
+    </div>
+    <div class="lobby-body">
+        <div class="room-list" id="room-list"></div>
+        <div class="lobby-tip">
+            提示：本联机基于 Supabase Realtime，可跨设备、跨网络对战。<br>
+            房主创建房间后把 6 位房间码发给好友，好友在搜索框里输入房间码后加入即可。
+        </div>
+    </div>
+</div>
+
+<!-- ===== 房间 ===== -->
+<div id="room-screen">
+    <div class="room-box">
+        <div class="room-code-line">
+            <span>房间码</span>
+            <b id="room-code">------</b>
+            <button class="lobby-btn" id="btn-room-copy">复制</button>
+        </div>
+        <div class="room-row"><span>房主</span><b id="room-host">房主</b></div>
+        <div class="room-row"><span>客机</span><b id="room-guest">等待加入…</b></div>
+        <div class="room-row"><span>状态</span><b id="room-status">等待中</b></div>
+        <div class="room-actions">
+            <button class="lobby-btn primary" id="btn-room-ready">准备</button>
+            <button class="lobby-btn" id="btn-room-start">开始游戏</button>
+            <button class="lobby-btn" id="btn-room-leave">离开房间</button>
+        </div>
+        <div class="room-msg" id="room-msg"></div>
+    </div>
+</div>
+
 <div id="game-screen">
     <div class="game-bg"></div>
     <div class="table-surface"><div class="table-inner"></div></div>
@@ -262,6 +339,9 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
         <div class="result-buttons">
             <button id="btn-retry">重试</button>
             <button id="btn-continue">返回</button>
+            <button id="btn-rematch" style="display:none;">再来一局</button>
+            <button id="btn-back-room" style="display:none;">回到房间</button>
+            <button id="btn-leave-room" style="display:none;">离开</button>
         </div>
     </div>
 </div>
@@ -293,6 +373,12 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 <div id="tooltip"></div>
 
 <script>
+/* ============================================================
+   ============== Supabase 配置 ===============================
+   ============================================================ */
+const SUPABASE_URL      = 'https://vdrlevvweeftldzhlovz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkcmxldnZ3ZWVmdGxkemhsb3Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjE1MTIsImV4cCI6MjEwNjU5NzUxMn0.KcVDrmmE4uLr18pz58k9nmuNpqbprLPAS1EVmSxiVuo';
+
 /* ============================================================
    ============== 卡牌数据库 ===================================
    ============================================================ */
@@ -546,14 +632,12 @@ CardDB.chemTeacher = { id:'chemTeacher', name:'化学老师', cost:4, type:'unit
     atk:4, def:5, defMax:5, canDeploy:true,
     desc:'出场：随机获得3张基础化学/物化卡牌；可概率拦截敌方化学实验室',
     onDeploy(){
-        /* 冰凉贴不在随机池内：它只能由温度>46.8℃强制塞入 */
         const baseChemIds = ['hotAcid','nitroGlycerin','hotZinc','sarin','mustard','hcn','chlorine','vx','bz','heater','alcoholLamp','beaker','water'];
         const isPlayer = this.isPlayerUnit !== false;
         for(let i=0;i<3;i++){
             const id = baseChemIds[Math.floor(Math.random()*baseChemIds.length)];
             const card = CardDB[id];
             if(!card) continue;
-            /* 只有我方化学老师才把卡给我方，敌方老师给自己的手牌 */
             if(isPlayer) addCardToHand(cloneCard(card), true);
             else if(GS.enemyHand.length < GS.handMax) GS.enemyHand.push(cloneCard(card));
         }
@@ -564,7 +648,6 @@ CardDB.physTeacher = { id:'physTeacher', name:'物理老师', cost:4, type:'unit
     desc:'常驻：所有物理/物化卡牌伤害×1.1；可概率拦截敌方化学实验室',
     onDeploy(){ log('物理老师上场：物理伤害×1.1','green'); } };
 
-/* ====== 第二段从这里继续 ====== */
 /* ============================================================
    ============== 状态注册表 ===================================
    ============================================================ */
@@ -634,6 +717,7 @@ const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 
    ============================================================ */
 function log(text,color=""){
     const d = document.getElementById("log");
+    if(!d) return;
     const div = document.createElement("div");
     if(color) div.className = "log-"+color;
     div.textContent = text;
@@ -663,7 +747,6 @@ function cleanupDead(){
         if(u && u.def <= 0){ log(`【${u.name}】阵亡`, u.isPlayerUnit?'red':'green'); GS.field[y][x]=null; }
     }
 }
-/* 冰凉贴的唯一天然来源：温度 >46.8℃ 强制塞入（手牌满10张则随机删1张后塞入） */
 function forceAddIcePatchToHand(){
     GS.icePatchFromHeat = true;
     if(GS.playerHand.length >= GS.handMax){
@@ -683,7 +766,6 @@ function hasTeacher(isPlayer, name){
 function dealDamage(u, amount){ if(u.gasSmokeAftermath > 0) amount = amount * 1.5; u.def = Math.max(0, u.def - amount); }
 function addCardToHand(card, forced=false){
     if(!card) return;
-    /* 冰凉贴只能由温度>46.8℃强制塞入获得，其它任何方式都不行 */
     if(card.id === 'icePatch' && !GS.icePatchFromHeat){
         log('冰凉贴只能由温度过高(>46.8℃)触发获得','yellow'); return;
     }
@@ -701,9 +783,7 @@ function findCardIndex(id){ return GS.playerHand.findIndex(c=>c.id===id); }
 /* ============================================================
    ============== 水系统 =======================================
    ============================================================ */
-/* 可用水 = 储水(playerWater) + 烧杯(beakerWater) + 炮内(cannonWater) */
 function waterTotalUsable(){ return (GS.playerWater||0) + (GS.beakerWater||0) + (GS.cannonWater||0); }
-/* 耗水顺序：炮内 → 烧杯 → 储水 */
 function consumeWater(amount){
     if(waterTotalUsable() < amount) return false;
     let left = amount;
@@ -714,7 +794,6 @@ function consumeWater(amount){
     });
     return true;
 }
-/* 空气内能炮储水上限900ml；装不下的部分留在储水，不浪费 */
 function fillCannon(amount){
     const space = Math.max(0, 900 - (GS.cannonWater||0));
     const stored = Math.min(space, amount);
@@ -723,7 +802,6 @@ function fillCannon(amount){
     if(rest > 0) GS.playerWater = (GS.playerWater||0) + rest;
     return { stored: stored, rest: rest };
 }
-/* 水卡结算：300ml 进入指定容器（储水/烧杯/炮内），并恢复友方全体3点 */
 function applyWaterCard(container){
     const amt = 300;
     if(container === 'beakerWater'){
@@ -771,7 +849,6 @@ function cardAllowedBySubject(card){
     if(mainSubject === 'chemistry' && card.attribute === '物理') return false;
     return true;
 }
-/* 化学战剂统一标识：用于开局手牌与概率控制 */
 const CHEM_AGENTS = ['sarin','mustard','hcn','chlorine','vx','bz'];
 function isChemAgent(card){ return card && CHEM_AGENTS.includes(card.id); }
 
@@ -780,8 +857,6 @@ function isChemAgent(card){ return card && CHEM_AGENTS.includes(card.id); }
    ============================================================ */
 function initDeck(){
     GS.playerDeck = []; GS.enemyDeck = [];
-
-    /* 牌库构架：化学战剂仅保留 3 张（沙林/氯气/芥子气各1），占 50 张的 6%，概率偏低但可抽到 */
     const deckList = [
         { id:'safetyWarn',   count:5 },
         { id:'thermometer',  count:5 },
@@ -832,7 +907,6 @@ function drawCard(isPlayer){
     return card;
 }
 
-/* 开局起手：不抽化学战剂、不抽研发入口卡、最多1张金卡 */
 function drawStartingHand(isPlayer, count){
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
@@ -840,18 +914,14 @@ function drawStartingHand(isPlayer, count){
     while(added < count && deck.length > 0 && safety < 500){
         safety++;
         const card = deck.shift();
-        /* 化学战剂不进开局手牌 */
         if(isChemAgent(card)){ deck.push(card); shuffle(deck); continue; }
-        /* 研发入口（伟大物理/永恒化学）不进开局手牌 */
         if(card.isResearch){ deck.push(card); shuffle(deck); continue; }
-        /* 金卡最多1张 */
         if(card.rarity === '金' && goldCount >= 1){ deck.push(card); shuffle(deck); continue; }
         if(card.rarity === '金') goldCount++;
         hand.push(card); added++;
     }
 }
 
-/* 保证开局有角色卡 */
 function ensureRoleCardInHand(isPlayer){
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
@@ -879,8 +949,16 @@ function randomEnemyDeployPos(){
 /* ============================================================
    ============== 渲染 =========================================
    ============================================================ */
+let snapshotTimer = null;
+function scheduleSnapshot(){
+    if(net.mode !== 'host' || !net.started) return;
+    if(snapshotTimer) return;
+    snapshotTimer = setTimeout(()=>{ snapshotTimer = null; pushSnapshot(); }, 60);
+}
+
 function renderBoard(){
     const b = document.getElementById("board");
+    if(!b) return;
     b.innerHTML = "";
     for(let y=0;y<11;y++){
         for(let x=0;x<11;x++){
@@ -901,14 +979,14 @@ function renderBoard(){
                     const hq = isPlayerHQ(x,y) ? GS.playerHQ : GS.enemyHQ;
                     const temp = isPlayerHQ(x,y) ? GS.playerTemp : GS.enemyTemp;
                     html = `<div class="t-title">${isPlayerHQ(x,y)?'我方':'敌方'}总部</div>
-                        <div class="t-line">防御：${hq.def.toFixed(1)} / ${hq.defMax.toFixed(1)}</div>
+                        <div class="t-line">防御：${(hq.def||0).toFixed(1)} / ${(hq.defMax||0).toFixed(1)}</div>
                         <div class="t-line">温度：${temp.toFixed(1)}℃</div>
                         ${renderStatusLines(hq)}`;
                 } else if(GS.field[y][x]){
                     const u = GS.field[y][x];
                     const temp = u.isPlayerUnit ? GS.playerTemp : GS.enemyTemp;
                     html = `<div class="t-title">${u.name}</div>
-                        <div class="t-line">攻击：${u.atk.toFixed(1)}  防御：${u.def.toFixed(1)}/${u.defMax}</div>
+                        <div class="t-line">攻击：${(u.atk||0).toFixed(1)}  防御：${(u.def||0).toFixed(1)}/${u.defMax}</div>
                         <div class="t-line">属性：${u.attribute}  稀有度：${u.rarity}</div>
                         <div class="t-line">温度：${temp.toFixed(1)}℃</div>
                         <div class="t-line" style="color:${u.hasAttacked ? '#ff9a9a' : '#9cffb0'};">${u.hasAttacked ? '本回合已攻击（仍可移动）' : '本回合可攻击（移动不限次）'}</div>
@@ -924,12 +1002,12 @@ function renderBoard(){
                     const touch = e.touches[0];
                     touchTimer = setTimeout(()=>{ const html = buildTooltip(); if(html) showTooltip(touch.clientX, touch.clientY, html); touchTimer = null; }, 350);
                 }, {passive:true});
-                cell.addEventListener('touchmove', function(e){
+                cell.addEventListener('touchmove', function(){
                     touchMoved = true;
                     if(touchTimer){ clearTimeout(touchTimer); touchTimer = null; }
                     hideTooltip();
                 }, {passive:true});
-                cell.addEventListener('touchend', function(e){
+                cell.addEventListener('touchend', function(){
                     if(touchTimer){ clearTimeout(touchTimer); touchTimer = null; }
                     if(!touchMoved) onCellClick(x,y);
                     setTimeout(hideTooltip, 2000);
@@ -956,12 +1034,15 @@ function renderBoard(){
             b.appendChild(cell);
         }
     }
+    scheduleSnapshot();
 }
 
 function renderHand(){
     const area = document.getElementById("hand-area");
+    if(!area) return;
     area.innerHTML = "";
     GS.playerHand.forEach((card, idx)=>{
+        if(!card) return;
         const el = document.createElement("div");
         el.className = "card rarity-" + card.rarity;
         if(GS.selectedCardIndex === idx) el.classList.add("selected");
@@ -982,10 +1063,9 @@ function renderHand(){
         if(card.id === 'beaker'){ const w = document.createElement("div"); w.className="card-water"; w.innerText = "💧" + (GS.beakerWater||0); el.appendChild(w); }
         if(card.id === 'airCannon'){
             const w = document.createElement("div"); w.className="card-water"; w.innerText = "💧" + (GS.cannonWater||0); el.appendChild(w);
-            /* 右上角垃圾桶：主动丢弃换指挥点 */
             const d = document.createElement("div"); d.className = "card-discard"; d.innerText = "🗑";
             d.title = '主动丢弃：获得3点指挥点';
-            d.onclick = (e)=>{ if(e && e.stopPropagation) e.stopPropagation(); openCannonDiscardChoice(); };
+            d.onclick = (e)=>{ if(e){ e.stopPropagation(); e.preventDefault(); } openCannonDiscardChoice(); };
             el.appendChild(d);
         }
         if(el.classList.contains("combo")){ const c = document.createElement("div"); c.className="card-combo"; c.innerText="⊕"; el.appendChild(c); }
@@ -1004,14 +1084,15 @@ function renderHand(){
         };
         el.onmouseleave = hideTooltip;
         el.dataset.cardIndex = String(idx);
-        el.onclick = ()=>{
-            /* 刚刚拖拽过就不触发点击 */
+        el.onclick = (e)=>{
+            if(e && e.target && e.target.closest && e.target.closest('.card-discard')) return;
             if(Date.now() - (GS.lastDragEndAt||0) < 350) return;
             onCardClick(idx);
         };
-        /* 鼠标 / 触屏通用的拖拽：移动超过8px算拖拽，否则算点击 */
         el.style.touchAction = 'none';
         el.addEventListener('pointerdown', (e)=>{
+            if(e.target && e.target.closest && e.target.closest('.card-discard')) return;
+            if(net.mode === 'guest') return;
             if(!GS.isPlayerTurn || GS.gameOver) return;
             if(e.pointerType === 'mouse' && e.button !== 0) return;
             const from = idx, sx = e.clientX, sy = e.clientY;
@@ -1053,9 +1134,11 @@ function renderHand(){
         area.appendChild(el);
     });
     const enemyArea = document.getElementById("enemy-hand");
-    enemyArea.innerHTML = "";
-    for(let i=0;i<GS.enemyHand.length;i++){
-        const c = document.createElement("div"); c.className = "enemy-card-back"; enemyArea.appendChild(c);
+    if(enemyArea){
+        enemyArea.innerHTML = "";
+        for(let i=0;i<GS.enemyHand.length;i++){
+            const c = document.createElement("div"); c.className = "enemy-card-back"; enemyArea.appendChild(c);
+        }
     }
 }
 
@@ -1076,26 +1159,35 @@ function renderForcedSlotUI(){
 }
 
 function syncState(){
-    document.getElementById("my-hp").innerText = Math.max(0, Math.floor(GS.playerHQ.def));
-    document.getElementById("en-hp").innerText = Math.max(0, Math.floor(GS.enemyHQ.def));
-    document.getElementById("my-hpmax").innerText = Math.floor(GS.playerHQ.defMax);
-    document.getElementById("en-hpmax").innerText = Math.floor(GS.enemyHQ.defMax);
-    document.getElementById("my-k").innerText = GS.playerK;
-    document.getElementById("my-kmax").innerText = GS.playerKMax;
-    document.getElementById("my-temp").innerText = GS.playerTemp.toFixed(1) + "℃";
-    document.getElementById("en-temp").innerText = GS.enemyTemp.toFixed(1) + "℃";
-    document.getElementById("turn-num").innerText = GS.turn;
-    document.getElementById("phase-text").innerText = GS.isPlayerTurn ? "我方行动" : "敌方行动";
-    const waterView = document.getElementById("water-view"); if(waterView) waterView.innerText = GS.playerWater||0;
-    const beakerView = document.getElementById("beaker-view"); if(beakerView) beakerView.innerText = GS.beakerWater||0;
-    const cannonView = document.getElementById("cannon-view"); if(cannonView) cannonView.innerText = GS.cannonWater||0;
-    document.getElementById("my-deck").innerText = GS.playerDeck.length;
-    document.getElementById("my-deckmax").innerText = GS.deckMax;
-    const enDeckEl = document.getElementById("en-deck"); if(enDeckEl) enDeckEl.innerText = GS.enemyDeck.length;
+    const setTxt = (id,v)=>{ const e=document.getElementById(id); if(e) e.innerText = v; };
+    setTxt("my-hp", Math.max(0, Math.floor(GS.playerHQ.def)));
+    setTxt("en-hp", Math.max(0, Math.floor(GS.enemyHQ.def)));
+    setTxt("my-hpmax", Math.floor(GS.playerHQ.defMax));
+    setTxt("en-hpmax", Math.floor(GS.enemyHQ.defMax));
+    setTxt("my-k", GS.playerK);
+    setTxt("my-kmax", GS.playerKMax);
+    setTxt("my-temp", GS.playerTemp.toFixed(1) + "℃");
+    setTxt("en-temp", GS.enemyTemp.toFixed(1) + "℃");
+    setTxt("turn-num", GS.turn);
+    let phase = GS.isPlayerTurn ? "我方行动" : "敌方行动";
+    if(net.mode === 'guest') phase = GS.isPlayerTurn ? "你的行动" : "等待房主…";
+    if(net.mode === 'host' && net.started && !GS.isPlayerTurn) phase = "等待客机…";
+    setTxt("phase-text", phase);
+    setTxt("water-view", GS.playerWater||0);
+    setTxt("beaker-view", GS.beakerWater||0);
+    setTxt("cannon-view", GS.cannonWater||0);
+    setTxt("my-deck", GS.playerDeck.length);
+    setTxt("my-deckmax", GS.deckMax);
+    setTxt("en-deck", GS.enemyDeck.length);
     const dw = document.getElementById("my-deck-wrap");
-    if(GS.playerDeck.length <= 0) dw.classList.add("deck-warn"); else dw.classList.remove("deck-warn");
+    if(dw){ if(GS.playerDeck.length <= 0) dw.classList.add("deck-warn"); else dw.classList.remove("deck-warn"); }
     const hint = document.getElementById("main-subject-hint");
-    if(hint && mainSubject) hint.innerText = '主科：' + (mainSubject === 'physics' ? '物理' : '化学');
+    if(hint){
+        if(net.mode === 'single' && mainSubject) hint.innerText = '主科：' + (mainSubject === 'physics' ? '物理' : '化学');
+        else if(net.mode === 'host') hint.innerText = '联机 · 房间 ' + net.roomCode;
+        else if(net.mode === 'guest') hint.innerText = '联机 · 房间 ' + net.roomCode;
+        else hint.innerText = '';
+    }
 }
 
 /* ============================================================
@@ -1118,7 +1210,6 @@ function tryCombineWaterBeaker(idx){
     else if(card.id === 'beaker'){ bi = idx; wi = findCardIndex('water'); }
     else return false;
     if(wi < 0 || bi < 0){ log('合成失败：需要【水】+【密封塞烧杯】','red'); return false; }
-    /* 水卡自带300ml，加上烧杯里已有的水，一起装入炮中（炮内储水上限900ml） */
     const loaded = (GS.beakerWater||0) + 300;
     const arr = [wi, bi].sort((a,b)=>b-a);
     GS.playerHand.splice(arr[0],1); GS.playerHand.splice(arr[1],1);
@@ -1130,6 +1221,7 @@ function tryCombineWaterBeaker(idx){
 }
 
 function onCellClick(x,y){
+    if(net.mode === 'guest'){ guestCellClick(x,y); return; }
     if(!GS.isPlayerTurn || GS.gameOver) return;
 
     if(GS.selectedHQ === 'player'){
@@ -1210,15 +1302,14 @@ function onCellClick(x,y){
 }
 
 function onCardClick(idx){
+    if(net.mode === 'guest'){ guestCardClick(idx); return; }
     if(!GS.isPlayerTurn || GS.gameOver) return;
     const card = GS.playerHand[idx]; if(!card) return;
-    /* 水 / 烧杯：弹出多种用法，不再强制合成 */
     if(card.id === 'water'){ openWaterCardChoice(idx); return; }
     if(card.id === 'beaker'){ openBeakerCardChoice(idx); return; }
     beginCardUse(idx);
 }
 
-/* 普通出牌流程（原 onCardClick 主体） */
 function beginCardUse(idx){
     const card = GS.playerHand[idx]; if(!card) return;
     const cost = effectiveCost(card);
@@ -1238,7 +1329,6 @@ function beginCardUse(idx){
     renderHand(); renderBoard(); syncState(); checkGameOver();
 }
 
-/* ---------- 水卡 / 烧杯 的多种用法 ---------- */
 function playWaterInto(idx, container){
     const card = GS.playerHand[idx];
     if(!card || card.id !== 'water'){ log('没有可用的【水】卡','red'); return; }
@@ -1267,7 +1357,7 @@ function loadBeakerIntoCannon(){
     const space = Math.max(0, 900 - (GS.cannonWater||0));
     const stored = Math.min(space, bw), rest = bw - stored;
     GS.cannonWater = (GS.cannonWater||0) + stored;
-    GS.beakerWater = rest;   /* 炮装不下的水留在烧杯里 */
+    GS.beakerWater = rest;
     log(`空气内能炮：装填${stored}ml（炮内${GS.cannonWater}/900ml）${rest>0?`，烧杯剩余${rest}ml`:''}`,'green');
     renderHand(); renderBoard(); syncState();
 }
@@ -1293,7 +1383,6 @@ function openBeakerCardChoice(idx){
     const hasCannon = findCardIndex('airCannon') >= 0;
     const bw = GS.beakerWater||0;
     const reserve = GS.playerWater||0;
-    /* 没有任何可配合的对象时，直接进入技能目标选择，不再弹窗 */
     if(!hasWater && !hasCannon && reserve <= 0){ beginCardUse(idx); return; }
     const opts = [
         { label:'🧪 单独使用技能', desc:`杯内${bw}/900ml。满900ml可放置2×2水域；否则对单个敌方单位本回合封锁攻击`, run:()=>beginCardUse(idx) }
@@ -1306,7 +1395,6 @@ function openBeakerCardChoice(idx){
     showChoice('【密封塞烧杯】的用法', `杯中水：${bw}/900ml。可以单独使用技能，也可以灌水或与【水】合成。`, opts);
 }
 
-/* ---------- 空气内能炮：主动丢弃，换取指挥点 ---------- */
 function openCannonDiscardChoice(){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     if(findCardIndex('airCannon') < 0) return;
@@ -1324,7 +1412,6 @@ function discardAirCannon(){
     if(i < 0) return;
     const cw = GS.cannonWater||0;
     GS.discardPile.push(GS.playerHand.splice(i,1)[0]);
-    /* 炮里剩下的水转回储水，不浪费 */
     GS.playerWater = (GS.playerWater||0) + cw; GS.cannonWater = 0;
     let gained = 0;
     if(GS.playerK < GS.playerKMax){
@@ -1336,7 +1423,6 @@ function discardAirCannon(){
     resetSelection(); renderHand(); renderBoard(); syncState();
 }
 
-/* ---------- 手牌拖拽（鼠标） ---------- */
 function canDropCard(from, to){
     if(from === to) return false;
     const a = GS.playerHand[from], b = GS.playerHand[to];
@@ -1349,7 +1435,6 @@ function handleCardDrop(from, to){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     const a = GS.playerHand[from], b = GS.playerHand[to];
     if(!a || !b) return;
-    /* 设计文档：手牌存在密封塞烧杯时，拖动【水】合成【空气内能炮】 */
     if(a.id === 'water' && b.id === 'beaker'){ tryCombineWaterBeaker(from); return; }
     if(a.id === 'beaker' && b.id === 'water'){ tryCombineWaterBeaker(to); return; }
     if(a.id === 'water' && b.id === 'airCannon'){ playWaterInto(from,'cannonWater'); return; }
@@ -1533,7 +1618,6 @@ function settleEndOfTurn(isPlayer){
     forEachUnit(u=>{ if(u.gasSmokeAftermath > 0) u.gasSmokeAftermath--; });
 }
 
-/* ★ 关键改动：指挥点每回合恢复 1 点，不再补满 */
 function settleStartOfTurn(isPlayer){
     const prefix = isPlayer ? "我方" : "敌方";
     const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
@@ -1543,13 +1627,11 @@ function settleStartOfTurn(isPlayer){
             GS.playerK = Math.min(GS.playerKMax, GS.playerK + GS.playerKMax);
             drawCard(true); drawCard(true);
         } else {
-            /* 每回合 +1，封顶到上限 */
             GS.playerK = Math.min(GS.playerKMax, GS.playerK + 1);
         }
         GS.playerHQ.hasMoved = false;
         forEachUnit(u=>{ if(u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
     } else {
-        /* 敌方也是每回合 +1 */
         GS.enemyK = Math.min(GS.enemyKMax, GS.enemyK + 1);
         GS.enemyHQ.hasMoved = false;
         forEachUnit(u=>{ if(!u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
@@ -1631,6 +1713,21 @@ function unitAttack(u, tx, ty){
 
 function enemyTurn(){
     if(GS.gameOver) return;
+
+    if(net.mode === 'host'){
+        log("—— 客机回合开始 ——","red");
+        settleStartOfTurn(false);
+        if(GS.enemyHQ.stun || GS.enemyHQ.suppress){
+            log("客机总部被压制，跳过回合","green");
+            setTimeout(()=>{ if(!GS.gameOver) endEnemyTurn(); }, 700);
+            return;
+        }
+        if(GS.enemyNoDrawTurn <= 0) drawCard(false);
+        net.guestTurnActive = true;
+        renderBoard(); syncState(); pushSnapshot();
+        return;
+    }
+
     log("—— 敌方回合开始 ——","red");
     settleStartOfTurn(false);
     if(GS.enemyHQ.stun || GS.enemyHQ.suppress){ log("敌方总部被压制，跳过回合","green"); setTimeout(endEnemyTurn, 600); return; }
@@ -1711,12 +1808,14 @@ function endEnemyTurn(){
     log("—— 第" + GS.turn + "回合 · 我方开始 ——","green");
     settleStartOfTurn(true);
     renderHand(); renderBoard(); renderForcedSlotUI(); syncState(); checkGameOver();
+    if(net.mode === 'host' && net.started) pushSnapshot();
 }
 
-/* ============================================================
-   ============== 回合结束：抽牌询问 ===========================
-   ============================================================ */
 function endTurn(){
+    if(net.mode === 'guest'){
+        if(GS.isPlayerTurn && !GS.gameOver) sendAction({type:'endTurn'});
+        return;
+    }
     if(!GS.isPlayerTurn || GS.gameOver) return;
     log("—— 我方回合结束 ——","yellow");
     settleEndOfTurn(true);
@@ -1728,6 +1827,7 @@ function finishEndTurn(){
     checkGameOver();
     if(GS.gameOver) return;
     GS.isPlayerTurn = false; renderHand(); renderBoard(); syncState();
+    if(net.mode === 'host' && net.started) pushSnapshot();
     setTimeout(enemyTurn, 600);
 }
 function showDrawModal(){
@@ -1792,11 +1892,738 @@ function checkGameOver(){
     if(GS.playerHQ.def <= 0){ GS.gameOver = true; showResultModal(false); }
     else if(GS.enemyHQ.def <= 0){ GS.gameOver = true; showResultModal(true); }
 }
+
 function showResultModal(isWin){
+    if(net.mode === 'host' && net.started){
+        net.started = false;
+        roomSend({ t:'result', win: !isWin });
+    }
     const modal = document.getElementById("result-modal");
     document.getElementById("result-text").textContent = isWin ? "胜利" : "失败";
     document.getElementById("result-desc").textContent = isWin ? "你击败了敌方总部！" : "我方总部被摧毁。";
-    modal.classList.add("show");
+    const isMulti = (net.mode === 'host' || net.mode === 'guest');
+    document.getElementById("btn-retry").style.display     = isMulti ? 'none' : '';
+    document.getElementById("btn-continue").style.display  = isMulti ? 'none' : '';
+    document.getElementById("btn-rematch").style.display   = isMulti ? '' : 'none';
+    document.getElementById("btn-back-room").style.display = isMulti ? '' : 'none';
+    document.getElementById("btn-leave-room").style.display= isMulti ? '' : 'none';
+    if(isMulti){
+        document.getElementById("result-desc").textContent =
+            (isWin ? "你击败了对手！" : "你的总部被摧毁。") + "  可点击「再来一局」继续。";
+    }
+    modal.classList.add('show');
+}
+
+/* ============================================================
+   ============== 联机模块（Supabase 版本） ===================
+   ============================================================ */
+let supabaseClient = null;
+
+const net = {
+  mode: 'single',
+  roomCode: '',
+  isHost: false,
+  myId: Math.random().toString(36).slice(2, 10),
+  hostName: '房主',
+  guestName: '',
+  guestReady: false,
+  myReady: false,
+  started: false,
+  guestTurnActive: false,
+  hostRematch: false,
+  guestRematch: false,
+  inRoom: false,
+  lobbyChannel: null,
+  roomChannel: null,
+  connected: false,
+  hostNameConnected: false,
+};
+
+const roomRegistry = new Map();
+
+/* ---------- 初始化 ---------- */
+function initSupabase() {
+  if (supabaseClient) return supabaseClient;
+  if (!window.supabase || !window.supabase.createClient) {
+    alert('Supabase SDK 未加载，请检查网络或 CDN。');
+    return null;
+  }
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    realtime: { params: { eventsPerSecond: 20 } }
+  });
+  return supabaseClient;
+}
+
+function genRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+/* ---------- 大厅 ---------- */
+function openLobby() {
+  const sb = initSupabase();
+  if (!sb) return;
+  document.getElementById('main-menu').style.display = 'none';
+  document.getElementById('lobby-screen').style.display = 'flex';
+  document.getElementById('room-screen').style.display = 'none';
+  joinLobbyChannel();
+}
+
+function joinLobbyChannel() {
+  const sb = initSupabase();
+  if (!sb) return;
+  if (net.lobbyChannel) return;
+
+  net.lobbyChannel = sb.channel('slh-lobby', {
+    config: { presence: { key: net.myId } }
+  });
+
+  net.lobbyChannel
+    .on('presence', { event: 'sync' },  () => rebuildRoomRegistry())
+    .on('presence', { event: 'join' },  () => rebuildRoomRegistry())
+    .on('presence', { event: 'leave' }, () => rebuildRoomRegistry())
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') net.connected = true;
+    });
+}
+
+function rebuildRoomRegistry() {
+  roomRegistry.clear();
+  if (!net.lobbyChannel) return;
+  const state = net.lobbyChannel.presenceState();
+  for (const key in state) {
+    for (const p of state[key]) {
+      if (p && p.code && p.isHost) {
+        roomRegistry.set(p.code, {
+          code: p.code,
+          host: p.host || '房主',
+          state: p.started ? 'playing' : 'waiting',
+          ts: p.ts || 0,
+        });
+      }
+    }
+  }
+  renderRoomList();
+}
+
+function requestRoomList() {
+  rebuildRoomRegistry();
+}
+
+/* ---------- 房间列表渲染 ---------- */
+function renderRoomList() {
+  const box = document.getElementById('room-list'); if (!box) return;
+  const kw = (document.getElementById('lobby-search').value || '').trim().toUpperCase();
+  const items = [...roomRegistry.values()]
+    .filter(r => !kw || r.code.includes(kw))
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  if (items.length === 0) {
+    box.innerHTML = `<div class="room-empty">${kw ? '没有找到匹配的房间码' : '暂无房间，点击右上角「创建房间」开一个吧'}</div>`;
+    return;
+  }
+  box.innerHTML = '';
+  items.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'room-item' + (r.state === 'playing' ? ' playing' : '');
+    el.innerHTML = `<div class="rc">${r.code}</div>
+      <div class="grow">
+        <div class="rs">房主：${r.host || '房主'}</div>
+        <div class="rs">状态：${r.state === 'playing' ? '对局中' : '等待加入'}</div>
+      </div>`;
+    const btn = document.createElement('button');
+    btn.className = 'lobby-btn primary';
+    btn.textContent = r.state === 'playing' ? '对局中' : '加入房间';
+    btn.disabled = (r.state === 'playing');
+    btn.onclick = () => joinRoom(r.code);
+    el.appendChild(btn);
+    box.appendChild(el);
+  });
+}
+
+/* ---------- 创建房间 ---------- */
+function createRoom() {
+  if (!net.lobbyChannel) { joinLobbyChannel(); }
+  const code = genRoomCode();
+
+  net.roomCode = code;
+  net.isHost = true;
+  net.mode = 'host';
+  net.inRoom = true;
+  net.hostName = '房主';
+  net.guestName = '';
+  net.guestReady = false;
+  net.myReady = false;
+  net.started = false;
+
+  if (net.lobbyChannel) {
+    net.lobbyChannel.track({
+      code,
+      host: '房主',
+      isHost: true,
+      started: false,
+      ts: Date.now(),
+    });
+  }
+
+  joinRoomChannel(code);
+  openRoomScreen();
+  setRoomMsg('房间已创建，等待客机加入…');
+}
+
+/* ---------- 加入房间 ---------- */
+function joinRoom(code) {
+  const room = roomRegistry.get(code);
+  if (!room) { alert('房间不存在或已关闭'); return; }
+  if (room.state === 'playing') { alert('该房间正在对局中'); return; }
+
+  net.roomCode = code;
+  net.isHost = false;
+  net.mode = 'guest';
+  net.inRoom = true;
+  net.myReady = false;
+  net.started = false;
+  net.hostNameConnected = false;
+
+  joinRoomChannel(code);
+  openRoomScreen();
+  setRoomMsg('已加入房间 ' + code + '，等待房主…');
+}
+
+/* ---------- 房间频道 ---------- */
+function joinRoomChannel(code) {
+  const sb = initSupabase();
+  if (!sb) return;
+  if (net.roomChannel) { try { net.roomChannel.unsubscribe(); } catch (e) {} net.roomChannel = null; }
+
+  net.roomChannel = sb.channel('slh-room-' + code, {
+    config: {
+      presence:  { key: net.myId },
+      broadcast: { self: false },
+    }
+  });
+
+  net.roomChannel
+    .on('presence', { event: 'sync' },  () => onRoomPresence())
+    .on('presence', { event: 'join' },  () => onRoomPresence())
+    .on('presence', { event: 'leave' }, () => onRoomPresence())
+    .on('broadcast', { event: 'msg' }, ({ payload }) => handleRoomMessage(payload))
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        net.roomChannel.track({
+          role: net.isHost ? 'host' : 'guest',
+          name: net.isHost ? '房主' : '玩家2',
+          joinedAt: Date.now(),
+        });
+        if (net.isHost) setRoomMsg('等待客机加入…');
+        renderRoomScreen();
+      }
+    });
+}
+
+function onRoomPresence() {
+  if (!net.roomChannel) return;
+  const state = net.roomChannel.presenceState();
+
+  if (net.isHost) {
+    let guestName = '';
+    for (const key in state) {
+      if (key === net.myId) continue;
+      for (const p of state[key]) if (p.role === 'guest') guestName = p.name || '玩家2';
+    }
+    const hadGuest = !!net.guestName;
+    net.guestName = guestName;
+    if (!guestName) {
+      net.guestReady = false;
+      if (hadGuest) setRoomMsg('客机已离开房间', '#ff9a9a');
+    } else if (!hadGuest) {
+      setRoomMsg('客机已加入，等待准备');
+    }
+    renderRoomScreen();
+  } else {
+    let hostFound = false;
+    for (const key in state) {
+      if (key === net.myId) continue;
+      for (const p of state[key]) if (p.role === 'host') hostFound = true;
+    }
+    if (!hostFound && net.hostNameConnected) {
+      setRoomMsg('房主已离开房间', '#ff9a9a');
+      setTimeout(() => leaveRoom(true), 900);
+    }
+    if (hostFound) net.hostNameConnected = true;
+  }
+}
+
+/* ---------- 房间消息 ---------- */
+function roomSend(payload) {
+  if (!net.roomChannel) return;
+  net.roomChannel.send({
+    type: 'broadcast',
+    event: 'msg',
+    payload: Object.assign({ from: net.myId, ts: Date.now() }, payload),
+  });
+}
+
+function handleRoomMessage(m) {
+  if (!m || m.from === net.myId) return;
+  switch (m.t) {
+
+    case 'ready':
+      if (net.isHost) {
+        net.guestReady = !!m.ready;
+        renderRoomScreen();
+        setRoomMsg(m.ready ? '客机已准备，可开始' : '客机取消了准备');
+      }
+      break;
+
+    case 'start':
+      if (!net.isHost) {
+        net.started = true;
+        net.hostNameConnected = true;
+        document.getElementById('room-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        document.getElementById('result-modal').classList.remove('show');
+        GS.gameOver = false;
+        log('进入对局…', 'green');
+        startGame();
+      }
+      break;
+
+    case 'snapshot':
+      if (!net.isHost) applySnapshot(m.data);
+      break;
+
+    case 'action':
+      if (net.isHost) hostHandleGuestAction(m.action);
+      break;
+
+    case 'result':
+      if (!net.isHost) {
+        GS.gameOver = true;
+        net.started = false;
+        showResultModal(!!m.win);
+      }
+      break;
+
+    case 'rematch':
+      if (net.isHost) {
+        net.guestRematch = true;
+        setRoomMsg('客机想再来一局', '#9cffb0');
+        checkRematch();
+      } else {
+        net.hostRematch = true;
+        setRoomMsg('房主想再来一局！', '#9cffb0');
+      }
+      break;
+
+    case 'restart':
+      if (!net.isHost) {
+        net.started = true;
+        net.hostRematch = net.guestRematch = false;
+        document.getElementById('result-modal').classList.remove('show');
+        document.getElementById('room-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        GS.gameOver = false;
+        log('—— 新对局开始 ——', 'green');
+      }
+      break;
+
+    case 'leave':
+      if (net.isHost && m.isGuest) {
+        net.guestName = '';
+        net.guestReady = false;
+        renderRoomScreen();
+        setRoomMsg('客机已离开房间', '#ff9a9a');
+      } else if (!net.isHost && m.isHost) {
+        setRoomMsg('房主已解散房间', '#ff9a9a');
+        setTimeout(() => leaveRoom(true), 900);
+      }
+      break;
+  }
+}
+
+/* ---------- 房间界面 ---------- */
+function openRoomScreen() {
+  document.getElementById('lobby-screen').style.display = 'none';
+  document.getElementById('main-menu').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('room-screen').style.display = 'flex';
+  renderRoomScreen();
+}
+
+function renderRoomScreen() {
+  document.getElementById('room-code').textContent = net.roomCode || '------';
+  document.getElementById('room-host').textContent = net.isHost ? '房主（你）' : '房主';
+  document.getElementById('room-guest').textContent = net.isHost
+    ? (net.guestName || '等待加入…')
+    : '你';
+
+  let st = '等待中';
+  if (net.started) st = '对局中';
+  else if (net.isHost && net.guestName && net.guestReady) st = '客机已准备，可开始';
+  else if (net.isHost && net.guestName) st = '客机未准备';
+  else if (!net.isHost && net.myReady) st = '已准备，等待房主开始';
+  else if (!net.isHost) st = '未准备';
+  document.getElementById('room-status').textContent = st;
+
+  const readyBtn = document.getElementById('btn-room-ready');
+  readyBtn.style.display = net.isHost ? 'none' : '';
+  readyBtn.textContent = net.myReady ? '取消准备' : '准备';
+
+  const startBtn = document.getElementById('btn-room-start');
+  startBtn.style.display = net.isHost ? '' : 'none';
+  startBtn.disabled = !(net.guestName && net.guestReady);
+}
+
+function setRoomMsg(t, color) {
+  const e = document.getElementById('room-msg'); if (!e) return;
+  e.textContent = t || '';
+  e.style.color = color || '#ffb347';
+}
+
+/* ---------- 按钮动作 ---------- */
+function toggleReady() {
+  if (net.isHost) return;
+  net.myReady = !net.myReady;
+  renderRoomScreen();
+  roomSend({ t: 'ready', ready: net.myReady });
+  setRoomMsg(net.myReady ? '已准备，等待房主开始' : '已取消准备');
+}
+
+function hostStartGame() {
+  if (!net.isHost) return;
+  if (!net.guestName || !net.guestReady) {
+    setRoomMsg('需要客机先点「准备」', '#ff9a9a');
+    return;
+  }
+  net.started = true;
+
+  if (net.lobbyChannel) {
+    net.lobbyChannel.track({
+      code: net.roomCode,
+      host: '房主',
+      isHost: true,
+      started: true,
+      ts: Date.now(),
+    });
+  }
+
+  roomSend({ t: 'start' });
+
+  document.getElementById('room-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'block';
+  document.getElementById('result-modal').classList.remove('show');
+  GS.gameOver = false;
+  startGame();
+  pushSnapshot();
+}
+
+function leaveRoom(silent) {
+  if (net.roomChannel) {
+    roomSend({ t: 'leave', isHost: net.isHost, isGuest: !net.isHost });
+    try { net.roomChannel.unsubscribe(); } catch (e) {}
+    net.roomChannel = null;
+  }
+  if (net.isHost && net.lobbyChannel) {
+    try { net.lobbyChannel.untrack(); } catch (e) {}
+  }
+
+  net.roomCode = '';
+  net.isHost = false;
+  net.guestName = '';
+  net.guestReady = false;
+  net.myReady = false;
+  net.started = false;
+  net.inRoom = false;
+  net.mode = 'single';
+  net.hostRematch = net.guestRematch = false;
+
+  document.getElementById('room-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('result-modal').classList.remove('show');
+  if (!silent) document.getElementById('main-menu').style.display = 'flex';
+  mainSubject = null;
+}
+
+/* ---------- 快照 / 操作 ---------- */
+function pushSnapshot() {
+  if (net.mode !== 'host' || !net.started) return;
+  roomSend({ t: 'snapshot', data: buildSnapshot() });
+}
+
+function sendAction(a) {
+  if (net.mode !== 'guest') return;
+  roomSend({ t: 'action', action: a });
+}
+
+/* ---------- 结算 / 再来一局 ---------- */
+function requestRematch() {
+  if (net.mode === 'host') {
+    net.hostRematch = true;
+    roomSend({ t: 'rematch' });
+    document.getElementById('result-desc').textContent = '已请求再来一局，等待对方…';
+    checkRematch();
+  } else if (net.mode === 'guest') {
+    net.guestRematch = true;
+    roomSend({ t: 'rematch' });
+    document.getElementById('result-desc').textContent = '已请求再来一局，等待房主…';
+  }
+}
+
+function checkRematch() {
+  if (net.mode !== 'host') return;
+  if (net.hostRematch && net.guestRematch) {
+    net.hostRematch = net.guestRematch = false;
+    roomSend({ t: 'restart' });
+    document.getElementById('result-modal').classList.remove('show');
+    startGame();
+    net.started = true;
+    pushSnapshot();
+    log('—— 新对局开始 ——', 'green');
+  }
+}
+
+function backToRoomFromResult() {
+  document.getElementById('result-modal').classList.remove('show');
+  document.getElementById('game-screen').style.display = 'none';
+  net.started = false;
+  net.myReady = false;
+  if (net.isHost) { net.guestReady = false; }
+  else { roomSend({ t: 'ready', ready: false }); }
+  openRoomScreen();
+  setRoomMsg('已返回房间');
+}
+
+/* ---------- 快照构建 / 应用（与原版一致） ---------- */
+function mirrorHQObj(hq, mirror){
+    return {
+        placed:true, x: mirror ? 10 - hq.x : hq.x, y: hq.y,
+        def: hq.def, defMax: hq.defMax,
+        radiate: hq.radiate||0, stun: !!hq.stun, suppress: !!hq.suppress,
+        immune: !!hq.immune, nitroGlycerin: hq.nitroGlycerin||0,
+        cannotBeSuppressed: !!hq.cannotBeSuppressed,
+        poison: JSON.parse(JSON.stringify(hq.poison||{})),
+        hasMoved: false
+    };
+}
+function mirrorUnit(u, mirror){
+    return {
+        id:u.id, name:u.name, atk:u.atk, def:u.def, defMax:u.defMax,
+        attribute:u.attribute, rarity:u.rarity,
+        isPlayerUnit: mirror ? !u.isPlayerUnit : u.isPlayerUnit,
+        stun:!!u.stun, suppress:!!u.suppress, immune:!!u.immune,
+        radiate:u.radiate||0, nitroGlycerin:u.nitroGlycerin||0,
+        cannotBeSuppressed:!!u.cannotBeSuppressed,
+        poison: JSON.parse(JSON.stringify(u.poison||{})),
+        fireTurns:u.fireTurns||0, gasSmoke:!!u.gasSmoke,
+        gasSmokeAftermath:u.gasSmokeAftermath||0,
+        hasAttacked:!!u.hasAttacked, hqAttackCount:u.hqAttackCount||0
+    };
+}
+
+function buildSnapshot(){
+    const field = Array.from({length:11},()=>Array(11).fill(null));
+    for(let y=0;y<11;y++) for(let x=0;x<11;x++){
+        const u = GS.field[y][x];
+        if(u) field[y][10-x] = mirrorUnit(u, true);
+    }
+    return {
+        turn: GS.turn,
+        isPlayerTurn: !GS.isPlayerTurn,
+        playerK: GS.enemyK, playerKMax: GS.enemyKMax,
+        enemyK: GS.playerK, enemyKMax: GS.playerKMax,
+        playerTemp: GS.enemyTemp, enemyTemp: GS.playerTemp,
+        playerHQ: mirrorHQObj(GS.enemyHQ, true),
+        enemyHQ: mirrorHQObj(GS.playerHQ, true),
+        playerHand: GS.enemyHand.map(c=>c.id),
+        enemyHandCount: GS.playerHand.length,
+        playerDeckCount: GS.enemyDeck.length,
+        enemyDeckCount: GS.playerDeck.length,
+        deckMax: GS.deckMax,
+        handMax: GS.handMax,
+        field,
+        fireZones: GS.fireZones.map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
+        radiateZones: GS.radiateZones.map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
+        poisonZones: GS.poisonZones.map(z=>({x:10-z.x, y:z.y, radius:z.radius, duration:z.duration, type:z.type})),
+        waterZones: (GS.waterZones||[]).map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
+        gameOver: GS.gameOver
+    };
+}
+
+function applySnapshot(d){
+    if(!d) return;
+    GS.turn = d.turn;
+    GS.isPlayerTurn = d.isPlayerTurn;
+    GS.playerK = d.playerK; GS.playerKMax = d.playerKMax;
+    GS.enemyK = d.enemyK; GS.enemyKMax = d.enemyKMax;
+    GS.playerTemp = d.playerTemp; GS.enemyTemp = d.enemyTemp;
+    GS.playerHQ = Object.assign({}, d.playerHQ);
+    GS.enemyHQ = Object.assign({}, d.enemyHQ);
+    GS.deckMax = d.deckMax; GS.handMax = d.handMax;
+    GS.field = d.field.map(row=>row.map(u => u ? Object.assign({}, u) : null));
+    GS.fireZones = d.fireZones || [];
+    GS.radiateZones = d.radiateZones || [];
+    GS.poisonZones = d.poisonZones || [];
+    GS.waterZones = d.waterZones || [];
+    GS.playerHand = (d.playerHand||[]).map(id => CardDB[id] ? cloneCard(CardDB[id]) : null).filter(Boolean);
+    GS.enemyHand = [];
+    for(let i=0;i<(d.enemyHandCount||0);i++) GS.enemyHand.push({});
+    GS.playerDeck = new Array(d.playerDeckCount||0);
+    GS.enemyDeck = new Array(d.enemyDeckCount||0);
+    GS.playerWater = 0; GS.beakerWater = 0; GS.cannonWater = 0;
+    GS.gameOver = !!d.gameOver;
+    resetSelection();
+    renderBoard(); renderHand(); syncState();
+}
+
+/* ---------- 客机输入 ---------- */
+function guestCardClick(idx){
+    if(!GS.isPlayerTurn || GS.gameOver) return;
+    const card = GS.playerHand[idx]; if(!card) return;
+    const cost = card.cost || 0;
+    if(cost > GS.playerK){ log('指挥点不足','red'); return; }
+    if(GS.selectedCardIndex === idx){ resetSelection(); renderHand(); renderBoard(); return; }
+    GS.selectedCardIndex = idx; GS.pendingDeployCard = card;
+    if(card.type === 'unit' && card.canDeploy){ GS.selectMode = 'deploy'; log('选择部署位置','yellow'); }
+    else if(card.needTarget){ GS.selectMode = 'target'; log('选择目标','yellow'); }
+    else {
+        sendAction({ type:'cast', idx });
+        resetSelection();
+    }
+    renderHand(); renderBoard();
+}
+
+function guestCellClick(x,y){
+    if(!GS.isPlayerTurn || GS.gameOver) return;
+    if(GS.selectedUnit){
+        const su = GS.selectedUnit;
+        const u = GS.field[su.y][su.x];
+        if(!u || !u.isPlayerUnit){ GS.selectedUnit = null; renderBoard(); return; }
+        if(Math.abs(su.x - x) + Math.abs(su.y - y) === 1){
+            if(isEnemyHQ(x,y)){
+                sendAction({ type:'attackHQ', ux: su.x, uy: su.y });
+                GS.selectedUnit = null; renderBoard(); return;
+            }
+            const t = GS.field[y][x];
+            if(t && !t.isPlayerUnit){
+                sendAction({ type:'attack', ux: su.x, uy: su.y, x, y });
+            } else if(!t && !isHQ(x,y)){
+                sendAction({ type:'move', ux: su.x, uy: su.y, x, y });
+            }
+        }
+        GS.selectedUnit = null; renderBoard(); return;
+    }
+    if(GS.selectMode === 'deploy' && GS.pendingDeployCard){
+        if(!inMyDeployZone(x) || GS.field[y][x] || isHQ(x,y)){ log('只能部署在己方区域空格','red'); return; }
+        sendAction({ type:'deploy', idx: GS.selectedCardIndex, x, y });
+        resetSelection(); renderHand(); renderBoard(); return;
+    }
+    if(GS.selectMode === 'target' && GS.pendingDeployCard){
+        sendAction({ type:'cast', idx: GS.selectedCardIndex, x, y });
+        resetSelection(); renderHand(); renderBoard(); return;
+    }
+    const u = GS.field[y][x];
+    if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】`,'yellow'); renderBoard(); }
+}
+
+/* ---------- 主机：执行客机动作 ---------- */
+function hostHandleGuestAction(a){
+    if(!a || !net.started) return;
+    if(!net.guestTurnActive){
+        return;
+    }
+    const cost0 = (card)=>{ let c = card.cost||0; return c; };
+
+    switch(a.type){
+        case 'deploy': {
+            const card = GS.enemyHand[a.idx];
+            if(!card || card.type !== 'unit' || !card.canDeploy) return;
+            const x = 10 - a.x, y = a.y;
+            if(!inEnemyDeployZone(x) || GS.field[y][x] || isHQ(x,y)) return;
+            const c = cost0(card);
+            if(c > GS.enemyK) return;
+            GS.enemyK -= c;
+            const unit = {
+                id:card.id, name:card.name, atk:card.atk, def:card.def, defMax:card.defMax,
+                attribute:card.attribute, rarity:card.rarity, isPlayerUnit:false,
+                stun:false, suppress:false, immune:false, radiate:0, nitroGlycerin:0,
+                cannotBeSuppressed:false, poison:{}, fireTurns:0, gasSmoke:false, gasSmokeCooldown:0, gasSmokeAftermath:0,
+                hasAttacked:false, hqAttackCount:0
+            };
+            GS.field[y][x] = unit;
+            if(card.onDeploy) card.onDeploy.call(unit);
+            GS.enemyHand.splice(a.idx,1);
+            log(`客机部署【${card.name}】`,'red');
+            break;
+        }
+        case 'cast': {
+            const card = GS.enemyHand[a.idx];
+            if(!card) return;
+            if(card.type === 'unit') return;
+            const c = cost0(card);
+            if(c > GS.enemyK) return;
+            const x = a.x === undefined ? 0 : 10 - a.x;
+            const y = a.y === undefined ? 0 : a.y;
+            GS.enemyK -= c;
+            GS.castByEnemy = true;
+            let ret;
+            try{ ret = card.onCast ? card.onCast.call(card, x, y) : true; }
+            finally { GS.castByEnemy = false; }
+            if(ret === false){ GS.enemyK += c; return; }
+            log(`客机打出【${card.name}】`,'red');
+            if(ret !== 'repeat') GS.enemyHand.splice(a.idx,1);
+            break;
+        }
+        case 'move': {
+            const ux = 10 - a.ux, uy = a.uy;
+            const x = 10 - a.x, y = a.y;
+            const u = GS.field[uy][ux];
+            if(!u || u.isPlayerUnit) return;
+            if(Math.abs(ux-x) + Math.abs(uy-y) !== 1) return;
+            if(GS.field[y][x] || isHQ(x,y)) return;
+            GS.field[y][x] = u; GS.field[uy][ux] = null;
+            log(`客机【${u.name}】移动`,'red');
+            break;
+        }
+        case 'attack': {
+            const ux = 10 - a.ux, uy = a.uy;
+            const x = 10 - a.x, y = a.y;
+            const u = GS.field[uy][ux];
+            if(!u || u.isPlayerUnit || u.hasAttacked) return;
+            if(Math.abs(ux-x) + Math.abs(uy-y) !== 1) return;
+            const t = GS.field[y][x];
+            if(!t || t.isPlayerUnit) return;
+            dealDamage(t, u.atk);
+            u.hasAttacked = true;
+            log(`客机【${u.name}】攻击【${t.name}】-${u.atk}`,'red');
+            break;
+        }
+        case 'attackHQ': {
+            const ux = 10 - a.ux, uy = a.uy;
+            const u = GS.field[uy][ux];
+            if(!u || u.isPlayerUnit || u.hasAttacked) return;
+            if(Math.abs(GS.playerHQ.x-ux) + Math.abs(GS.playerHQ.y-uy) !== 1) return;
+            GS.playerHQ.def = Math.max(0, GS.playerHQ.def - u.atk);
+            u.hasAttacked = true;
+            u.hqAttackCount = (u.hqAttackCount||0) + 1;
+            log(`客机【${u.name}】攻击我方总部 -${u.atk}`,'red');
+            if(u.hqAttackCount > 2){ log(`客机【${u.name}】攻击总部超过2次，被消灭！`,'red'); GS.field[uy][ux] = null; }
+            break;
+        }
+        case 'endTurn': {
+            net.guestTurnActive = false;
+            cleanupDead(); renderBoard(); syncState(); checkGameOver();
+            if(GS.gameOver) return;
+            endEnemyTurn();
+            return;
+        }
+        default: return;
+    }
+
+    cleanupDead();
+    renderBoard(); syncState(); checkGameOver();
+    pushSnapshot();
 }
 
 /* ============================================================
@@ -1805,24 +2632,43 @@ function showResultModal(isWin){
 window.onload = function(){
     hideTooltip();
 
+    /* ---- 本地对战 ---- */
     document.getElementById("btn-local").addEventListener("click", function(){
+        net.mode = 'single';
         document.getElementById("main-menu").style.display = "none";
         document.getElementById("game-screen").style.display = "block";
         showSubjectChoice(function(){ startGame(); });
     });
 
-    document.getElementById("btn-back-menu").addEventListener("click", function(){
-        if(confirm("返回主菜单？当前对局进度会丢失。")){
-            document.getElementById("game-screen").style.display = "none";
-            document.getElementById("main-menu").style.display = "flex";
-            document.getElementById("result-modal").classList.remove("show");
-            document.getElementById("branch-modal").classList.remove("show");
-            document.getElementById("draw-modal").classList.remove("show");
-            document.getElementById("choice-modal").classList.remove("show");
-            mainSubject = null;
-        }
+    /* ---- 多人联机 ---- */
+    document.getElementById("btn-online").addEventListener("click", function(){
+        openLobby();
     });
+    document.getElementById("btn-lobby-back").addEventListener("click", function(){
+        document.getElementById("lobby-screen").style.display = "none";
+        document.getElementById("main-menu").style.display = "flex";
+    });
+    document.getElementById("btn-lobby-refresh").addEventListener("click", function(){
+        requestRoomList();
+    });
+    document.getElementById("lobby-search").addEventListener("input", function(){
+        renderRoomList();
+    });
+    document.getElementById("btn-lobby-create").addEventListener("click", function(){
+        createRoom();
+    });
+    document.getElementById("btn-room-copy").addEventListener("click", function(){
+        const code = net.roomCode || '';
+        if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(code).then(()=>setRoomMsg('房间码已复制：' + code, '#9cffb0'))
+                .catch(()=>setRoomMsg('房间码：' + code));
+        } else setRoomMsg('房间码：' + code);
+    });
+    document.getElementById("btn-room-ready").addEventListener("click", toggleReady);
+    document.getElementById("btn-room-start").addEventListener("click", hostStartGame);
+    document.getElementById("btn-room-leave").addEventListener("click", function(){ leaveRoom(); });
 
+    /* ---- 结算按钮 ---- */
     document.getElementById("btn-retry").addEventListener("click", function(){
         document.getElementById("result-modal").classList.remove("show");
         startGame();
@@ -1833,6 +2679,32 @@ window.onload = function(){
         document.getElementById("main-menu").style.display = "flex";
         mainSubject = null;
     });
+    document.getElementById("btn-rematch").addEventListener("click", requestRematch);
+    document.getElementById("btn-back-room").addEventListener("click", backToRoomFromResult);
+    document.getElementById("btn-leave-room").addEventListener("click", function(){
+        leaveRoom();
+    });
+
+    /* ---- 对局内 ---- */
+    document.getElementById("btn-back-menu").addEventListener("click", function(){
+        if(net.mode === 'host' || net.mode === 'guest'){
+            if(confirm("离开房间？当前对局进度会丢失。")){
+                leaveRoom();
+            }
+            return;
+        }
+        if(confirm("返回主菜单？当前对局进度会丢失。")){
+            document.getElementById("game-screen").style.display = "none";
+            document.getElementById("main-menu").style.display = "flex";
+            document.getElementById("result-modal").classList.remove("show");
+            document.getElementById("branch-modal").classList.remove("show");
+            document.getElementById("draw-modal").classList.remove("show");
+            document.getElementById("choice-modal").classList.remove("show");
+            mainSubject = null;
+            net.mode = 'single';
+        }
+    });
+
     document.getElementById("btn-end-turn").addEventListener("click", endTurn);
     document.getElementById("btn-choice-cancel").addEventListener("click", hideChoice);
     const choiceModalEl = document.getElementById("choice-modal");
@@ -1845,6 +2717,15 @@ window.onload = function(){
     document.getElementById("btn-draw-no").addEventListener("click", function(){
         if(!GS.pendingEndTurn) return;
         hideDrawModal(); log('放弃抽牌','yellow'); finishEndTurn();
+    });
+
+    window.addEventListener('beforeunload', function(){
+        if(net.roomChannel){
+            try{ roomSend({ t:'leave', isHost: net.isHost, isGuest: !net.isHost }); }catch(e){}
+        }
+        if(net.isHost && net.lobbyChannel){
+            try{ net.lobbyChannel.untrack(); }catch(e){}
+        }
     });
 };
 </script>
