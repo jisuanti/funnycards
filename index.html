@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8" />
 <title>学好数理化 - 卡牌对战</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;color:#fff;font-family:"Microsoft YaHei","SimHei",sans-serif;}
 body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
@@ -157,12 +156,12 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .room-row b{color:#f1d68a;}
 .room-actions{display:flex;gap:12px;margin-top:22px;justify-content:center;flex-wrap:wrap;}
 .room-msg{margin-top:14px;font-size:12px;color:#ffb347;text-align:center;min-height:18px;}
-#disconnect-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.9);z-index:500;}
+#disconnect-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:500;}
 #disconnect-modal.show{display:flex;}
-.dc-box{padding:34px 44px;background:linear-gradient(180deg,#3a1a1a,#1a0808);border:3px solid #ff5555;border-radius:14px;text-align:center;box-shadow:0 0 60px rgba(255,80,80,0.5);}
-.dc-box h2{font-size:28px;color:#ff8888;letter-spacing:8px;margin-bottom:16px;}
-.dc-box p{font-size:14px;color:#e8d9b8;margin-bottom:22px;letter-spacing:2px;}
-.dc-box button{padding:10px 28px;background:linear-gradient(180deg,#8a3b3b,#4a1a1a);border:1px solid #ff8888;color:#fff;border-radius:4px;cursor:pointer;letter-spacing:3px;font-size:14px;}
+.dc-box{padding:34px 44px;background:linear-gradient(180deg,#2a1f0c,#140a04);border:2px solid #f7d774;border-radius:14px;text-align:center;box-shadow:0 0 40px rgba(247,215,116,0.35);}
+.dc-box h2{font-size:24px;color:#f7d774;letter-spacing:6px;margin-bottom:16px;}
+.dc-box p{font-size:13px;color:#e8d9b8;margin-bottom:22px;letter-spacing:2px;line-height:1.7;}
+.dc-box button{padding:10px 28px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:3px;font-size:14px;}
 </style>
 </head>
 <body>
@@ -225,7 +224,8 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
             <div class="info-row"><span class="info-label">温度</span><span class="info-value" id="my-temp">37.2℃</span></div>
             <div class="info-row"><span class="info-label">总部</span><span class="info-value"><span id="my-hp">30</span>/<span id="my-hpmax">30</span></span></div>
             <div class="info-row"><span class="info-label">指挥点</span><span class="info-value"><span id="my-k">1</span>/<span id="my-kmax">1</span></span></div>
-            <div class="info-row"><span class="info-label">牌库</span><span class="info-value" id="my-deck-wrap"><span id="my-deck">50</span>/<span id="my-deckmax">50</span></span></div>
+            <div class="info-row"><span class="info-label">牌库</span><span class="info-value" id="my-deck-wrap"><span id="my-deck">55</span>/<span id="my-deckmax">55</span></span></div>
+            <div class="info-row"><span class="info-label">手牌</span><span class="info-value"><span id="my-hand-count">0</span>/10</span></div>
             <div class="info-row"><span class="info-label">水</span><span class="info-value" style="font-size:12px;">储<span id="water-view">0</span> 杯<span id="beaker-view">0</span> 炮<span id="cannon-view">0</span>ml</span></div>
         </div>
     </div>
@@ -274,14 +274,42 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 </div>
 <div id="disconnect-modal">
     <div class="dc-box">
-        <h2>连接已断开</h2>
-        <p>服务器连接失败 / 对方已离线</p>
+        <h2>对局已结束</h2>
+        <p id="dc-reason">对手已离开，或者网络出现波动<br>对局无法继续，点击下方按钮返回主菜单</p>
         <button id="btn-dc-ok">返回主菜单</button>
     </div>
 </div>
 <div id="tooltip"></div>
 
 <script>
+/* ===== Supabase SDK 多 CDN 兜底加载 ===== */
+(function(){
+  const cdns = [
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+    'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
+    'https://cdn.bootcdn.net/ajax/libs/supabase-js/2.39.0/supabase.min.js',
+    'https://cdn.staticfile.org/supabase-js/2.39.0/supabase.min.js',
+  ];
+  window.__supabaseReady = false;
+  window.__supabasePromise = (async function(){
+    for (const url of cdns) {
+      if (window.supabase) { window.__supabaseReady = true; return true; }
+      try {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = url;
+          s.async = false;
+          s.onload = resolve;
+          s.onerror = () => reject(new Error('load fail: ' + url));
+          document.head.appendChild(s);
+        });
+        if (window.supabase) { window.__supabaseReady = true; return true; }
+      } catch(e) { /* 下一个 */ }
+    }
+    return false;
+  })();
+})();
+
 window.addEventListener('error', function(e){
   const bar = document.getElementById('global-error-bar'); if(!bar) return;
   bar.style.display = 'block';
@@ -305,16 +333,14 @@ CardDB.physSuit = { id:'physSuit', name:'防护服', cost:0, type:'spell', attri
     desc:'友方全部单位获得免疫，持续1回合',
     onCast(){ forEachUnit(u=>{ if(u.isPlayerUnit) u.immune=true; }); GS.playerHQ.immune=true; log('防护服','green'); return true; } };
 CardDB.extPhys = { id:'extPhys', name:'扩展物理研发', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'🔬',
-    desc:'二级开发',
-    onCast(){ openBranchChoice(['ac220v','advPhys'],'扩展物理研发'); return true; } };
+    desc:'二级开发', onCast(){ openBranchChoice(['ac220v','advPhys'],'扩展物理研发'); return true; } };
 CardDB.ac220v = { id:'ac220v', name:'220V交流电', cost:0, type:'spell', attribute:'物理', rarity:'金', icon:'⚡',
     desc:'敌方全体-4',
     onCast(){ GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 4);
         forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.max(0, u.def - 4); });
         GS.ac220vTurn = 2; cleanupDead(); log('220V','yellow'); return true; } };
 CardDB.advPhys = { id:'advPhys', name:'高级物理研发', cost:9, type:'spell', attribute:'物理', rarity:'金', icon:'🧪',
-    desc:'三级开发',
-    onCast(){ openBranchChoice(['nukeChain','topSecretPhys'],'高级物理研发'); return true; } };
+    desc:'三级开发', onCast(){ openBranchChoice(['nukeChain','topSecretPhys'],'高级物理研发'); return true; } };
 CardDB.nukeChain = { id:'nukeChain', name:'核能链式反应', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'☢',
     desc:'5×5伤害8', needTarget:true,
     onCast(cx,cy){
@@ -385,8 +411,7 @@ CardDB.thermometer = { id:'thermometer', name:'温度计', cost:1, type:'spell',
         }
         return true; } };
 CardDB.eternalChem = { id:'eternalChem', name:'永恒化学研发', cost:3, type:'spell', attribute:'化学', rarity:'金', icon:'🧪', isResearch:true,
-    desc:'一级开发',
-    onCast(){ openBranchChoice(['hotAcid','extChem'],'永恒化学研发'); return true; } };
+    desc:'一级开发', onCast(){ openBranchChoice(['hotAcid','extChem'],'永恒化学研发'); return true; } };
 CardDB.hotAcid = { id:'hotAcid', name:'热浓硫酸', cost:0, type:'spell', attribute:'化学', rarity:'铜', icon:'🧫',
     desc:'对单个敌方单位6伤，扣敌1K槽', needTarget:true, volatile:2,
     onCast(x,y){ const u = GS.field[y][x];
@@ -480,7 +505,7 @@ CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attri
         }
         logP('冰凉贴','green'); return true; } };
 CardDB.airCannon = { id:'airCannon', name:'空气内能炮', cost:3, type:'spell', attribute:'化学', rarity:'银', icon:'💨',
-    desc:'每次消耗300ml水，敌方全体4伤。可主动丢弃获得3K',
+    desc:'每次消耗300ml水，敌方全体4伤',
     onCast(){
         if(GS.castByEnemy){ logP('客机无法装水','red'); return true; }
         if(waterTotalUsable() < 300){ logP('水不足','red'); return false; }
@@ -544,7 +569,7 @@ const GameState = {
     handMax:10, enemyHandMax:10,
     playerHand:[], enemyHand:[],
     playerDeck:[], enemyDeck:[],
-    deckMax: 50,
+    deckMax: 55,
     field: Array.from({length:11},()=>Array(11).fill(null)),
     fireZones:[], radiateZones:[], poisonZones:[], waterZones:[],
     discardPile:[], forcedSlot:[null,null],
@@ -573,7 +598,7 @@ let guestSubject = null;
 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
 /* ============ 工具函数 ============ */
-function log(text,color=""){  // 公开日志，同步给对手
+function log(text,color=""){
     const d = document.getElementById("log"); if(!d) return;
     const div = document.createElement("div");
     if(color) div.className = "log-"+color;
@@ -583,7 +608,7 @@ function log(text,color=""){  // 公开日志，同步给对手
         if(GS.logQueue.length < 200) GS.logQueue.push({ text, color });
     }
 }
-function logP(text,color=""){  // 私密日志，不同步
+function logP(text,color=""){
     const d = document.getElementById("log"); if(!d) return;
     const div = document.createElement("div");
     if(color) div.className = "log-"+color;
@@ -702,17 +727,25 @@ function isChemAgent(card){ return card && CHEM_AGENTS.includes(card.id); }
 
 /* ============ 牌库初始化 ============ */
 const BASE_DECK_LIST = [
-    { id:'safetyWarn',   count:5 },
+    { id:'safetyWarn',   count:6 },
     { id:'thermometer',  count:5 },
-    { id:'water',        count:17 },
+    { id:'water',        count:6 },
     { id:'beaker',       count:8 },
-    { id:'alcoholLamp',  count:5 },
-    { id:'chemTeacher',  count:2 },
-    { id:'physTeacher',  count:2 },
-    { id:'heater',       count:2 },
-    { id:'greatPhys',    count:2 },
-    { id:'eternalChem',  count:2 },
+    { id:'alcoholLamp',  count:6 },
+    { id:'icePatch',     count:4 },
+    { id:'chemTeacher',  count:3 },
+    { id:'physTeacher',  count:3 },
+    { id:'heater',       count:3 },
+    { id:'sarin',        count:1 },
+    { id:'mustard',      count:1 },
+    { id:'hcn',          count:1 },
+    { id:'chlorine',     count:1 },
+    { id:'vx',           count:1 },
+    { id:'bz',           count:1 },
+    { id:'greatPhys',    count:1 },
+    { id:'eternalChem',  count:1 },
 ];
+/* 总数：6+5+6+8+6+4+3+3+3+1+1+1+1+1+1+1+1 = 52 */
 function buildDeckForSubject(subject){
     const deck = [];
     BASE_DECK_LIST.forEach(({id, count})=>{
@@ -720,6 +753,10 @@ function buildDeckForSubject(subject){
         if(!cardAllowedBySubject(card, subject)) return;
         for(let i=0;i<count;i++) deck.push(cloneCard(card));
     });
+    // 补齐到 55 张，用水卡填充
+    while(deck.length < 55){
+        deck.push(cloneCard(CardDB.water));
+    }
     shuffle(deck);
     return deck;
 }
@@ -728,7 +765,7 @@ function initDeck(){
     GS.playerDeck = buildDeckForSubject(hostSubj);
     const guestSubj = guestSubject || hostSubj;
     GS.enemyDeck = buildDeckForSubject(guestSubj);
-    GS.deckMax = 50;
+    GS.deckMax = 55;
 }
 function drawCard(isPlayer){
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
@@ -774,7 +811,7 @@ function randomEnemyDeployPos(){
     return null;
 }
 
-/* ============ 视角交换：客机操作执行 ============ */
+/* ============ 视角交换 ============ */
 function withGuestView(fn){
     GS._inGuestOp = true;
     const s = {
@@ -1020,6 +1057,9 @@ function renderHand(){
             const c = document.createElement("div"); c.className = "enemy-card-back"; enemyArea.appendChild(c);
         }
     }
+    // 更新手牌数显示
+    const hc = document.getElementById("my-hand-count");
+    if (hc) hc.innerText = GS.playerHand.length;
 }
 function renderForcedSlotUI(){
     for(let i=0;i<2;i++){
@@ -1066,6 +1106,8 @@ function syncState(){
     setTxt("my-deck", GS.playerDeck.length);
     setTxt("my-deckmax", GS.deckMax);
     setTxt("en-deck", GS.enemyDeck.length);
+    const hc = document.getElementById("my-hand-count");
+    if (hc) hc.innerText = GS.playerHand.length;
     const dw = document.getElementById("my-deck-wrap");
     if(dw){ if(GS.playerDeck.length <= 0) dw.classList.add("deck-warn"); else dw.classList.remove("deck-warn"); }
     const hint = document.getElementById("main-subject-hint");
@@ -1173,7 +1215,6 @@ function onCellClick(x,y){
         if(ret === false){ GS.playerK += cost; resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         if(ret === 'repeat'){ resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         GS.playerHand.splice(cardIdx,1); resetSelection();
-        // 220V 脉冲
         if(GS.enemyAc220vTurn > 0){
             GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 1);
             forEachUnit(u=>{ if(u.isPlayerUnit) u.def = Math.max(0, u.def - 2); });
@@ -1209,7 +1250,6 @@ function beginCardUse(idx){
         if(ret === false){ GS.playerK += cost; resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         if(ret === 'repeat'){ resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         GS.playerHand.splice(idx,1); resetSelection();
-        // 220V 脉冲
         if(GS.enemyAc220vTurn > 0){
             GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 1);
             forEachUnit(u=>{ if(u.isPlayerUnit) u.def = Math.max(0, u.def - 2); });
@@ -1694,7 +1734,7 @@ function startGame(){
     GS.handMax = 10; GS.enemyHandMax = 10;
     GS.playerHand = []; GS.enemyHand = [];
     GS.playerDeck = []; GS.enemyDeck = [];
-    GS.deckMax = 50;
+    GS.deckMax = 55;
     GS.field = Array.from({length:11},()=>Array(11).fill(null));
     GS.fireZones = []; GS.radiateZones = []; GS.poisonZones = []; GS.waterZones = [];
     GS.discardPile = []; GS.forcedSlot = [null,null];
@@ -1776,38 +1816,26 @@ let roomPollTimer = null;
 let roomPingTimer = null;
 
 const net = {
-  mode: 'single',
-  roomCode: '',
-  isHost: false,
+  mode: 'single', roomCode: '', isHost: false,
   myId: Math.random().toString(36).slice(2, 10),
-  hostName: '房主',
-  guestName: '',
-  guestReady: false,
-  myReady: false,
-  started: false,
-  gameInitialized: false,
-  guestTurnActive: false,
-  hostRematch: false,
-  guestRematch: false,
-  inRoom: false,
-  connected: false,
-  hostNameConnected: false,
-  lastEventTime: 0,
-  busy: false,
-  hostSubject: null,
-  guestSubject: null,
-  disconnectShown: false,
-  _pollErrors: 0,
-  seenEventIds: new Set(),
+  hostName: '房主', guestName: '', guestReady: false, myReady: false,
+  started: false, gameInitialized: false, guestTurnActive: false,
+  hostRematch: false, guestRematch: false, inRoom: false, connected: false,
+  hostNameConnected: false, lastEventTime: 0, busy: false,
+  hostSubject: null, guestSubject: null, disconnectShown: false,
+  _pollErrors: 0, seenEventIds: new Set(),
 };
-
 const roomRegistry = new Map();
 
-function initSupabase() {
+async function initSupabase() {
   if (supabaseClient) return supabaseClient;
+  // 等待多 CDN 加载完成
+  if (window.__supabasePromise) {
+    try { await window.__supabasePromise; } catch(e) {}
+  }
   if (!window.supabase || !window.supabase.createClient) {
     const bar = document.getElementById('global-error-bar');
-    if (bar) { bar.style.display = 'block'; bar.textContent = '⚠ Supabase SDK 未加载'; }
+    if (bar) { bar.style.display = 'block'; bar.textContent = '⚠ 无法加载 Supabase SDK，请检查网络后刷新页面'; }
     return null;
   }
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1827,9 +1855,11 @@ function setRoomMsg(t, color){
   e.textContent = t || '';
   e.style.color = color || '#ffb347';
 }
-function showDisconnect() {
+function showDisconnect(reason){
   if (net.disconnectShown) return;
   net.disconnectShown = true;
+  const p = document.getElementById('dc-reason');
+  if (p && reason) p.innerHTML = reason;
   document.getElementById('disconnect-modal').classList.add('show');
 }
 function forceLeaveToMain() {
@@ -1843,34 +1873,26 @@ function forceLeaveToMain() {
   mainSubject = null;
   guestSubject = null;
 }
-function openLobby() {
-  const sb = initSupabase();
+async function openLobby() {
+  const sb = await initSupabase();
   if (!sb) return;
   $('main-menu').style.display = 'none';
   $('lobby-screen').style.display = 'flex';
   $('room-screen').style.display = 'none';
   startLobbyPolling();
 }
-function startLobbyPolling() {
-  stopLobbyPolling();
-  refreshRooms();
-  lobbyTimer = setInterval(refreshRooms, 2000);
-}
-function stopLobbyPolling() {
-  if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; }
-}
+function startLobbyPolling() { stopLobbyPolling(); refreshRooms(); lobbyTimer = setInterval(refreshRooms, 2000); }
+function stopLobbyPolling() { if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; } }
 async function refreshRooms() {
-  const sb = initSupabase(); if (!sb) return;
+  const sb = await initSupabase(); if (!sb) return;
   const cutoff = Date.now() - 30000;
   const { data, error } = await sb.from('game_rooms')
     .select('*').gt('host_ping', cutoff).order('updated_at', { ascending: false });
   if (error) return;
   roomRegistry.clear();
   (data || []).forEach(r => {
-    roomRegistry.set(r.code, {
-      code: r.code, host: r.host_name || '房主',
-      state: r.started ? 'playing' : 'waiting', ts: r.updated_at || 0,
-    });
+    roomRegistry.set(r.code, { code: r.code, host: r.host_name || '房主',
+      state: r.started ? 'playing' : 'waiting', ts: r.updated_at || 0 });
   });
   renderRoomList();
 }
@@ -1881,19 +1903,12 @@ function renderRoomList() {
   const items = [...roomRegistry.values()]
     .filter(r => !kw || r.code.includes(kw))
     .sort((a, b) => (b.ts || 0) - (a.ts || 0));
-  if (items.length === 0) {
-    box.innerHTML = `<div class="room-empty">${kw ? '没有找到匹配的房间码' : '暂无房间。'}</div>`;
-    return;
-  }
+  if (items.length === 0) { box.innerHTML = `<div class="room-empty">${kw ? '没有找到匹配的房间码' : '暂无房间。'}</div>`; return; }
   box.innerHTML = '';
   items.forEach(r => {
     const el = document.createElement('div');
     el.className = 'room-item' + (r.state === 'playing' ? ' playing' : '');
-    el.innerHTML = `<div class="rc">${r.code}</div>
-      <div class="grow">
-        <div class="rs">房主：${r.host || '房主'}</div>
-        <div class="rs">状态：${r.state === 'playing' ? '对局中' : '等待加入'}</div>
-      </div>`;
+    el.innerHTML = `<div class="rc">${r.code}</div><div class="grow"><div class="rs">房主：${r.host || '房主'}</div><div class="rs">状态：${r.state === 'playing' ? '对局中' : '等待加入'}</div></div>`;
     const btn = document.createElement('button');
     btn.className = 'lobby-btn primary';
     btn.textContent = r.state === 'playing' ? '对局中' : '加入房间';
@@ -1904,30 +1919,22 @@ function renderRoomList() {
   });
 }
 async function createRoom() {
-  const sb = initSupabase(); if (!sb) return;
-  const code = genRoomCode();
-  const now = Date.now();
+  const sb = await initSupabase(); if (!sb) return;
+  const code = genRoomCode(); const now = Date.now();
   try {
     await sb.from('game_events').delete().eq('room_code', code);
     await sb.from('game_rooms').delete().eq('code', code);
     const { error } = await sb.from('game_rooms').insert({
       code, host_name: '房主', guest_name: '', guest_ready: false,
-      started: false, host_ping: now, guest_ping: 0, updated_at: now,
-    });
+      started: false, host_ping: now, guest_ping: 0, updated_at: now });
     if (error) { alert('创建房间失败：' + error.message); return; }
   } catch (e) { alert('创建房间出错：' + e.message); return; }
-
-  net.roomCode = code;
-  net.isHost = true;
-  net.mode = 'host';
-  net.inRoom = true;
+  net.roomCode = code; net.isHost = true; net.mode = 'host'; net.inRoom = true;
   net.hostNameConnected = true;
   net.guestName = ''; net.guestReady = false; net.myReady = false;
   net.started = false; net.gameInitialized = false;
   net.hostSubject = null; net.guestSubject = null;
-  net.disconnectShown = false; net._pollErrors = 0;
-  net.seenEventIds = new Set();
-
+  net.disconnectShown = false; net._pollErrors = 0; net.seenEventIds = new Set();
   openRoomScreen();
   setRoomMsg('房间已创建，等待客机加入…');
   startRoomPolling();
@@ -1938,21 +1945,16 @@ function joinRoomByCode() {
   joinRoom(code);
 }
 async function joinRoom(code) {
-  const sb = initSupabase(); if (!sb) return;
-  const { data: room, error } = await sb.from('game_rooms')
-    .select('*').eq('code', code).maybeSingle();
+  const sb = await initSupabase(); if (!sb) return;
+  const { data: room, error } = await sb.from('game_rooms').select('*').eq('code', code).maybeSingle();
   if (error || !room) { alert('房间不存在或已关闭'); return; }
   if (Date.now() - (room.host_ping || 0) > 20000) { alert('房主已离线'); return; }
   if (room.started) { alert('该房间正在对局中'); return; }
   const guestActive = room.guest_name && (Date.now() - (room.guest_ping || 0) < 8000);
   if (guestActive) { alert('房间已满'); return; }
-
   const now = Date.now();
-  const { error: upErr } = await sb.from('game_rooms').update({
-    guest_name: '玩家2', guest_ready: false, guest_ping: now,
-  }).eq('code', code);
+  const { error: upErr } = await sb.from('game_rooms').update({ guest_name: '玩家2', guest_ready: false, guest_ping: now }).eq('code', code);
   if (upErr) { alert('加入失败：' + upErr.message); return; }
-
   net.roomCode = code; net.isHost = false; net.mode = 'guest'; net.inRoom = true;
   net.seenEventIds = new Set();
   net.hostNameConnected = false;
@@ -1960,42 +1962,29 @@ async function joinRoom(code) {
   net.started = false; net.gameInitialized = false;
   net.hostSubject = null; net.guestSubject = null;
   net.disconnectShown = false; net._pollErrors = 0;
-
   openRoomScreen();
   setRoomMsg('已加入房间 ' + code + '，等待房主…');
   startRoomPolling();
 }
-function startRoomPolling() {
-  stopRoomPolling();
-  roomPollTimer = setInterval(pollRoom, 600);
-  roomPingTimer = setInterval(sendPing, 3000);
-  pollRoom();
-}
-function stopRoomPolling() {
-  if (roomPollTimer) { clearInterval(roomPollTimer); roomPollTimer = null; }
-  if (roomPingTimer) { clearInterval(roomPingTimer); roomPingTimer = null; }
-}
+function startRoomPolling() { stopRoomPolling(); roomPollTimer = setInterval(pollRoom, 600); roomPingTimer = setInterval(sendPing, 3000); pollRoom(); }
+function stopRoomPolling() { if (roomPollTimer) { clearInterval(roomPollTimer); roomPollTimer = null; } if (roomPingTimer) { clearInterval(roomPingTimer); roomPingTimer = null; } }
 async function sendPing() {
   if (!net.inRoom || !net.roomCode) return;
-  const sb = initSupabase(); if (!sb) return;
+  const sb = await initSupabase(); if (!sb) return;
   const now = Date.now();
   try {
-    if (net.isHost) {
-      await sb.from('game_rooms').update({ host_ping: now, updated_at: now }).eq('code', net.roomCode);
-    } else {
-      await sb.from('game_rooms').update({ guest_ping: now }).eq('code', net.roomCode);
-    }
+    if (net.isHost) await sb.from('game_rooms').update({ host_ping: now, updated_at: now }).eq('code', net.roomCode);
+    else await sb.from('game_rooms').update({ guest_ping: now }).eq('code', net.roomCode);
   } catch (e) {}
 }
 async function pollRoom() {
   if (!net.inRoom || !net.roomCode) return;
   if (net.busy) return;
   net.busy = true;
-  const sb = initSupabase();
+  const sb = await initSupabase();
   if (!sb) { net.busy = false; return; }
   try {
-    const { data: room, error } = await sb.from('game_rooms')
-      .select('*').eq('code', net.roomCode).maybeSingle();
+    const { data: room, error } = await sb.from('game_rooms').select('*').eq('code', net.roomCode).maybeSingle();
     if (error) {
       net._pollErrors = (net._pollErrors||0) + 1;
       if(net._pollErrors > 5 && !net.disconnectShown) showDisconnect();
@@ -2005,7 +1994,7 @@ async function pollRoom() {
     if (!room) {
       if (!net.isHost && !net.disconnectShown) {
         setRoomMsg('房主已解散房间', '#ff9a9a');
-        showDisconnect();
+        showDisconnect('房主已关闭房间<br>对局无法继续，点击下方按钮返回主菜单');
       }
       net.busy = false; return;
     }
@@ -2016,71 +2005,51 @@ async function pollRoom() {
       const newReady = guestActive ? !!room.guest_ready : false;
       if (net.guestName !== newGuest || net.guestReady !== newReady) {
         const had = !!net.guestName;
-        net.guestName = newGuest;
-        net.guestReady = newReady;
+        net.guestName = newGuest; net.guestReady = newReady;
         if (!newGuest && had) setRoomMsg('客机已离开房间', '#ff9a9a');
         else if (newGuest && !had) setRoomMsg('客机已加入，等待准备');
         else if (newGuest && newReady) setRoomMsg('客机已准备，可开始');
         renderRoomScreen();
       }
-      if (net.gameInitialized && !guestActive && !net.disconnectShown) showDisconnect();
+      if (net.gameInitialized && !guestActive && !net.disconnectShown) {
+        showDisconnect('对手已离开对局<br>点击下方按钮返回主菜单');
+      }
     } else {
       const hostActive = (now - (room.host_ping || 0)) < 10000;
       if (!hostActive && !net.disconnectShown) {
-        showDisconnect();
+        showDisconnect('与房主的连接已断开<br>点击下方按钮返回主菜单');
         net.busy = false; return;
       }
-      if (hostActive && !net.hostNameConnected) {
-        net.hostNameConnected = true;
-        setRoomMsg('已连接到房主');
-      }
-      if (net.guestReady !== !!room.guest_ready) {
-        net.guestReady = !!room.guest_ready;
-        net.myReady = !!room.guest_ready;
-        renderRoomScreen();
-      }
+      if (hostActive && !net.hostNameConnected) { net.hostNameConnected = true; setRoomMsg('已连接到房主'); }
+      if (net.guestReady !== !!room.guest_ready) { net.guestReady = !!room.guest_ready; net.myReady = !!room.guest_ready; renderRoomScreen(); }
     }
-
     const cutoff = Date.now() - 60000;
-    const { data: events } = await sb.from('game_events')
-      .select('*')
-      .eq('room_code', net.roomCode)
-      .neq('sender', net.myId)
-      .gt('created_at', cutoff)
-      .order('created_at', { ascending: true })
-      .limit(80);
-
+    const { data: events } = await sb.from('game_events').select('*')
+      .eq('room_code', net.roomCode).neq('sender', net.myId).gt('created_at', cutoff)
+      .order('created_at', { ascending: true }).limit(80);
     if (events && events.length > 0) {
       for (const ev of events) {
         if (net.seenEventIds.has(ev.id)) continue;
         net.seenEventIds.add(ev.id);
         handleRoomMessage(ev.payload);
       }
-      if (net.seenEventIds.size > 500) {
-        net.seenEventIds = new Set([...net.seenEventIds].slice(-200));
-      }
+      if (net.seenEventIds.size > 500) net.seenEventIds = new Set([...net.seenEventIds].slice(-200));
     }
-
     if (net.isHost && (!net._lastClean || now - net._lastClean > 30000)) {
       net._lastClean = now;
       sb.from('game_events').delete().lt('created_at', now - 120000).then(()=>{});
     }
-  } catch (e) {
-    console.warn('pollRoom', e);
-  } finally {
-    net.busy = false;
-  }
+  } catch (e) { console.warn('pollRoom', e); }
+  finally { net.busy = false; }
 }
 async function roomSend(payload) {
   if (!net.inRoom || !net.roomCode) return;
-  const sb = initSupabase(); if (!sb) return;
+  const sb = await initSupabase(); if (!sb) return;
   try {
     await sb.from('game_events').insert({
-      room_code: net.roomCode,
-      sender: net.myId,
+      room_code: net.roomCode, sender: net.myId,
       payload: Object.assign({ from: net.myId, ts: Date.now() }, payload),
-      created_at: Date.now(),
-    });
+      created_at: Date.now() });
   } catch (e) { console.warn('roomSend', e); }
 }
 function handleRoomMessage(m) {
@@ -2108,11 +2077,9 @@ function handleRoomMessage(m) {
       break;
     case 'guestSubject':
       if (net.isHost && !net.gameInitialized) {
-        net.guestSubject = m.subject;
-        guestSubject = m.subject;
+        net.guestSubject = m.subject; guestSubject = m.subject;
         mainSubject = net.hostSubject;
-        net.started = true;
-        net.gameInitialized = true;
+        net.started = true; net.gameInitialized = true;
         $('room-screen').style.display = 'none';
         $('game-screen').style.display = 'block';
         document.getElementById('log').innerHTML = '';
@@ -2123,8 +2090,7 @@ function handleRoomMessage(m) {
     case 'snapshot':
       if (!net.isHost) {
         if (!net.gameInitialized) {
-          net.gameInitialized = true;
-          net.started = true;
+          net.gameInitialized = true; net.started = true;
           $('room-screen').style.display = 'none';
           $('game-screen').style.display = 'block';
           document.getElementById('log').innerHTML = '';
@@ -2140,7 +2106,9 @@ function handleRoomMessage(m) {
         GS.gameOver = true;
         net.started = false;
         net.gameInitialized = false;
-        showResultModal(!!m.win);
+        if (!document.getElementById('result-modal').classList.contains('show')) {
+          showResultModal(!!m.win);
+        }
       }
       break;
     case 'rematch':
@@ -2160,15 +2128,14 @@ function handleRoomMessage(m) {
     case 'leave':
       if (net.isHost && m.isGuest) {
         if (net.gameInitialized) {
-          if (!net.disconnectShown) showDisconnect();
+          if (!net.disconnectShown) showDisconnect('对手已离开对局<br>点击下方按钮返回主菜单');
         } else {
-          net.guestName = '';
-          net.guestReady = false;
+          net.guestName = ''; net.guestReady = false;
           renderRoomScreen();
           setRoomMsg('客机已离开房间', '#ff9a9a');
         }
       } else if (!net.isHost && m.isHost) {
-        if (!net.disconnectShown) showDisconnect();
+        if (!net.disconnectShown) showDisconnect('房主已关闭房间<br>点击下方按钮返回主菜单');
       }
       break;
   }
@@ -2200,11 +2167,9 @@ function renderRoomScreen() {
 }
 async function toggleReady() {
   if (net.isHost) return;
-  const sb = initSupabase(); if (!sb) return;
+  const sb = await initSupabase(); if (!sb) return;
   net.myReady = !net.myReady;
-  try {
-    await sb.from('game_rooms').update({ guest_ready: net.myReady }).eq('code', net.roomCode);
-  } catch (e) {}
+  try { await sb.from('game_rooms').update({ guest_ready: net.myReady }).eq('code', net.roomCode); } catch (e) {}
   renderRoomScreen();
   setRoomMsg(net.myReady ? '已准备，等待房主开始' : '已取消准备');
   roomSend({ t: 'ready', ready: net.myReady });
@@ -2220,7 +2185,7 @@ async function hostStartGame() {
   });
 }
 async function leaveRoom(silent) {
-  const sb = initSupabase();
+  const sb = await initSupabase();
   stopRoomPolling();
   if (net.inRoom && net.roomCode && sb) {
     try {
@@ -2230,9 +2195,7 @@ async function leaveRoom(silent) {
         await sb.from('game_rooms').delete().eq('code', net.roomCode);
       } else {
         roomSend({ t: 'leave', isGuest: true });
-        await sb.from('game_rooms').update({
-          guest_name: '', guest_ready: false, guest_ping: 0,
-        }).eq('code', net.roomCode);
+        await sb.from('game_rooms').update({ guest_name: '', guest_ready: false, guest_ping: 0 }).eq('code', net.roomCode);
       }
     } catch (e) {}
   }
@@ -2256,10 +2219,7 @@ function pushSnapshot() {
   roomSend({ t: 'snapshot', data: buildSnapshot() });
   GS.logQueue = [];
 }
-function sendAction(a) {
-  if (net.mode !== 'guest') return;
-  roomSend({ t: 'action', action: a });
-}
+function sendAction(a) { if (net.mode !== 'guest') return; roomSend({ t: 'action', action: a }); }
 function requestRematch() {
   if (net.mode === 'host') {
     net.hostRematch = true;
@@ -2279,16 +2239,14 @@ function checkRematch() {
     roomSend({ t: 'restart' });
     document.getElementById('result-modal').classList.remove('show');
     startGame();
-    net.started = true;
-    net.gameInitialized = true;
+    net.started = true; net.gameInitialized = true;
     setTimeout(() => pushSnapshot(), 300);
   }
 }
 function backToRoomFromResult() {
   document.getElementById('result-modal').classList.remove('show');
   document.getElementById('game-screen').style.display = 'none';
-  net.started = false;
-  net.gameInitialized = false;
+  net.started = false; net.gameInitialized = false;
   net.myReady = false;
   if (net.isHost) { net.guestReady = false; }
   else { roomSend({ t: 'ready', ready: false }); }
@@ -2296,8 +2254,7 @@ function backToRoomFromResult() {
   setRoomMsg('已返回房间');
 }
 function mirrorHQObj(hq, mirror){
-    return { x: mirror ? 10 - hq.x : hq.x, y: hq.y,
-        def: hq.def, defMax: hq.defMax,
+    return { x: mirror ? 10 - hq.x : hq.x, y: hq.y, def: hq.def, defMax: hq.defMax,
         radiate: hq.radiate||0, stun: !!hq.stun, suppress: !!hq.suppress,
         immune: !!hq.immune, nitroGlycerin: hq.nitroGlycerin||0,
         cannotBeSuppressed: !!hq.cannotBeSuppressed,
@@ -2322,8 +2279,7 @@ function buildSnapshot(){
         if(u) field[y][10-x] = mirrorUnit(u, true);
     }
     return { turn: GS.turn,
-        isPlayerTurn: !GS.isPlayerTurn,
-        isPlayerFirst: !GS.isPlayerFirst,
+        isPlayerTurn: !GS.isPlayerTurn, isPlayerFirst: !GS.isPlayerFirst,
         playerK: GS.enemyK, playerKMax: GS.enemyKMax,
         enemyK: GS.playerK, enemyKMax: GS.playerKMax,
         playerTemp: GS.enemyTemp, enemyTemp: GS.playerTemp,
@@ -2333,8 +2289,7 @@ function buildSnapshot(){
         enemyHandCount: GS.playerHand.length,
         playerDeckCount: GS.enemyDeck.length,
         enemyDeckCount: GS.playerDeck.length,
-        deckMax: GS.deckMax, handMax: GS.handMax,
-        field,
+        deckMax: GS.deckMax, handMax: GS.handMax, field,
         fireZones: GS.fireZones.map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
         radiateZones: GS.radiateZones.map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
         poisonZones: GS.poisonZones.map(z=>({x:10-z.x, y:z.y, radius:z.radius, duration:z.duration, type:z.type})),
@@ -2344,6 +2299,7 @@ function buildSnapshot(){
 }
 function applySnapshot(d){
     if(!d) return;
+    const wasGameOver = GS.gameOver;
     GS.turn = d.turn;
     GS.isPlayerTurn = d.isPlayerTurn;
     GS.isPlayerFirst = d.isPlayerFirst;
@@ -2377,6 +2333,11 @@ function applySnapshot(d){
     }
     resetSelection();
     renderBoard(); renderHand(); syncState();
+    // 立即弹窗
+    if (!wasGameOver && GS.gameOver && !document.getElementById('result-modal').classList.contains('show')) {
+        const isWin = GS.enemyHQ.def <= 0;
+        showResultModal(isWin);
+    }
 }
 function guestCardClick(idx){
     if(!GS.isPlayerTurn || GS.gameOver) return;
@@ -2491,9 +2452,7 @@ function hostHandleGuestAction(a){
             const fnName = a.fn;
             const fns = ['beginCardUse','tryCombineWaterBeaker','playWaterInto','loadBeakerIntoCannon','pourReserveIntoBeaker','discardAirCannon'];
             if(!fns.includes(fnName)) return;
-            withGuestView(() => {
-                try { window[fnName].apply(null, a.args || []); } catch(e){ console.warn(e); }
-            });
+            withGuestView(() => { try { window[fnName].apply(null, a.args || []); } catch(e){ console.warn(e); } });
             break;
         }
         case 'move': {
@@ -2557,7 +2516,7 @@ function bindAllEvents() {
     el.addEventListener(ev, fn);
     el.__bound = true;
   };
-  safeOn("btn-local", "click", function(){
+  safeOn("btn-local", "click", async function(){
     net.mode = 'single';
     $id("main-menu").style.display = "none";
     $id("game-screen").style.display = "block";
@@ -2584,10 +2543,7 @@ function bindAllEvents() {
   safeOn("btn-room-ready", "click", toggleReady);
   safeOn("btn-room-start", "click", hostStartGame);
   safeOn("btn-room-leave", "click", function(){ leaveRoom(); });
-  safeOn("btn-retry", "click", function(){
-    $id("result-modal").classList.remove("show");
-    startGame();
-  });
+  safeOn("btn-retry", "click", function(){ $id("result-modal").classList.remove("show"); startGame(); });
   safeOn("btn-continue", "click", function(){
     $id("result-modal").classList.remove("show");
     $id("game-screen").style.display = "none";
@@ -2641,22 +2597,16 @@ function bindAllEvents() {
   });
   safeOn("btn-dc-ok", "click", forceLeaveToMain);
 }
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bindAllEvents);
-} else {
-  bindAllEvents();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindAllEvents);
+else bindAllEvents();
 window.addEventListener('load', bindAllEvents);
 
 window.addEventListener('beforeunload', function(){
   if (net.inRoom && net.roomCode) {
     try {
       const sb = supabaseClient;
-      if (sb && net.isHost) {
-        sb.from('game_rooms').delete().eq('code', net.roomCode).then(()=>{});
-      } else if (sb && !net.isHost) {
-        sb.from('game_rooms').update({ guest_name: '', guest_ready: false, guest_ping: 0 }).eq('code', net.roomCode).then(()=>{});
-      }
+      if (sb && net.isHost) sb.from('game_rooms').delete().eq('code', net.roomCode).then(()=>{});
+      else if (sb && !net.isHost) sb.from('game_rooms').update({ guest_name: '', guest_ready: false, guest_ping: 0 }).eq('code', net.roomCode).then(()=>{});
     } catch (e) {}
   }
 });
