@@ -7,7 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;color:#fff;font-family:"Microsoft YaHei","SimHei",sans-serif;}
 body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
-#global-error-bar{position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;padding:10px 16px;font-size:13px;z-index:99999;display:none;font-family:"Microsoft YaHei",sans-serif;line-height:1.5;white-space:pre-wrap;max-height:40vh;overflow:auto;}
+#global-error-bar{position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;padding:10px 16px;font-size:13px;z-index:99999;display:none;line-height:1.5;white-space:pre-wrap;max-height:40vh;overflow:auto;}
 #main-menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.12),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
 .title-main{font-size:82px;font-weight:900;letter-spacing:22px;color:#f7d774;text-shadow:0 0 14px rgba(247,215,116,0.6),0 0 40px rgba(255,170,96,0.45);}
 .title-sub{margin-top:16px;font-size:16px;letter-spacing:10px;color:#a8966a;}
@@ -296,9 +296,7 @@ window.addEventListener('unhandledrejection', function(e){
 const SUPABASE_URL      = 'https://vdrlevvweeftldzhlovz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkcmxldnZ3ZWVmdGxkemhsb3Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjE1MTIsImV4cCI6MjEwNjU5NzUxMn0.KcVDrmmE4uLr18pz58k9nmuNpqbprLPAS1EVmSxiVuo';
 
-/* ============================================================
-   ============== 卡牌数据库 ===================================
-   ============================================================ */
+/* ============ 卡牌数据库 ============ */
 const CardDB = {};
 CardDB.greatPhys = { id:'greatPhys', name:'伟大物理研发', cost:3, type:'spell', attribute:'物理', rarity:'金', icon:'⚛', isResearch:true,
     desc:'一级开发：二选一【防护服】/【扩展物理研发】',
@@ -370,12 +368,21 @@ CardDB.safetyWarn = { id:'safetyWarn', name:'安全警告', cost:0, type:'spell'
 CardDB.thermometer = { id:'thermometer', name:'温度计', cost:1, type:'spell', attribute:'物理', rarity:'铁', icon:'🌡',
     desc:'>43.2℃下场1回合；否则KMax+1（每局最多+5）', needTarget:true,
     onCast(x,y){
-        if(GS.thermometerUsedCount >= 5){ log('温度计上限','red'); return false; }
+        const usedCount = GS._inGuestOp ? (GS.enemyThermometerUsedCount||0) : (GS.thermometerUsedCount||0);
+        if(usedCount >= 5){ logP('温度计上限','red'); return false; }
         const u = GS.field[y][x];
         if(u){ const t = u.isPlayerUnit ? GS.playerTemp : GS.enemyTemp;
-            if(t > 43.2){ u.stun = true; log('温度计：晕厥','yellow'); }
-            else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：KMax+1','green'); }
-        } else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：空测+1','green'); }
+            if(t > 43.2){ u.stun = true; log('温度计：目标晕厥','yellow'); }
+            else {
+                if(GS._inGuestOp){ GS.enemyKMax = Math.min(24, GS.enemyKMax + 1); GS.enemyThermometerUsedCount = (GS.enemyThermometerUsedCount||0) + 1; }
+                else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; }
+                logP('温度计：KMax+1','green');
+            }
+        } else {
+            if(GS._inGuestOp){ GS.enemyKMax = Math.min(24, GS.enemyKMax + 1); GS.enemyThermometerUsedCount = (GS.enemyThermometerUsedCount||0) + 1; }
+            else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; }
+            logP('温度计：KMax+1','green');
+        }
         return true; } };
 CardDB.eternalChem = { id:'eternalChem', name:'永恒化学研发', cost:3, type:'spell', attribute:'化学', rarity:'金', icon:'🧪', isResearch:true,
     desc:'一级开发',
@@ -415,7 +422,7 @@ CardDB.topSecretChem = { id:'topSecretChem', name:'绝密化学研发', cost:12,
 CardDB.lethalRad = { id:'lethalRad', name:'致命照射', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'☢',
     desc:'敌方+1放射', onCast(){ GS.lethalRadiationDebuff = true; log('致命照射','red'); return true; } };
 CardDB.eternalStar = { id:'eternalStar', name:'永恒之星', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'✨',
-    desc:'友方全体+30，清负面；总部常驻清负面',
+    desc:'友方全体+30，清负面',
     onCast(){
         GS.playerHQ.defMax += 30; GS.playerHQ.def += 30; GS.playerHQ.immune = true;
         GS.playerHQ.cannotBeSuppressed = true; GS.playerHQ.radiate = 0; GS.playerHQ.stun = false; GS.playerHQ.suppress = false;
@@ -461,7 +468,7 @@ CardDB.beaker = { id:'beaker', name:'密封塞烧杯', cost:0, type:'spell', att
         } else {
             const u = GS.field[y][x];
             if(u && !u.isPlayerUnit){ u.suppress = true; log('烧杯封锁','yellow'); }
-            else { log('烧杯水量不足','red'); return false; }
+            else { logP('烧杯水量不足','red'); return false; }
         }
         return true; } };
 CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'❄',
@@ -471,12 +478,12 @@ CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attri
             const idx = Math.floor(Math.random()*GS.playerHand.length);
             GS.discardPile.push(GS.playerHand.splice(idx,1)[0]);
         }
-        log('冰凉贴','green'); return true; } };
+        logP('冰凉贴','green'); return true; } };
 CardDB.airCannon = { id:'airCannon', name:'空气内能炮', cost:3, type:'spell', attribute:'化学', rarity:'银', icon:'💨',
     desc:'每次消耗300ml水，敌方全体4伤。可主动丢弃获得3K',
     onCast(){
-        if(GS.castByEnemy){ log('客机无法装水','red'); return true; }
-        if(waterTotalUsable() < 300){ log('水不足','red'); return false; }
+        if(GS.castByEnemy){ logP('客机无法装水','red'); return true; }
+        if(waterTotalUsable() < 300){ logP('水不足','red'); return false; }
         consumeWater(300);
         GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 4);
         forEachUnit(u=>{ if(!u.isPlayerUnit) dealDamage(u, 4); });
@@ -505,9 +512,7 @@ CardDB.physTeacher = { id:'physTeacher', name:'物理老师', cost:4, type:'unit
     desc:'物理/物化卡伤害×1.1',
     onDeploy(){ log('物理老师上场','green'); } };
 
-/* ============================================================
-   ============== 状态注册表 ===================================
-   ============================================================ */
+/* ============ 状态注册表 ============ */
 const StatusRegistry = [
     { key:'stun', name:'眩晕', icon:'💫', check:o=>o.stun, fmt:()=>'' },
     { key:'suppress', name:'压制', icon:'⛓', check:o=>o.suppress, fmt:()=>'' },
@@ -529,9 +534,7 @@ function renderStatusLines(obj){
     return owned.map(s => { const extra = s.fmt(obj); return `<div class="t-line">${s.icon} ${s.name}${extra ? '：' + extra : ''}</div>`; }).join('');
 }
 
-/* ============================================================
-   ============== 游戏状态 =====================================
-   ============================================================ */
+/* ============ 游戏状态 ============ */
 const GameState = {
     turn:1, isPlayerTurn:true, isPlayerFirst:true,
     playerK:1, playerKMax:1, enemyK:1, enemyKMax:1,
@@ -546,7 +549,7 @@ const GameState = {
     fireZones:[], radiateZones:[], poisonZones:[], waterZones:[],
     discardPile:[], forcedSlot:[null,null],
     fatigueCount:0, enemyFatigueCount:0,
-    enemySafetyWarningSuppressTurn:0,
+    enemySafetyWarningSuppressTurn:0, playerSafetyWarningSuppressTurn:0,
     thermometerUsedCount:0, enemyThermometerUsedCount:0,
     playerWater:0, beakerWater:0, cannonWater:0,
     enemyWater:0, enemyBeakerWater:0, enemyCannonWater:0,
@@ -569,10 +572,8 @@ let mainSubject = null;
 let guestSubject = null;
 const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
-/* ============================================================
-   ============== 工具函数 =====================================
-   ============================================================ */
-function log(text,color=""){
+/* ============ 工具函数 ============ */
+function log(text,color=""){  // 公开日志，同步给对手
     const d = document.getElementById("log"); if(!d) return;
     const div = document.createElement("div");
     if(color) div.className = "log-"+color;
@@ -581,6 +582,12 @@ function log(text,color=""){
         if(!GS.logQueue) GS.logQueue = [];
         if(GS.logQueue.length < 200) GS.logQueue.push({ text, color });
     }
+}
+function logP(text,color=""){  // 私密日志，不同步
+    const d = document.getElementById("log"); if(!d) return;
+    const div = document.createElement("div");
+    if(color) div.className = "log-"+color;
+    div.textContent = text; d.appendChild(div); d.scrollTop = d.scrollHeight;
 }
 function showTooltip(x,y,html){ const t = document.getElementById("tooltip"); t.innerHTML = html; t.style.left=(x+12)+"px"; t.style.top=(y+12)+"px"; t.style.display="block"; }
 function hideTooltip(){ document.getElementById("tooltip").style.display="none"; }
@@ -624,9 +631,7 @@ function addCardToHand(card, forced=false){
 }
 function findCardIndex(id){ return GS.playerHand.findIndex(c=>c.id===id); }
 
-/* ============================================================
-   ============== 水系统 =======================================
-   ============================================================ */
+/* ============ 水系统 ============ */
 function waterTotalUsable(){ return (GS.playerWater||0) + (GS.beakerWater||0) + (GS.cannonWater||0); }
 function consumeWater(amount){
     if(waterTotalUsable() < amount) return false;
@@ -653,21 +658,19 @@ function applyWaterCard(container){
         const stored = Math.min(space, amt), rest = amt - stored;
         GS.beakerWater = (GS.beakerWater||0) + stored;
         if(rest > 0) GS.playerWater = (GS.playerWater||0) + rest;
-        log(`水：烧杯+${stored}ml`,'green');
+        logP(`水：烧杯+${stored}ml`,'green');
     } else if(container === 'cannonWater'){
         const r = fillCannon(amt);
-        log(`水：炮+${r.stored}ml`,'green');
+        logP(`水：炮+${r.stored}ml`,'green');
     } else {
         GS.playerWater = (GS.playerWater||0) + amt;
-        log(`水：储水+${amt}ml`,'green');
+        logP(`水：储水+${amt}ml`,'green');
     }
     forEachUnit(u=>{ if(u.isPlayerUnit) u.def = Math.min(u.defMax, u.def + 3); });
-    log('水：友方全体+3','green');
+    logP('水：友方全体+3','green');
 }
 
-/* ============================================================
-   ============== 选择弹窗 =====================================
-   ============================================================ */
+/* ============ 选择弹窗 ============ */
 function showChoice(title, desc, options){
     const modal = document.getElementById('choice-modal'); if(!modal) return;
     document.getElementById('choice-title').innerText = title;
@@ -697,9 +700,7 @@ function cardAllowedBySubject(card, subject){
 const CHEM_AGENTS = ['sarin','mustard','hcn','chlorine','vx','bz'];
 function isChemAgent(card){ return card && CHEM_AGENTS.includes(card.id); }
 
-/* ============================================================
-   ============== 牌库初始化 ====================================
-   ============================================================ */
+/* ============ 牌库初始化 ============ */
 const BASE_DECK_LIST = [
     { id:'safetyWarn',   count:5 },
     { id:'thermometer',  count:5 },
@@ -733,8 +734,8 @@ function drawCard(isPlayer){
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
     if(deck.length === 0){
-        if(isPlayer){ GS.fatigueCount++; GS.playerHQ.def = Math.max(0, GS.playerHQ.def - GS.fatigueCount); log(`我方疲劳 -${GS.fatigueCount}`,'red'); }
-        else { GS.enemyFatigueCount++; GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - GS.enemyFatigueCount); log(`敌方疲劳 -${GS.enemyFatigueCount}`,'red'); }
+        if(isPlayer){ GS.fatigueCount++; GS.playerHQ.def = Math.max(0, GS.playerHQ.def - GS.fatigueCount); logP(`我方疲劳 -${GS.fatigueCount}`,'red'); }
+        else { GS.enemyFatigueCount++; GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - GS.enemyFatigueCount); logP(`敌方疲劳 -${GS.enemyFatigueCount}`,'red'); }
         return null;
     }
     const card = deck.shift();
@@ -762,9 +763,7 @@ function ensureRoleCardInHand(isPlayer){
     const roleNames = ['化学老师','物理老师'];
     if(hand.some(c=>roleNames.includes(c.name))) return;
     const idx = deck.findIndex(c=>roleNames.includes(c.name));
-    if(idx >= 0){
-        const card = deck.splice(idx,1)[0]; hand.push(card);
-    }
+    if(idx >= 0){ const card = deck.splice(idx,1)[0]; hand.push(card); }
 }
 function randomEnemyDeployPos(){
     for(let tries=0; tries<60; tries++){
@@ -775,46 +774,74 @@ function randomEnemyDeployPos(){
     return null;
 }
 
-/* ============================================================
-   ============== 视角交换（客机操作执行） ====================
-   ============================================================ */
-function withGuestResources(fn){
+/* ============ 视角交换：客机操作执行 ============ */
+function withGuestView(fn){
     GS._inGuestOp = true;
     const s = {
-        playerHand: GS.playerHand, playerDeck: GS.playerDeck,
-        playerWater: GS.playerWater, beakerWater: GS.beakerWater, cannonWater: GS.cannonWater,
         playerK: GS.playerK, playerKMax: GS.playerKMax,
+        enemyK: GS.enemyK, enemyKMax: GS.enemyKMax,
+        playerTemp: GS.playerTemp, enemyTemp: GS.enemyTemp,
+        playerHQ: GS.playerHQ, enemyHQ: GS.enemyHQ,
+        playerHand: GS.playerHand, enemyHand: GS.enemyHand,
+        playerDeck: GS.playerDeck, enemyDeck: GS.enemyDeck,
+        playerWater: GS.playerWater, enemyWater: GS.enemyWater,
+        beakerWater: GS.beakerWater, enemyBeakerWater: GS.enemyBeakerWater,
+        cannonWater: GS.cannonWater, enemyCannonWater: GS.enemyCannonWater,
+        thermometerUsedCount: GS.thermometerUsedCount, enemyThermometerUsedCount: GS.enemyThermometerUsedCount,
+        ac220vTurn: GS.ac220vTurn, enemyAc220vTurn: GS.enemyAc220vTurn,
+        controlledFusionBuff: GS.controlledFusionBuff, enemyControlledFusionBuff: GS.enemyControlledFusionBuff,
+        eternalStarBuff: GS.eternalStarBuff, enemyEternalStarBuff: GS.enemyEternalStarBuff,
+        lethalRadiationDebuff: GS.lethalRadiationDebuff, enemyLethalRadiationDebuff: GS.enemyLethalRadiationDebuff,
+        chemWeaponBuff: GS.chemWeaponBuff, enemyChemWeaponBuff: GS.enemyChemWeaponBuff,
+        handMax: GS.handMax, enemyHandMax: GS.enemyHandMax,
+        enemySafetyWarningSuppressTurn: GS.enemySafetyWarningSuppressTurn,
+        playerSafetyWarningSuppressTurn: GS.playerSafetyWarningSuppressTurn || 0,
     };
-    GS.playerHand = GS.enemyHand;
-    GS.playerDeck = GS.enemyDeck;
-    GS.playerWater = GS.enemyWater || 0;
-    GS.beakerWater = GS.enemyBeakerWater || 0;
-    GS.cannonWater = GS.enemyCannonWater || 0;
-    GS.playerK = GS.enemyK;
-    GS.playerKMax = GS.enemyKMax;
+    GS.playerK = s.enemyK; GS.enemyK = s.playerK;
+    GS.playerKMax = s.enemyKMax; GS.enemyKMax = s.playerKMax;
+    GS.playerTemp = s.enemyTemp; GS.enemyTemp = s.playerTemp;
+    GS.playerHQ = s.enemyHQ; GS.enemyHQ = s.playerHQ;
+    GS.playerHand = s.enemyHand; GS.enemyHand = s.playerHand;
+    GS.playerDeck = s.enemyDeck; GS.enemyDeck = s.playerDeck;
+    GS.playerWater = s.enemyWater; GS.enemyWater = s.playerWater;
+    GS.beakerWater = s.enemyBeakerWater; GS.enemyBeakerWater = s.beakerWater;
+    GS.cannonWater = s.enemyCannonWater; GS.enemyCannonWater = s.cannonWater;
+    GS.thermometerUsedCount = s.enemyThermometerUsedCount; GS.enemyThermometerUsedCount = s.thermometerUsedCount;
+    GS.ac220vTurn = s.enemyAc220vTurn; GS.enemyAc220vTurn = s.ac220vTurn;
+    GS.controlledFusionBuff = s.enemyControlledFusionBuff; GS.enemyControlledFusionBuff = s.controlledFusionBuff;
+    GS.eternalStarBuff = s.enemyEternalStarBuff; GS.enemyEternalStarBuff = s.eternalStarBuff;
+    GS.lethalRadiationDebuff = s.enemyLethalRadiationDebuff; GS.enemyLethalRadiationDebuff = s.lethalRadiationDebuff;
+    GS.chemWeaponBuff = s.enemyChemWeaponBuff; GS.enemyChemWeaponBuff = s.chemWeaponBuff;
+    GS.handMax = s.enemyHandMax; GS.enemyHandMax = s.handMax;
+    GS.enemySafetyWarningSuppressTurn = s.playerSafetyWarningSuppressTurn;
+    GS.playerSafetyWarningSuppressTurn = s.enemySafetyWarningSuppressTurn;
+    forEachUnit(u => { u.isPlayerUnit = !u.isPlayerUnit; });
     try { fn(); }
     finally {
-        GS.enemyHand = GS.playerHand;
-        GS.enemyDeck = GS.playerDeck;
-        GS.enemyWater = GS.playerWater;
-        GS.enemyBeakerWater = GS.beakerWater;
-        GS.enemyCannonWater = GS.cannonWater;
-        GS.enemyK = GS.playerK;
-        GS.enemyKMax = GS.playerKMax;
-        GS.playerHand = s.playerHand;
-        GS.playerDeck = s.playerDeck;
-        GS.playerWater = s.playerWater;
-        GS.beakerWater = s.beakerWater;
-        GS.cannonWater = s.cannonWater;
-        GS.playerK = s.playerK;
-        GS.playerKMax = s.playerKMax;
+        forEachUnit(u => { u.isPlayerUnit = !u.isPlayerUnit; });
+        GS.playerK = s.playerK; GS.enemyK = s.enemyK;
+        GS.playerKMax = s.playerKMax; GS.enemyKMax = s.enemyKMax;
+        GS.playerTemp = s.playerTemp; GS.enemyTemp = s.enemyTemp;
+        GS.playerHQ = s.playerHQ; GS.enemyHQ = s.enemyHQ;
+        GS.playerHand = s.playerHand; GS.enemyHand = s.enemyHand;
+        GS.playerDeck = s.playerDeck; GS.enemyDeck = s.enemyDeck;
+        GS.playerWater = s.playerWater; GS.enemyWater = s.enemyWater;
+        GS.beakerWater = s.beakerWater; GS.enemyBeakerWater = s.enemyBeakerWater;
+        GS.cannonWater = s.cannonWater; GS.enemyCannonWater = s.enemyCannonWater;
+        GS.thermometerUsedCount = s.thermometerUsedCount; GS.enemyThermometerUsedCount = s.enemyThermometerUsedCount;
+        GS.ac220vTurn = s.ac220vTurn; GS.enemyAc220vTurn = s.enemyAc220vTurn;
+        GS.controlledFusionBuff = s.controlledFusionBuff; GS.enemyControlledFusionBuff = s.enemyControlledFusionBuff;
+        GS.eternalStarBuff = s.eternalStarBuff; GS.enemyEternalStarBuff = s.enemyEternalStarBuff;
+        GS.lethalRadiationDebuff = s.lethalRadiationDebuff; GS.enemyLethalRadiationDebuff = s.enemyLethalRadiationDebuff;
+        GS.chemWeaponBuff = s.chemWeaponBuff; GS.enemyChemWeaponBuff = s.enemyChemWeaponBuff;
+        GS.handMax = s.handMax; GS.enemyHandMax = s.enemyHandMax;
+        GS.enemySafetyWarningSuppressTurn = s.enemySafetyWarningSuppressTurn;
+        GS.playerSafetyWarningSuppressTurn = s.playerSafetyWarningSuppressTurn;
         GS._inGuestOp = false;
     }
 }
 
-/* ============================================================
-   ============== 渲染 =========================================
-   ============================================================ */
+/* ============ 渲染 ============ */
 let snapshotTimer = null;
 function scheduleSnapshot(){
     if(net.mode !== 'host' || !net.started) return;
@@ -836,7 +863,6 @@ function renderBoard(){
             if(GS.pendingDeployCard && GS.selectMode==="target") cell.classList.add("targetable");
             if(GS.selectedUnit && GS.selectedUnit.x===x && GS.selectedUnit.y===y) cell.classList.add("selected-unit");
             if(GS.selectedHQ === 'player' && isPlayerHQ(x,y)) cell.classList.add("selected-hq");
-
             const buildTooltip = ()=>{
                 let html = "";
                 if(isPlayerHQ(x,y) || isEnemyHQ(x,y)){
@@ -857,7 +883,6 @@ function renderBoard(){
                 }
                 return html;
             };
-
             if(isTouchDevice){
                 let touchTimer = null, touchMoved = false;
                 cell.addEventListener('touchstart', function(e){
@@ -880,7 +905,6 @@ function renderBoard(){
                 cell.onmouseleave = hideTooltip;
                 cell.onclick = ()=>onCellClick(x,y);
             }
-
             if(isPlayerHQ(x,y)){ const hq = document.createElement("div"); hq.className="hq player"; hq.innerText="总"; cell.appendChild(hq); }
             else if(isEnemyHQ(x,y)){ const hq = document.createElement("div"); hq.className="hq enemy"; hq.innerText="敌"; cell.appendChild(hq); }
             else if(GS.field[y][x]){
@@ -949,6 +973,7 @@ function renderHand(){
             if(e.target && e.target.closest && e.target.closest('.card-discard')) return;
             if(net.mode === 'guest') return;
             if(!GS.isPlayerTurn || GS.gameOver) return;
+            if(net.mode !== 'single' && !net.gameInitialized) return;
             if(e.pointerType === 'mouse' && e.button !== 0) return;
             const from = idx, sx = e.clientX, sy = e.clientY;
             let dragging = false, targetEl = null;
@@ -1006,7 +1031,7 @@ function renderForcedSlotUI(){
                 if(GS.forcedSlot[i] && GS.playerHand.length < GS.handMax){
                     GS.playerHand.push(GS.forcedSlot[i]); GS.forcedSlot[i] = null;
                     renderForcedSlotUI(); renderHand();
-                } else log('手牌已满','red');
+                } else logP('手牌已满','red');
             };
         } else { el.classList.remove("filled"); el.innerText = "槽" + (i+1); el.onclick = null; }
     }
@@ -1051,9 +1076,7 @@ function syncState(){
     }
 }
 
-/* ============================================================
-   ============== 交互 =========================================
-   ============================================================ */
+/* ============ 交互 ============ */
 function resetSelection(){ GS.selectedCardIndex = null; GS.pendingDeployCard = null; GS.selectMode = null; GS.selectedUnit = null; GS.selectedHQ = null; }
 function effectiveCost(card){
     let c = card.cost;
@@ -1067,17 +1090,18 @@ function tryCombineWaterBeaker(idx){
     if(card.id === 'water'){ wi = idx; bi = findCardIndex('beaker'); }
     else if(card.id === 'beaker'){ bi = idx; wi = findCardIndex('water'); }
     else return false;
-    if(wi < 0 || bi < 0){ log('合成失败','red'); return false; }
+    if(wi < 0 || bi < 0){ logP('合成失败','red'); return false; }
     const loaded = (GS.beakerWater||0) + 300;
     const arr = [wi, bi].sort((a,b)=>b-a);
     GS.playerHand.splice(arr[0],1); GS.playerHand.splice(arr[1],1);
     GS.beakerWater = 0;
     const r = fillCannon(loaded);
     GS.playerHand.push(cloneCard(CardDB.airCannon));
-    log('合成成功：空气内能炮','green');
+    logP('合成成功：空气内能炮','green');
     renderHand(); renderBoard(); syncState(); return true;
 }
 function onCellClick(x,y){
+    if(net.mode !== 'single' && !net.gameInitialized) return;
     if(net.mode === 'guest'){ guestCellClick(x,y); return; }
     if(!GS.isPlayerTurn || GS.gameOver) return;
 
@@ -1085,12 +1109,11 @@ function onCellClick(x,y){
         const hq = GS.playerHQ;
         const dist = Math.abs(hq.x - x) + Math.abs(hq.y - y);
         if(dist === 1 && !GS.field[y][x] && !isEnemyHQ(x,y) && !isPlayerHQ(x,y)){
-            if(GS.playerK < 1){ log('指挥点不足','red'); GS.selectedHQ = null; renderBoard(); return; }
+            if(GS.playerK < 1){ logP('指挥点不足','red'); GS.selectedHQ = null; renderBoard(); return; }
             GS.playerK -= 1; hq.x = x; hq.y = y; hq.hasMoved = true; GS.selectedHQ = null;
-            log('总部移动（-1K）','green'); renderBoard(); syncState(); return;
+            logP('总部移动（-1K）','green'); renderBoard(); syncState(); return;
         } else { GS.selectedHQ = null; renderBoard(); return; }
     }
-
     if(GS.selectedUnit){
         const su = GS.selectedUnit;
         const u = GS.field[su.y][su.x];
@@ -1098,7 +1121,7 @@ function onCellClick(x,y){
         const dist = Math.abs(su.x - x) + Math.abs(su.y - y);
         if(dist === 1){
             if(isEnemyHQ(x,y)){
-                if(u.hasAttacked){ log('本回合已攻击','red'); return; }
+                if(u.hasAttacked){ logP('本回合已攻击','red'); return; }
                 GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - u.atk);
                 log(`【${u.name}】攻总部-${u.atk}`,'green');
                 u.hasAttacked = true; u.hqAttackCount = (u.hqAttackCount||0) + 1;
@@ -1107,27 +1130,26 @@ function onCellClick(x,y){
             }
             const t = GS.field[y][x];
             if(t && !t.isPlayerUnit){
-                if(u.hasAttacked){ log('本回合已攻击','red'); return; }
+                if(u.hasAttacked){ logP('本回合已攻击','red'); return; }
                 dealDamage(t, u.atk);
                 log(`【${u.name}】攻【${t.name}】-${u.atk}`,'green');
                 u.hasAttacked = true; cleanupDead(); renderBoard(); syncState(); checkGameOver(); return;
             }
             if(!t && !isHQ(x,y)){
-                if(GS.playerK < 1){ log('指挥点不足','red'); GS.selectedUnit = null; renderBoard(); return; }
+                if(GS.playerK < 1){ logP('指挥点不足','red'); GS.selectedUnit = null; renderBoard(); return; }
                 GS.playerK -= 1;
                 GS.field[y][x] = u; GS.field[su.y][su.x] = null; GS.selectedUnit = {x:x, y:y};
-                log(`【${u.name}】移动（-1K）`,'yellow');
+                logP(`【${u.name}】移动（-1K）`,'yellow');
                 renderBoard(); syncState(); return;
             }
         }
         GS.selectedUnit = null; renderBoard(); return;
     }
-
     if(GS.selectMode === "deploy" && GS.pendingDeployCard){
-        if(!inMyDeployZone(x) || GS.field[y][x] || isHQ(x,y)){ log("只能部署在己方区域空格","red"); return; }
+        if(!inMyDeployZone(x) || GS.field[y][x] || isHQ(x,y)){ logP("只能部署在己方区域空格","red"); return; }
         const card = GS.pendingDeployCard, cardIdx = GS.selectedCardIndex;
         const cost = effectiveCost(card);
-        if(cost > GS.playerK){ log("指挥点不足","red"); return; }
+        if(cost > GS.playerK){ logP("指挥点不足","red"); return; }
         GS.playerK -= cost; GS.playerHand.splice(cardIdx, 1);
         const unit = {
             id:card.id, name:card.name, atk:card.atk, def:card.def, defMax:card.defMax,
@@ -1141,26 +1163,30 @@ function onCellClick(x,y){
         if(card.onDeploy) card.onDeploy.call(unit);
         resetSelection(); renderHand(); renderBoard(); syncState(); checkGameOver(); return;
     }
-
     if(GS.selectMode === "target" && GS.pendingDeployCard){
         const card = GS.pendingDeployCard, cardIdx = GS.selectedCardIndex;
         const cost = effectiveCost(card);
-        if(cost > GS.playerK){ log("指挥点不足","red"); return; }
-        if(GS.enemySafetyWarningSuppressTurn>0 && (card.attribute==='化学'||card.attribute==='物化')){ log("安全警告生效中","red"); return; }
+        if(cost > GS.playerK){ logP("指挥点不足","red"); return; }
+        if(GS.enemySafetyWarningSuppressTurn>0 && (card.attribute==='化学'||card.attribute==='物化')){ logP("安全警告生效中","red"); return; }
         GS.playerK -= cost;
         const ret = card.onCast ? card.onCast.call(card, x, y) : true;
         if(ret === false){ GS.playerK += cost; resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         if(ret === 'repeat'){ resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         GS.playerHand.splice(cardIdx,1); resetSelection();
+        // 220V 脉冲
+        if(GS.enemyAc220vTurn > 0){
+            GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 1);
+            forEachUnit(u=>{ if(u.isPlayerUnit) u.def = Math.max(0, u.def - 2); });
+            cleanupDead();
+        }
         renderHand(); renderBoard(); syncState(); checkGameOver(); return;
     }
-
-    if(isPlayerHQ(x,y) && !GS.playerHQ.hasMoved){ GS.selectedHQ = 'player'; log('选中总部，相邻移动-1K','yellow'); renderBoard(); return; }
-
+    if(isPlayerHQ(x,y) && !GS.playerHQ.hasMoved){ GS.selectedHQ = 'player'; logP('选中总部，相邻移动-1K','yellow'); renderBoard(); return; }
     const u = GS.field[y][x];
-    if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】：移动-1K，攻击每回合1次`,'yellow'); renderBoard(); return; }
+    if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; logP(`选中【${u.name}】`,'yellow'); renderBoard(); return; }
 }
 function onCardClick(idx){
+    if(net.mode !== 'single' && !net.gameInitialized) return;
     if(net.mode === 'guest'){ guestCardClick(idx); return; }
     if(!GS.isPlayerTurn || GS.gameOver) return;
     const card = GS.playerHand[idx]; if(!card) return;
@@ -1171,27 +1197,33 @@ function onCardClick(idx){
 function beginCardUse(idx){
     const card = GS.playerHand[idx]; if(!card) return;
     const cost = effectiveCost(card);
-    if(cost > GS.playerK){ log("指挥点不足","red"); return; }
+    if(cost > GS.playerK){ logP("指挥点不足","red"); return; }
     if(GS.selectedCardIndex === idx){ resetSelection(); renderHand(); renderBoard(); return; }
     GS.selectedCardIndex = idx; GS.pendingDeployCard = card;
-    if(card.type === "unit" && card.canDeploy){ GS.selectMode = "deploy"; log("选择部署位置","yellow"); }
-    else if(card.needTarget){ GS.selectMode = "target"; log("选择目标","yellow"); }
+    if(card.type === "unit" && card.canDeploy){ GS.selectMode = "deploy"; logP("选择部署位置","yellow"); }
+    else if(card.needTarget){ GS.selectMode = "target"; logP("选择目标","yellow"); }
     else {
-        if(GS.enemySafetyWarningSuppressTurn>0 && (card.attribute==='化学'||card.attribute==='物化')){ log("安全警告生效中","red"); resetSelection(); renderHand(); renderBoard(); return; }
+        if(GS.enemySafetyWarningSuppressTurn>0 && (card.attribute==='化学'||card.attribute==='物化')){ logP("安全警告生效中","red"); resetSelection(); renderHand(); renderBoard(); return; }
         GS.playerK -= cost;
         const ret = card.onCast ? card.onCast.call(card) : true;
         if(ret === false){ GS.playerK += cost; resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         if(ret === 'repeat'){ resetSelection(); renderHand(); renderBoard(); syncState(); return; }
         GS.playerHand.splice(idx,1); resetSelection();
+        // 220V 脉冲
+        if(GS.enemyAc220vTurn > 0){
+            GS.playerHQ.def = Math.max(0, GS.playerHQ.def - 1);
+            forEachUnit(u=>{ if(u.isPlayerUnit) u.def = Math.max(0, u.def - 2); });
+            cleanupDead();
+        }
     }
     renderHand(); renderBoard(); syncState(); checkGameOver();
 }
 function playWaterInto(idx, container){
     const card = GS.playerHand[idx];
-    if(!card || card.id !== 'water'){ log('没有【水】卡','red'); return; }
-    if(GS.enemySafetyWarningSuppressTurn>0){ log("安全警告生效中","red"); return; }
+    if(!card || card.id !== 'water'){ logP('没有【水】卡','red'); return; }
+    if(GS.enemySafetyWarningSuppressTurn>0){ logP("安全警告生效中","red"); return; }
     const cost = effectiveCost(card);
-    if(cost > GS.playerK){ log("指挥点不足","red"); return; }
+    if(cost > GS.playerK){ logP("指挥点不足","red"); return; }
     GS.playerK -= cost;
     applyWaterCard(container);
     GS.playerHand.splice(idx,1);
@@ -1199,21 +1231,21 @@ function playWaterInto(idx, container){
 }
 function pourReserveIntoBeaker(){
     const bw = GS.beakerWater||0, space = 900 - bw;
-    if(space <= 0){ log('烧杯已满','yellow'); return; }
+    if(space <= 0){ logP('烧杯已满','yellow'); return; }
     const amount = Math.min(space, GS.playerWater||0);
-    if(amount <= 0){ log('储水不足','red'); return; }
+    if(amount <= 0){ logP('储水不足','red'); return; }
     GS.playerWater -= amount; GS.beakerWater = bw + amount;
-    log(`烧杯+${amount}ml`,'green');
+    logP(`烧杯+${amount}ml`,'green');
     renderHand(); renderBoard(); syncState();
 }
 function loadBeakerIntoCannon(){
     const bw = GS.beakerWater||0;
-    if(bw <= 0){ log('烧杯无水','yellow'); return; }
+    if(bw <= 0){ logP('烧杯无水','yellow'); return; }
     const space = Math.max(0, 900 - (GS.cannonWater||0));
     const stored = Math.min(space, bw), rest = bw - stored;
     GS.cannonWater = (GS.cannonWater||0) + stored;
     GS.beakerWater = rest;
-    log(`空气内能炮+${stored}ml`,'green');
+    logP(`空气内能炮+${stored}ml`,'green');
     renderHand(); renderBoard(); syncState();
 }
 function openWaterCardChoice(idx){
@@ -1265,8 +1297,8 @@ function discardAirCannon(){
         gained = Math.min(3, GS.playerKMax - GS.playerK);
         GS.playerK += gained;
     }
-    if(gained > 0) log(`空气内能炮丢弃，+${gained}K`,'green');
-    else log(`空气内能炮丢弃（已满K）`,'yellow');
+    if(gained > 0) logP(`空气内能炮丢弃，+${gained}K`,'green');
+    else logP(`空气内能炮丢弃（已满K）`,'yellow');
     resetSelection(); renderHand(); renderBoard(); syncState();
 }
 function canDropCard(from, to){
@@ -1287,9 +1319,7 @@ function handleCardDrop(from, to){
     if((a.id === 'beaker' && b.id === 'airCannon') || (a.id === 'airCannon' && b.id === 'beaker')){ loadBeakerIntoCannon(); return; }
 }
 
-/* ============================================================
-   ============== 研发分支 / 主科 ==============================
-   ============================================================ */
+/* ============ 研发分支 / 主科 ============ */
 function openBranchChoice(ids, title){
     const modal = document.getElementById("branch-modal"), list = document.getElementById("branch-list");
     document.getElementById("branch-title").innerText = title;
@@ -1300,7 +1330,7 @@ function openBranchChoice(ids, title){
         const item = document.createElement("div"); item.className = "branch-item";
         item.innerHTML = `<div class="bn">${card.icon||''} ${card.name}</div><div class="bd">${card.desc||''}</div>
             <div class="bd" style="margin-top:6px;color:#ffb347;">费用：${card.cost}K</div>`;
-        item.onclick = ()=>{ modal.classList.remove("show"); addCardToHand(cloneCard(card), true); log(`获得【${card.name}】`,'green'); renderHand(); };
+        item.onclick = ()=>{ modal.classList.remove("show"); addCardToHand(cloneCard(card), true); logP(`获得【${card.name}】`,'green'); renderHand(); };
         list.appendChild(item);
     });
     if(list.children.length === 0) list.innerHTML = `<div class="branch-item"><div class="bd">无可选分支</div></div>`;
@@ -1323,21 +1353,19 @@ function showSubjectChoice(callback){
     modal.classList.add("show");
 }
 
-/* ============================================================
-   ============== 温度 / 区域 / 中毒 ==========================
-   ============================================================ */
+/* ============ 温度 / 区域 / 中毒 ============ */
 function checkTemperatureDebuff(side){
     const isPlayer = side === "player";
     const temp = isPlayer ? GS.playerTemp : GS.enemyTemp;
     const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
     const prefix = isPlayer ? "我方" : "敌方";
-    if(temp >= 40.9 && temp < 246.8){ hq.def = Math.max(0, hq.def - 1); log(`${prefix}温度过高-1`,'red'); }
-    if(temp >= 246.8){ if(isPlayer){ forceAddIcePatchToHand(); log('温度过高！塞入冰凉贴','red'); } }
+    if(temp >= 40.9 && temp < 246.8){ hq.def = Math.max(0, hq.def - 1); logP(`${prefix}温度过高-1`,'red'); }
+    if(temp >= 246.8){ if(isPlayer){ forceAddIcePatchToHand(); logP('温度过高！塞入冰凉贴','red'); } }
     if(temp > 46.8 && temp < 246.8 && isPlayer){
         if(!GS.playerHand.some(c=>c.id==='icePatch')){
             GS.icePatchFromHeat = true;
             try{ forceAddIcePatchToHand(); } finally { GS.icePatchFromHeat = false; }
-            log('温度>46.8℃！塞入冰凉贴','red');
+            logP('温度>46.8℃！塞入冰凉贴','red');
         }
     }
 }
@@ -1415,13 +1443,11 @@ function settlePoisonOnHQ(hq, isPlayer){
 function tickVolatile(hand, isPlayer){
     for(let i=hand.length-1; i>=0; i--){
         const c = hand[i];
-        if(c.volatile){ c.volatile--; if(c.volatile <= 0){ hand.splice(i,1); log(`【${c.name}】挥发性到期`, isPlayer?'yellow':'red'); } }
+        if(c.volatile){ c.volatile--; if(c.volatile <= 0){ hand.splice(i,1); logP(`【${c.name}】挥发性到期`, isPlayer?'yellow':'red'); } }
     }
 }
 
-/* ============================================================
-   ============== 回合结算 =====================================
-   ============================================================ */
+/* ============ 回合结算 ============ */
 function settleEndOfTurn(isPlayer){
     tickVolatile(isPlayer ? GS.playerHand : GS.enemyHand, isPlayer);
     if(isPlayer){
@@ -1458,7 +1484,7 @@ function settleStartOfTurn(isPlayer){
             GS.playerK = GS.playerKMax;
         }
         GS.playerHQ.hasMoved = false;
-        forEachUnit(u=>{ if(u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
+        forEachUnit(u=>{ if(u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; u.hqAttackCount = 0; } });
     } else {
         if(GS.enemyControlledFusionBuff){
             GS.enemyKMax = Math.max(GS.enemyKMax, 24);
@@ -1468,11 +1494,10 @@ function settleStartOfTurn(isPlayer){
             GS.enemyK = GS.enemyKMax;
         }
         GS.enemyHQ.hasMoved = false;
-        forEachUnit(u=>{ if(!u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; } });
+        forEachUnit(u=>{ if(!u.isPlayerUnit){ u.hasAttacked = false; u.suppress = false; u.hqAttackCount = 0; } });
     }
-
     if(!isPlayer){
-        if(GS.enemyNoDrawTurn > 0){ GS.enemyNoDrawTurn--; log('敌方无法抽牌','green'); }
+        if(GS.enemyNoDrawTurn > 0){ GS.enemyNoDrawTurn--; logP('敌方无法抽牌','green'); }
         if(GS.enemyLoseKTurn > 0){ GS.enemyK = Math.max(0, GS.enemyK - 5); GS.enemyLoseKTurn--; }
         if(GS.lethalRadiationDebuff){
             GS.enemyHQ.radiate = Math.min(6, GS.enemyHQ.radiate + 1);
@@ -1503,21 +1528,16 @@ function settleStartOfTurn(isPlayer){
     });
     if((hq.nitroGlycerin||0) > 0){ hq.def = Math.max(0, hq.def - hq.nitroGlycerin * 3); hq.nitroGlycerin = 0; log(`${prefix}总部硝化甘油爆炸！`,'red'); }
     forEachUnit(u=>{ if((u.nitroGlycerin||0) > 0){ u.def = Math.max(0, u.def - u.nitroGlycerin * 3); u.nitroGlycerin = 0; } });
-
     settlePoisonOnHQ(hq, isPlayer);
     forEachUnit(u=>{ if((isPlayer && u.isPlayerUnit) || (!isPlayer && !u.isPlayerUnit)) settlePoisonOnUnit(u); });
     applyZones();
-
     if(isPlayer){ GS.playerHQ.stun = false; GS.playerHQ.suppress = false; }
     else { GS.enemyHQ.stun = false; GS.enemyHQ.suppress = false; }
-
     checkTemperatureDebuff(isPlayer ? "player" : "enemy");
     cleanupDead(); checkGameOver();
 }
 
-/* ============================================================
-   ============== 单位攻击 / AI ================================
-   ============================================================ */
+/* ============ 单位攻击 / AI ============ */
 function unitAttack(u, tx, ty){
     if(isPlayerHQ(tx,ty)){
         GS.playerHQ.def = Math.max(0, GS.playerHQ.def - u.atk);
@@ -1618,19 +1638,21 @@ function enemyTurn(){
 }
 function endEnemyTurn(){
     if(GS.gameOver) return;
-    log("—— 敌方回合结束 ——","red");
+    log("—— 客机回合结束 ——","red");
     settleEndOfTurn(false);
     GS.turn++; GS.isPlayerTurn = true;
-    log("—— 第" + GS.turn + "回合 · 我方开始 ——","green");
+    log("—— 第" + GS.turn + "回合 · 房主回合 ——","green");
     settleStartOfTurn(true);
     renderHand(); renderBoard(); renderForcedSlotUI(); syncState(); checkGameOver();
     if(net.mode === 'host' && net.started) pushSnapshot();
 }
 function endTurn(){
+    if(net.mode !== 'single' && !net.gameInitialized) return;
     if(net.mode === 'guest'){
         if(!GS.isPlayerTurn || GS.gameOver) return;
         const handCount = GS.playerHand.length;
         if(handCount <= 1){
+            logP('手牌不足2张，强制抽牌','yellow');
             sendAction({type:'drawCard'});
             sendAction({type:'endTurn'});
         } else {
@@ -1640,10 +1662,10 @@ function endTurn(){
         return;
     }
     if(!GS.isPlayerTurn || GS.gameOver) return;
-    log("—— 我方回合结束 ——","yellow");
+    logP("—— 我方回合结束 ——","yellow");
     settleEndOfTurn(true);
     const handCount = GS.playerHand.length;
-    if(handCount <= 1){ log('手牌不足2张，强制抽牌','yellow'); drawCard(true); finishEndTurn(); }
+    if(handCount <= 1){ logP('手牌不足2张，强制抽牌','yellow'); drawCard(true); finishEndTurn(); }
     else { GS.pendingEndTurn = 'host'; showDrawModal(); }
 }
 function finishEndTurn(){
@@ -1661,9 +1683,7 @@ function showDrawModal(){
 }
 function hideDrawModal(){ document.getElementById("draw-modal").classList.remove("show"); }
 
-/* ============================================================
-   ============== 启动 / 结束 ==================================
-   ============================================================ */
+/* ============ 启动 / 结束 ============ */
 function startGame(){
     GS.turn = 1; GS.isPlayerFirst = Math.random() < 0.5;
     GS.isPlayerTurn = GS.isPlayerFirst;
@@ -1679,7 +1699,7 @@ function startGame(){
     GS.fireZones = []; GS.radiateZones = []; GS.poisonZones = []; GS.waterZones = [];
     GS.discardPile = []; GS.forcedSlot = [null,null];
     GS.fatigueCount = 0; GS.enemyFatigueCount = 0;
-    GS.enemySafetyWarningSuppressTurn = 0;
+    GS.enemySafetyWarningSuppressTurn = 0; GS.playerSafetyWarningSuppressTurn = 0;
     GS.thermometerUsedCount = 0; GS.enemyThermometerUsedCount = 0;
     GS.playerWater = 0; GS.beakerWater = 0; GS.cannonWater = 0;
     GS.enemyWater = 0; GS.enemyBeakerWater = 0; GS.enemyCannonWater = 0;
@@ -1710,10 +1730,18 @@ function startGame(){
     ensureRoleCardInHand(true);
     ensureRoleCardInHand(false);
 
-    log("游戏开始！你是" + (GS.isPlayerFirst ? "先手" : "后手"), "green");
     log("—— 第1回合 ——","green");
-    settleStartOfTurn(true);
-    renderBoard(); renderHand(); renderForcedSlotUI(); syncState();
+    if (GS.isPlayerFirst) {
+        logP("游戏开始！你是先手", "green");
+        log("房主先手", "yellow");
+        settleStartOfTurn(true);
+        renderBoard(); renderHand(); renderForcedSlotUI(); syncState();
+    } else {
+        logP("游戏开始！你是后手", "green");
+        log("客机先手", "yellow");
+        renderBoard(); renderHand(); renderForcedSlotUI(); syncState();
+        setTimeout(() => { if(!GS.gameOver) enemyTurn(); }, 500);
+    }
 }
 function checkGameOver(){
     if(GS.gameOver) return;
@@ -1741,9 +1769,7 @@ function showResultModal(isWin){
     modal.classList.add('show');
 }
 
-/* ============================================================
-   ============== 联机模块 =====================================
-   ============================================================ */
+/* ============ 联机模块 ============ */
 let supabaseClient = null;
 let lobbyTimer = null;
 let roomPollTimer = null;
@@ -1772,6 +1798,7 @@ const net = {
   guestSubject: null,
   disconnectShown: false,
   _pollErrors: 0,
+  seenEventIds: new Set(),
 };
 
 const roomRegistry = new Map();
@@ -1800,7 +1827,6 @@ function setRoomMsg(t, color){
   e.textContent = t || '';
   e.style.color = color || '#ffb347';
 }
-
 function showDisconnect() {
   if (net.disconnectShown) return;
   net.disconnectShown = true;
@@ -1817,8 +1843,6 @@ function forceLeaveToMain() {
   mainSubject = null;
   guestSubject = null;
 }
-
-/* ============ 大厅 ============ */
 function openLobby() {
   const sb = initSupabase();
   if (!sb) return;
@@ -1879,8 +1903,6 @@ function renderRoomList() {
     box.appendChild(el);
   });
 }
-
-/* ============ 创建 / 加入房间 ============ */
 async function createRoom() {
   const sb = initSupabase(); if (!sb) return;
   const code = genRoomCode();
@@ -1899,17 +1921,12 @@ async function createRoom() {
   net.isHost = true;
   net.mode = 'host';
   net.inRoom = true;
-  net.lastEventTime = 0;
   net.hostNameConnected = true;
-  net.guestName = '';
-  net.guestReady = false;
-  net.myReady = false;
-  net.started = false;
-  net.gameInitialized = false;
-  net.hostSubject = null;
-  net.guestSubject = null;
-  net.disconnectShown = false;
-  net._pollErrors = 0;
+  net.guestName = ''; net.guestReady = false; net.myReady = false;
+  net.started = false; net.gameInitialized = false;
+  net.hostSubject = null; net.guestSubject = null;
+  net.disconnectShown = false; net._pollErrors = 0;
+  net.seenEventIds = new Set();
 
   openRoomScreen();
   setRoomMsg('房间已创建，等待客机加入…');
@@ -1936,32 +1953,18 @@ async function joinRoom(code) {
   }).eq('code', code);
   if (upErr) { alert('加入失败：' + upErr.message); return; }
 
-  const { data: maxEv } = await sb.from('game_events')
-    .select('created_at').eq('room_code', code)
-    .order('created_at', { ascending: false }).limit(1);
-
-  net.roomCode = code;
-  net.isHost = false;
-  net.mode = 'guest';
-  net.inRoom = true;
-  net.lastEventTime = (maxEv && maxEv[0]) ? Number(maxEv[0].created_at) : 0;
+  net.roomCode = code; net.isHost = false; net.mode = 'guest'; net.inRoom = true;
+  net.seenEventIds = new Set();
   net.hostNameConnected = false;
-  net.guestName = '';
-  net.guestReady = false;
-  net.myReady = false;
-  net.started = false;
-  net.gameInitialized = false;
-  net.hostSubject = null;
-  net.guestSubject = null;
-  net.disconnectShown = false;
-  net._pollErrors = 0;
+  net.guestName = ''; net.guestReady = false; net.myReady = false;
+  net.started = false; net.gameInitialized = false;
+  net.hostSubject = null; net.guestSubject = null;
+  net.disconnectShown = false; net._pollErrors = 0;
 
   openRoomScreen();
   setRoomMsg('已加入房间 ' + code + '，等待房主…');
   startRoomPolling();
 }
-
-/* ============ 房间轮询 ============ */
 function startRoomPolling() {
   stopRoomPolling();
   roomPollTimer = setInterval(pollRoom, 600);
@@ -1984,14 +1987,12 @@ async function sendPing() {
     }
   } catch (e) {}
 }
-
 async function pollRoom() {
   if (!net.inRoom || !net.roomCode) return;
   if (net.busy) return;
   net.busy = true;
   const sb = initSupabase();
   if (!sb) { net.busy = false; return; }
-
   try {
     const { data: room, error } = await sb.from('game_rooms')
       .select('*').eq('code', net.roomCode).maybeSingle();
@@ -2009,7 +2010,6 @@ async function pollRoom() {
       net.busy = false; return;
     }
     const now = Date.now();
-
     if (net.isHost) {
       const guestActive = room.guest_name && (now - (room.guest_ping || 0) < 6000);
       const newGuest = guestActive ? room.guest_name : '';
@@ -2023,9 +2023,7 @@ async function pollRoom() {
         else if (newGuest && newReady) setRoomMsg('客机已准备，可开始');
         renderRoomScreen();
       }
-      if (net.gameInitialized && !guestActive && !net.disconnectShown) {
-        showDisconnect();
-      }
+      if (net.gameInitialized && !guestActive && !net.disconnectShown) showDisconnect();
     } else {
       const hostActive = (now - (room.host_ping || 0)) < 10000;
       if (!hostActive && !net.disconnectShown) {
@@ -2043,18 +2041,23 @@ async function pollRoom() {
       }
     }
 
+    const cutoff = Date.now() - 60000;
     const { data: events } = await sb.from('game_events')
       .select('*')
       .eq('room_code', net.roomCode)
       .neq('sender', net.myId)
-      .gt('created_at', net.lastEventTime)
+      .gt('created_at', cutoff)
       .order('created_at', { ascending: true })
       .limit(80);
 
     if (events && events.length > 0) {
       for (const ev of events) {
-        net.lastEventTime = Math.max(net.lastEventTime, Number(ev.created_at));
+        if (net.seenEventIds.has(ev.id)) continue;
+        net.seenEventIds.add(ev.id);
         handleRoomMessage(ev.payload);
+      }
+      if (net.seenEventIds.size > 500) {
+        net.seenEventIds = new Set([...net.seenEventIds].slice(-200));
       }
     }
 
@@ -2068,8 +2071,6 @@ async function pollRoom() {
     net.busy = false;
   }
 }
-
-/* ============ 房间消息 ============ */
 async function roomSend(payload) {
   if (!net.inRoom || !net.roomCode) return;
   const sb = initSupabase(); if (!sb) return;
@@ -2082,7 +2083,6 @@ async function roomSend(payload) {
     });
   } catch (e) { console.warn('roomSend', e); }
 }
-
 function handleRoomMessage(m) {
   if (!m || m.from === net.myId) return;
   switch (m.t) {
@@ -2096,14 +2096,13 @@ function handleRoomMessage(m) {
     case 'start':
       if (!net.isHost && !net.gameInitialized) {
         net.hostSubject = m.hostSubject;
+        setRoomMsg('房主已开始，请选择主科…', '#ffb347');
+        $('room-status').textContent = '请选择主科…';
         showSubjectChoice(function(){
           net.guestSubject = mainSubject;
+          setRoomMsg('已选择主科：' + (mainSubject === 'physics' ? '物理' : '化学') + '，等待房主…', '#ffb347');
+          $('room-status').textContent = '等待房主…';
           roomSend({ t: 'guestSubject', subject: mainSubject });
-          $('room-screen').style.display = 'none';
-          $('game-screen').style.display = 'block';
-          document.getElementById('log').innerHTML = '';
-          log('已选择主科：' + (mainSubject === 'physics' ? '物理' : '化学'), 'green');
-          log('等待房主开始对局…', 'yellow');
         });
       }
       break;
@@ -2114,6 +2113,9 @@ function handleRoomMessage(m) {
         mainSubject = net.hostSubject;
         net.started = true;
         net.gameInitialized = true;
+        $('room-screen').style.display = 'none';
+        $('game-screen').style.display = 'block';
+        document.getElementById('log').innerHTML = '';
         startGame();
         pushSnapshot();
       }
@@ -2123,12 +2125,11 @@ function handleRoomMessage(m) {
         if (!net.gameInitialized) {
           net.gameInitialized = true;
           net.started = true;
-        }
-        applySnapshot(m.data);
-        if ($('game-screen').style.display !== 'block') {
           $('room-screen').style.display = 'none';
           $('game-screen').style.display = 'block';
+          document.getElementById('log').innerHTML = '';
         }
+        applySnapshot(m.data);
       }
       break;
     case 'action':
@@ -2154,7 +2155,6 @@ function handleRoomMessage(m) {
         $('room-screen').style.display = 'none';
         $('game-screen').style.display = 'block';
         GS.gameOver = false;
-        log('—— 新对局开始 ——', 'green');
       }
       break;
     case 'leave':
@@ -2173,8 +2173,6 @@ function handleRoomMessage(m) {
       break;
   }
 }
-
-/* ============ 房间界面 ============ */
 function openRoomScreen() {
   $('lobby-screen').style.display = 'none';
   $('main-menu').style.display = 'none';
@@ -2200,8 +2198,6 @@ function renderRoomScreen() {
   startBtn.style.display = net.isHost ? '' : 'none';
   startBtn.disabled = !(net.guestName && net.guestReady);
 }
-
-/* ============ 按钮动作 ============ */
 async function toggleReady() {
   if (net.isHost) return;
   const sb = initSupabase(); if (!sb) return;
@@ -2213,21 +2209,16 @@ async function toggleReady() {
   setRoomMsg(net.myReady ? '已准备，等待房主开始' : '已取消准备');
   roomSend({ t: 'ready', ready: net.myReady });
 }
-
 async function hostStartGame() {
   if (!net.isHost) return;
   if (!net.guestName || !net.guestReady) { setRoomMsg('需要客机先点「准备」', '#ff9a9a'); return; }
   showSubjectChoice(function(){
     net.hostSubject = mainSubject;
-    $('room-screen').style.display = 'none';
-    $('game-screen').style.display = 'block';
-    document.getElementById('log').innerHTML = '';
-    log('已选择主科：' + (mainSubject === 'physics' ? '物理' : '化学'), 'green');
-    log('等待客机选择主科…', 'yellow');
+    setRoomMsg('已选择主科：' + (mainSubject === 'physics' ? '物理' : '化学') + '，等待客机选择…', '#ffb347');
+    $('room-status').textContent = '等待客机选主科…';
     roomSend({ t: 'start', hostSubject: mainSubject });
   });
 }
-
 async function leaveRoom(silent) {
   const sb = initSupabase();
   stopRoomPolling();
@@ -2245,20 +2236,14 @@ async function leaveRoom(silent) {
       }
     } catch (e) {}
   }
-  net.roomCode = '';
-  net.isHost = false;
-  net.guestName = '';
-  net.guestReady = false;
-  net.myReady = false;
-  net.started = false;
-  net.gameInitialized = false;
-  net.inRoom = false;
-  net.mode = 'single';
+  net.roomCode = ''; net.isHost = false;
+  net.guestName = ''; net.guestReady = false; net.myReady = false;
+  net.started = false; net.gameInitialized = false;
+  net.inRoom = false; net.mode = 'single';
   net.hostRematch = net.guestRematch = false;
   net.hostNameConnected = false;
-  net.lastEventTime = 0;
-  net.hostSubject = null;
-  net.guestSubject = null;
+  net.hostSubject = null; net.guestSubject = null;
+  net.seenEventIds = new Set();
   $('room-screen').style.display = 'none';
   $('game-screen').style.display = 'none';
   $('result-modal').classList.remove('show');
@@ -2266,8 +2251,6 @@ async function leaveRoom(silent) {
   mainSubject = null;
   guestSubject = null;
 }
-
-/* ============ 快照 / 操作 ============ */
 function pushSnapshot() {
   if (net.mode !== 'host' || !net.started) return;
   roomSend({ t: 'snapshot', data: buildSnapshot() });
@@ -2299,7 +2282,6 @@ function checkRematch() {
     net.started = true;
     net.gameInitialized = true;
     setTimeout(() => pushSnapshot(), 300);
-    log('—— 新对局开始 ——', 'green');
   }
 }
 function backToRoomFromResult() {
@@ -2313,8 +2295,6 @@ function backToRoomFromResult() {
   openRoomScreen();
   setRoomMsg('已返回房间');
 }
-
-/* ============ 快照构建 / 应用 ============ */
 function mirrorHQObj(hq, mirror){
     return { x: mirror ? 10 - hq.x : hq.x, y: hq.y,
         def: hq.def, defMax: hq.defMax,
@@ -2385,7 +2365,6 @@ function applySnapshot(d){
     GS.enemyDeck = new Array(d.enemyDeckCount||0);
     GS.playerWater = 0; GS.beakerWater = 0; GS.cannonWater = 0;
     GS.gameOver = !!d.gameOver;
-    // 输出房主同步过来的日志
     if(d.logQueue && d.logQueue.length > 0){
         const logEl = document.getElementById('log');
         for(const item of d.logQueue){
@@ -2399,19 +2378,17 @@ function applySnapshot(d){
     resetSelection();
     renderBoard(); renderHand(); syncState();
 }
-
-/* ============ 客机输入 ============ */
 function guestCardClick(idx){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     const card = GS.playerHand[idx]; if(!card) return;
     if(card.id === 'water'){ openGuestWaterChoice(idx); return; }
     if(card.id === 'beaker'){ openGuestBeakerChoice(idx); return; }
     const cost = card.cost || 0;
-    if(cost > GS.playerK){ log('指挥点不足','red'); return; }
+    if(cost > GS.playerK){ logP('指挥点不足','red'); return; }
     if(GS.selectedCardIndex === idx){ resetSelection(); renderHand(); renderBoard(); return; }
     GS.selectedCardIndex = idx; GS.pendingDeployCard = card;
-    if(card.type === 'unit' && card.canDeploy){ GS.selectMode = 'deploy'; log('选择部署位置','yellow'); }
-    else if(card.needTarget){ GS.selectMode = 'target'; log('选择目标','yellow'); }
+    if(card.type === 'unit' && card.canDeploy){ GS.selectMode = 'deploy'; logP('选择部署位置','yellow'); }
+    else if(card.needTarget){ GS.selectMode = 'target'; logP('选择目标','yellow'); }
     else { sendAction({ type:'cast', idx }); resetSelection(); }
     renderHand(); renderBoard();
 }
@@ -2450,7 +2427,7 @@ function guestCellClick(x,y){
         GS.selectedUnit = null; renderBoard(); return;
     }
     if(GS.selectMode === 'deploy' && GS.pendingDeployCard){
-        if(!inMyDeployZone(x) || GS.field[y][x] || isHQ(x,y)){ log('只能部署在己方区域空格','red'); return; }
+        if(!inMyDeployZone(x) || GS.field[y][x] || isHQ(x,y)){ logP('只能部署在己方区域空格','red'); return; }
         sendAction({ type:'deploy', idx: GS.selectedCardIndex, x, y });
         resetSelection(); renderHand(); renderBoard(); return;
     }
@@ -2459,14 +2436,11 @@ function guestCellClick(x,y){
         resetSelection(); renderHand(); renderBoard(); return;
     }
     const u = GS.field[y][x];
-    if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】`,'yellow'); renderBoard(); }
+    if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; logP(`选中【${u.name}】`,'yellow'); renderBoard(); }
 }
-
-/* ============ 主机：执行客机动作 ============ */
 function hostHandleGuestAction(a){
     if(!a || !net.started) return;
     if(!net.guestTurnActive && a.type !== 'endTurn' && a.type !== 'drawCard') return;
-
     switch(a.type){
         case 'drawCard':
             drawCard(false); renderBoard(); syncState(); pushSnapshot(); return;
@@ -2501,18 +2475,23 @@ function hostHandleGuestAction(a){
             GS.enemyK -= c;
             GS.castByEnemy = true;
             let ret;
-            try { ret = card.onCast ? card.onCast.call(card, x, y) : true; }
+            try { ret = withGuestView(() => card.onCast ? card.onCast.call(card, x, y) : true); }
             finally { GS.castByEnemy = false; }
             if(ret === false){ GS.enemyK += c; return; }
             log(`客机打出【${card.name}】`,'red');
             if(ret !== 'repeat') GS.enemyHand.splice(a.idx,1);
+            if(GS.ac220vTurn > 0){
+                GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 1);
+                forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.max(0, u.def - 2); });
+                cleanupDead();
+            }
             break;
         }
         case 'guestOp': {
             const fnName = a.fn;
             const fns = ['beginCardUse','tryCombineWaterBeaker','playWaterInto','loadBeakerIntoCannon','pourReserveIntoBeaker','discardAirCannon'];
             if(!fns.includes(fnName)) return;
-            withGuestResources(() => {
+            withGuestView(() => {
                 try { window[fnName].apply(null, a.args || []); } catch(e){ console.warn(e); }
             });
             break;
@@ -2527,7 +2506,7 @@ function hostHandleGuestAction(a){
             if(GS.enemyK < 1) return;
             GS.enemyK -= 1;
             GS.field[y][x] = u; GS.field[uy][ux] = null;
-            log(`客机【${u.name}】移动（-1K）`,'red');
+            logP(`客机【${u.name}】移动（-1K）`,'red');
             break;
         }
         case 'attack': {
@@ -2568,9 +2547,7 @@ function hostHandleGuestAction(a){
     pushSnapshot();
 }
 
-/* ============================================================
-   ============== 事件绑定 =====================================
-   ============================================================ */
+/* ============ 事件绑定 ============ */
 function bindAllEvents() {
   const $id = (id) => document.getElementById(id);
   const safeOn = (id, ev, fn) => {
@@ -2580,15 +2557,11 @@ function bindAllEvents() {
     el.addEventListener(ev, fn);
     el.__bound = true;
   };
-
   safeOn("btn-local", "click", function(){
     net.mode = 'single';
     $id("main-menu").style.display = "none";
     $id("game-screen").style.display = "block";
-    showSubjectChoice(function(){
-      log('主科选择：' + (mainSubject === 'physics' ? '物理' : '化学'), 'green');
-      startGame();
-    });
+    showSubjectChoice(function(){ startGame(); });
   });
   safeOn("btn-online", "click", openLobby);
   safeOn("btn-lobby-back", "click", function(){
@@ -2611,7 +2584,6 @@ function bindAllEvents() {
   safeOn("btn-room-ready", "click", toggleReady);
   safeOn("btn-room-start", "click", hostStartGame);
   safeOn("btn-room-leave", "click", function(){ leaveRoom(); });
-
   safeOn("btn-retry", "click", function(){
     $id("result-modal").classList.remove("show");
     startGame();
@@ -2625,7 +2597,6 @@ function bindAllEvents() {
   safeOn("btn-rematch", "click", requestRematch);
   safeOn("btn-back-room", "click", backToRoomFromResult);
   safeOn("btn-leave-room", "click", function(){ leaveRoom(); });
-
   safeOn("btn-back-menu", "click", function(){
     if(net.mode === 'host' || net.mode === 'guest'){
       if(confirm("离开房间？")){ leaveRoom(); }
@@ -2642,7 +2613,6 @@ function bindAllEvents() {
       net.mode = 'single';
     }
   });
-
   safeOn("btn-end-turn", "click", endTurn);
   safeOn("btn-choice-cancel", "click", hideChoice);
   const choiceModalEl = $id("choice-modal");
@@ -2650,26 +2620,25 @@ function bindAllEvents() {
     choiceModalEl.addEventListener("click", function(e){ if(e.target === choiceModalEl) hideChoice(); });
     choiceModalEl.__bound = true;
   }
-
   safeOn("btn-draw-yes", "click", function(){
     const mode = GS.pendingEndTurn;
     if(!mode) return;
     hideDrawModal(); GS.pendingEndTurn = false;
     if(mode === 'guest'){
+      logP('抽牌1张','green');
       sendAction({type:'drawCard'});
       sendAction({type:'endTurn'});
     } else {
-      log('抽牌1张','green'); drawCard(true); finishEndTurn();
+      logP('抽牌1张','green'); drawCard(true); finishEndTurn();
     }
   });
   safeOn("btn-draw-no", "click", function(){
     const mode = GS.pendingEndTurn;
     if(!mode) return;
     hideDrawModal(); GS.pendingEndTurn = false;
-    if(mode === 'guest'){ sendAction({type:'endTurn'}); }
-    else { log('放弃抽牌','yellow'); finishEndTurn(); }
+    if(mode === 'guest'){ logP('放弃抽牌','yellow'); sendAction({type:'endTurn'}); }
+    else { logP('放弃抽牌','yellow'); finishEndTurn(); }
   });
-
   safeOn("btn-dc-ok", "click", forceLeaveToMain);
 }
 if (document.readyState === 'loading') {
