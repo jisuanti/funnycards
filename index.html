@@ -7,40 +7,28 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;color:#fff;font-family:"Microsoft YaHei","SimHei",sans-serif;}
 body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
-#global-error-bar{position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;
-  padding:10px 16px;font-size:13px;z-index:99999;display:none;
-  font-family:"Microsoft YaHei",sans-serif;line-height:1.5;white-space:pre-wrap;max-height:40vh;overflow:auto;}
-#main-menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;
-    background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.12),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
-.title-main{font-size:82px;font-weight:900;letter-spacing:22px;color:#f7d774;
-    text-shadow:0 0 14px rgba(247,215,116,0.6),0 0 40px rgba(255,170,96,0.45);}
+#global-error-bar{position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;padding:10px 16px;font-size:13px;z-index:99999;display:none;font-family:"Microsoft YaHei",sans-serif;line-height:1.5;white-space:pre-wrap;max-height:40vh;overflow:auto;}
+#main-menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.12),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
+.title-main{font-size:82px;font-weight:900;letter-spacing:22px;color:#f7d774;text-shadow:0 0 14px rgba(247,215,116,0.6),0 0 40px rgba(255,170,96,0.45);}
 .title-sub{margin-top:16px;font-size:16px;letter-spacing:10px;color:#a8966a;}
 .menu-modes{margin-top:70px;display:flex;gap:90px;}
 .mode-btn{width:220px;height:220px;transform:rotate(45deg);border-radius:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:0.25s;}
 .mode-btn .inner{transform:rotate(-45deg);text-align:center;width:100%;}
-.mode-btn.local{background:linear-gradient(135deg,#ffb347,#b54a12);border:3px solid #f7d774;
-    box-shadow:0 0 30px rgba(255,170,96,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
+.mode-btn.local{background:linear-gradient(135deg,#ffb347,#b54a12);border:3px solid #f7d774;box-shadow:0 0 30px rgba(255,170,96,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
 .mode-btn.local:hover{transform:rotate(45deg) scale(1.06);}
-.mode-btn.online{background:linear-gradient(135deg,#4aa8ff,#123a6e);border:3px solid #7cc1ff;
-    box-shadow:0 0 30px rgba(124,193,255,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
+.mode-btn.online{background:linear-gradient(135deg,#4aa8ff,#123a6e);border:3px solid #7cc1ff;box-shadow:0 0 30px rgba(124,193,255,0.55),inset 0 0 24px rgba(255,255,255,0.15);}
 .mode-btn.online:hover{transform:rotate(45deg) scale(1.06);}
 .mode-icon{font-size:48px;margin-bottom:10px;}
 .mode-name{font-size:22px;font-weight:bold;letter-spacing:4px;color:#fff;}
 .mode-desc{margin-top:8px;font-size:12px;color:#ffecc2;letter-spacing:2px;}
 #game-screen{display:none;width:100vw;height:100vh;position:relative;overflow:hidden;}
 .game-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(255,220,150,0.05),transparent 60%),linear-gradient(180deg,#2a1f14,#120c08);}
-.table-surface{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1280px;height:680px;border-radius:18px;
-    background:repeating-linear-gradient(90deg,rgba(120,72,30,0.35) 0 2px,rgba(60,30,10,0.35) 2px 7px),linear-gradient(180deg,#4a2e16,#2a1808);
-    border:4px solid #6a4a22;box-shadow:0 0 60px rgba(0,0,0,0.9),inset 0 0 60px rgba(0,0,0,0.7);z-index:1;}
-.table-inner{position:absolute;inset:18px;border-radius:14px;
-    background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#3a2412,#1e1208);
-    border:2px solid #5a3a1a;box-shadow:inset 0 0 40px rgba(0,0,0,0.7);}
-.top-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:18px;align-items:center;
-    background:rgba(0,0,0,0.55);border:1px solid #6a4a22;border-radius:8px;padding:6px 14px;z-index:10;font-size:13px;color:#e8d9b8;}
+.table-surface{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1280px;height:680px;border-radius:18px;background:repeating-linear-gradient(90deg,rgba(120,72,30,0.35) 0 2px,rgba(60,30,10,0.35) 2px 7px),linear-gradient(180deg,#4a2e16,#2a1808);border:4px solid #6a4a22;box-shadow:0 0 60px rgba(0,0,0,0.9),inset 0 0 60px rgba(0,0,0,0.7);z-index:1;}
+.table-inner{position:absolute;inset:18px;border-radius:14px;background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#3a2412,#1e1208);border:2px solid #5a3a1a;box-shadow:inset 0 0 40px rgba(0,0,0,0.7);}
+.top-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:18px;align-items:center;background:rgba(0,0,0,0.55);border:1px solid #6a4a22;border-radius:8px;padding:6px 14px;z-index:10;font-size:13px;color:#e8d9b8;}
 .top-bar .title{font-size:16px;font-weight:bold;color:#f7d774;letter-spacing:4px;}
 .top-bar button{background:#3a2e1c;border:1px solid #f7d774;color:#f7d774;padding:2px 10px;border-radius:3px;cursor:pointer;}
-.left-panel{position:absolute;left:12px;top:70px;width:180px;max-height:calc(100vh - 210px);z-index:9;
-    display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding-right:2px;}
+.left-panel{position:absolute;left:12px;top:70px;width:180px;max-height:calc(100vh - 210px);z-index:9;display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding-right:2px;}
 .left-panel::-webkit-scrollbar{width:4px;}
 .left-panel::-webkit-scrollbar-thumb{background:#6a4a22;border-radius:2px;}
 .info-block{background:rgba(0,0,0,0.55);border:1px solid #6a4a22;border-radius:8px;padding:8px 10px;flex-shrink:0;}
@@ -49,23 +37,15 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .info-row{display:flex;justify-content:space-between;align-items:center;margin:4px 0;}
 .info-row .info-label{font-size:11px;color:#a8966a;letter-spacing:1px;}
 .info-row .info-value{font-size:13px;color:#f7d774;font-weight:bold;}
-.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    font-size:13px;border:2px solid #f7d774;background:radial-gradient(circle,#4a3a24,#1a1410);color:#f7d774;flex-shrink:0;}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid #f7d774;background:radial-gradient(circle,#4a3a24,#1a1410);color:#f7d774;flex-shrink:0;}
 .enemy-avatar{border-color:#ff7b7b;}
 .player-avatar{border-color:#7cc1ff;}
 #my-deck-wrap.deck-warn{color:#ff9a9a;}
 .enemy-area{position:absolute;top:70px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;z-index:8;}
 .enemy-hand{display:flex;gap:4px;}
-.enemy-card-back{width:40px;height:56px;border-radius:5px;
-    background:repeating-linear-gradient(45deg,#3a2e1c 0 4px,#1a1410 4px 10px);border:1px solid #6a5a32;box-shadow:0 2px 6px rgba(0,0,0,0.6);}
-.battle-grid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-    width:min(64vw,520px);height:min(56vh,520px);
-    display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);
-    gap:3px;padding:10px;background:rgba(0,0,0,0.3);border:1px solid #6a4a22;border-radius:12px;
-    box-shadow:inset 0 0 20px rgba(0,0,0,0.5);z-index:3;}
-.cell{background:linear-gradient(135deg,rgba(255,220,150,0.05),rgba(0,0,0,0.35));
-    border:1px solid #6a4a22;border-radius:4px;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;position:relative;transition:0.15s;}
+.enemy-card-back{width:40px;height:56px;border-radius:5px;background:repeating-linear-gradient(45deg,#3a2e1c 0 4px,#1a1410 4px 10px);border:1px solid #6a5a32;box-shadow:0 2px 6px rgba(0,0,0,0.6);}
+.battle-grid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(64vw,520px);height:min(56vh,520px);display:grid;grid-template-columns:repeat(11,1fr);grid-template-rows:repeat(11,1fr);gap:3px;padding:10px;background:rgba(0,0,0,0.3);border:1px solid #6a4a22;border-radius:12px;box-shadow:inset 0 0 20px rgba(0,0,0,0.5);z-index:3;}
+.cell{background:linear-gradient(135deg,rgba(255,220,150,0.05),rgba(0,0,0,0.35));border:1px solid #6a4a22;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:0.15s;}
 .cell:hover{border-color:#f7d774;box-shadow:0 0 8px rgba(247,215,116,0.35);}
 .cell.deployable{background:rgba(90,200,120,0.18);border:2px dashed #7cff9a;box-shadow:0 0 14px rgba(124,255,154,0.45);}
 .cell.targetable{background:rgba(220,80,80,0.18);border:2px dashed #ff7b7b;box-shadow:0 0 14px rgba(255,123,123,0.45);}
@@ -78,31 +58,20 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .hq{width:82%;height:82%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;box-shadow:0 0 12px rgba(0,0,0,0.7);}
 .hq.player{background:radial-gradient(circle,#4fa3ff,#12346e);color:#fff;border:2px solid #7cc1ff;}
 .hq.enemy{background:radial-gradient(circle,#ff6a6a,#6e1212);color:#fff;border:2px solid #ff9090;}
-.unit{width:84%;height:84%;border-radius:4px;background:linear-gradient(180deg,#3b2a18,#1c140a);
-    border:1px solid #f1d68a;color:#f1d68a;font-size:9px;text-align:center;padding:2px;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(241,214,138,0.25);}
+.unit{width:84%;height:84%;border-radius:4px;background:linear-gradient(180deg,#3b2a18,#1c140a);border:1px solid #f1d68a;color:#f1d68a;font-size:9px;text-align:center;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(241,214,138,0.25);}
 .unit.stun{opacity:0.45;border:2px solid #44aaff;}
 .unit.suppress{border:2px solid #ff8800;}
 .unit.attacked{opacity:0.85;border:1px dashed #ff9a9a;}
-#arrow-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6;}
-.forced-slot-wrap{position:absolute;left:200px;bottom:130px;width:140px;z-index:14;
-    background:rgba(0,0,0,0.45);border:1px solid #6a4a22;border-radius:8px;padding:8px;}
+.forced-slot-wrap{position:absolute;left:200px;bottom:130px;width:140px;z-index:14;background:rgba(0,0,0,0.45);border:1px solid #6a4a22;border-radius:8px;padding:8px;}
 .slot-title{font-size:12px;color:#ffe27a;letter-spacing:2px;margin-bottom:6px;}
 .forced-slots{display:flex;gap:8px;}
-.slot-card{width:60px;height:84px;border:1px dashed #998248;border-radius:6px;background:rgba(0,0,0,0.45);
-    display:flex;align-items:center;justify-content:center;color:#a8966a;font-size:11px;cursor:pointer;text-align:center;padding:2px;}
+.slot-card{width:60px;height:84px;border:1px dashed #998248;border-radius:6px;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;color:#a8966a;font-size:11px;cursor:pointer;text-align:center;padding:2px;}
 .slot-card.filled{background:linear-gradient(180deg,#3b2a18,#1c140a);color:#f1d68a;border:1px solid #f1d68a;}
-.btn-end{position:absolute;right:12px;bottom:14px;
-    background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;
-    padding:10px 22px;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;z-index:25;}
+.btn-end{position:absolute;right:12px;bottom:14px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;padding:10px 22px;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;z-index:25;}
 .btn-end:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
 .hand-wrap{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);height:120px;z-index:15;}
 .hand-area{height:100%;display:flex;align-items:flex-end;gap:10px;padding-bottom:10px;}
-.card{width:90px;height:110px;
-    background:radial-gradient(circle at 50% 20%,rgba(255,220,150,0.12),transparent 40%),linear-gradient(180deg,#343c48,#1c222b);
-    border:2px solid #707c8e;border-radius:10px;padding:6px;cursor:pointer;position:relative;
-    box-shadow:0 10px 20px rgba(0,0,0,0.7),inset 0 0 10px rgba(180,200,230,0.08);
-    transition:transform 0.25s,box-shadow 0.25s,height 0.25s;transform-origin:bottom center;flex-shrink:0;}
+.card{width:90px;height:110px;background:radial-gradient(circle at 50% 20%,rgba(255,220,150,0.12),transparent 40%),linear-gradient(180deg,#343c48,#1c222b);border:2px solid #707c8e;border-radius:10px;padding:6px;cursor:pointer;position:relative;box-shadow:0 10px 20px rgba(0,0,0,0.7),inset 0 0 10px rgba(180,200,230,0.08);transition:transform 0.25s,box-shadow 0.25s,height 0.25s;transform-origin:bottom center;flex-shrink:0;}
 .card.rarity-铁{border-color:#888;}
 .card.rarity-铜{border-color:#cd7f32;}
 .card.rarity-银{border-color:#c0c0c0;}
@@ -110,49 +79,37 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .card:hover{transform:translateY(-6px);box-shadow:0 14px 24px rgba(160,180,210,0.2);z-index:30;}
 .card.selected{height:170px;transform:translateY(-60px);border-color:#c2d4f0;box-shadow:0 0 22px rgba(180,200,230,0.6);z-index:31;}
 .card.combo{box-shadow:0 0 12px rgba(124,255,154,0.7);border-color:#7cff9a;}
-.card-cost{position:absolute;top:-10px;left:-10px;width:30px;height:30px;
-    background:radial-gradient(circle,#b8c8e0,#44546e);border:2px solid #c2d4f0;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;font-weight:bold;color:#1c222b;font-size:14px;}
-.card-icon{height:64px;border-radius:6px;background:#222831;border:1px solid #444c58;
-    display:flex;align-items:center;justify-content:center;font-size:34px;color:#c2d4f0;}
+.card-cost{position:absolute;top:-10px;left:-10px;width:30px;height:30px;background:radial-gradient(circle,#b8c8e0,#44546e);border:2px solid #c2d4f0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#1c222b;font-size:14px;}
+.card-icon{height:64px;border-radius:6px;background:#222831;border:1px solid #444c58;display:flex;align-items:center;justify-content:center;font-size:34px;color:#c2d4f0;}
 .card-name{font-size:12px;color:#dee5f0;text-align:center;margin-top:4px;font-weight:bold;letter-spacing:1px;}
 .card-type{font-size:10px;text-align:center;color:#a0abc0;margin-top:2px;}
 .card-vol{position:absolute;bottom:2px;right:4px;font-size:10px;color:#ff9a9a;}
 .card-combo{position:absolute;top:2px;right:2px;font-size:10px;color:#7cff9a;}
 .card-water{position:absolute;bottom:2px;left:4px;font-size:10px;color:#7cc7ff;}
-.card-discard{position:absolute;top:14px;right:2px;font-size:14px;line-height:1;padding:3px 4px;cursor:pointer;
-    opacity:0.8;border-radius:4px;background:rgba(0,0,0,0.35);z-index:5;}
+.card-discard{position:absolute;top:14px;right:2px;font-size:14px;line-height:1;padding:3px 4px;cursor:pointer;opacity:0.8;border-radius:4px;background:rgba(0,0,0,0.35);z-index:5;}
 .card-discard:hover{opacity:1;background:rgba(255,120,120,0.4);}
 .card.drop-target{box-shadow:0 0 18px rgba(124,255,154,0.95);border-color:#7cff9a;transform:translateY(-8px);}
 .card.dragging{opacity:0.6;}
 #choice-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:420;}
 #choice-modal.show{display:flex;}
-.choice-box{background:linear-gradient(180deg,#2a1a0c,#140a04);border:2px solid #f7d774;border-radius:14px;
-    padding:22px;text-align:center;max-width:680px;box-shadow:0 0 40px rgba(247,215,116,0.35);}
+.choice-box{background:linear-gradient(180deg,#2a1a0c,#140a04);border:2px solid #f7d774;border-radius:14px;padding:22px;text-align:center;max-width:680px;box-shadow:0 0 40px rgba(247,215,116,0.35);}
 .choice-box h3{color:#f7d774;letter-spacing:4px;margin-bottom:10px;}
 .choice-box .choice-desc{font-size:12px;color:#c7b48a;margin-bottom:14px;line-height:1.6;}
 .choice-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
 .choice-buttons{margin-top:16px;}
-.choice-buttons button{padding:8px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
-    color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:13px;}
+.choice-buttons button{padding:8px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:13px;}
 .ui-side-panel{position:absolute;right:12px;top:70px;width:230px;z-index:12;display:flex;flex-direction:column;gap:8px;}
 .mode-tip{background:rgba(0,0,0,0.55);border:1px solid #3a2e1c;border-radius:6px;padding:8px 12px;font-size:12px;color:#ffe27a;}
-.log{height:260px;background:rgba(0,0,0,0.55);border:1px solid #3a2e1c;border-radius:6px;
-    padding:8px;font-size:11px;line-height:1.6;overflow-y:auto;color:#c7b48a;}
+.log{height:260px;background:rgba(0,0,0,0.55);border:1px solid #3a2e1c;border-radius:6px;padding:8px;font-size:11px;line-height:1.6;overflow-y:auto;color:#c7b48a;}
 .log-red{color:#ff9a9a;} .log-yellow{color:#ffdd66;} .log-green{color:#9cffb0;}
 #result-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:300;}
 #result-modal.show{display:flex;}
-.result-box{width:400px;padding:26px;
-    background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#3a2412,#1e1208);
-    border:3px solid #f7d774;border-radius:14px;text-align:center;
-    box-shadow:0 0 40px rgba(247,215,116,0.35),inset 0 0 24px rgba(0,0,0,0.6);}
+.result-box{width:400px;padding:26px;background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#3a2412,#1e1208);border:3px solid #f7d774;border-radius:14px;text-align:center;box-shadow:0 0 40px rgba(247,215,116,0.35),inset 0 0 24px rgba(0,0,0,0.6);}
 .result-box h2{font-size:34px;color:#f7d774;letter-spacing:10px;margin-bottom:18px;}
 .result-box p{font-size:13px;color:#e8d9b8;margin-bottom:20px;letter-spacing:2px;}
 .result-buttons{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
-.result-buttons button{padding:10px 18px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
-    color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;}
-#tooltip{position:fixed;background:#111;color:#fff;border:1px solid #777;padding:8px;z-index:9999;
-    max-width:340px;pointer-events:none;display:none;}
+.result-buttons button{padding:10px 18px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;}
+#tooltip{position:fixed;background:#111;color:#fff;border:1px solid #777;padding:8px;z-index:9999;max-width:340px;pointer-events:none;display:none;}
 .t-title{font-weight:bold;margin-bottom:4px;color:#4cf;}
 .t-line{font-size:13px;margin:2px 0;}
 #branch-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);z-index:400;}
@@ -160,8 +117,7 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .branch-box{background:linear-gradient(180deg,#2a1a0c,#140a04);border:2px solid #f7d774;border-radius:14px;padding:22px;text-align:center;max-width:640px;}
 .branch-box h3{color:#f7d774;letter-spacing:4px;margin-bottom:14px;}
 .branch-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
-.branch-item{width:180px;padding:14px;background:linear-gradient(180deg,#3a2412,#1e1208);border:2px solid #f1d68a;
-    border-radius:8px;cursor:pointer;transition:0.2s;}
+.branch-item{width:180px;padding:14px;background:linear-gradient(180deg,#3a2412,#1e1208);border:2px solid #f1d68a;border-radius:8px;cursor:pointer;transition:0.2s;}
 .branch-item:hover{background:linear-gradient(180deg,#5a3820,#2e1c10);transform:translateY(-4px);}
 .branch-item.info{opacity:0.6;cursor:default;}
 .branch-item.info:hover{transform:none;background:linear-gradient(180deg,#3a2412,#1e1208);}
@@ -169,49 +125,44 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .branch-item .bd{font-size:11px;color:#c7b48a;line-height:1.4;}
 #draw-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:350;}
 #draw-modal.show{display:flex;}
-.draw-box{width:340px;padding:22px;
-    background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#2a1a0c,#140a04);
-    border:2px solid #f7d774;border-radius:14px;text-align:center;
-    box-shadow:0 0 40px rgba(247,215,116,0.35);}
+.draw-box{width:340px;padding:22px;background:repeating-linear-gradient(45deg,rgba(255,220,150,0.04) 0 2px,transparent 2px 16px),linear-gradient(180deg,#2a1a0c,#140a04);border:2px solid #f7d774;border-radius:14px;text-align:center;box-shadow:0 0 40px rgba(247,215,116,0.35);}
 .draw-box h3{color:#f7d774;letter-spacing:4px;margin-bottom:12px;font-size:20px;}
 .draw-box p{font-size:13px;color:#e8d9b8;margin-bottom:8px;line-height:1.6;}
 .draw-box .deck-info{font-size:12px;color:#ffb347;margin-bottom:16px;}
 .draw-buttons{display:flex;justify-content:center;gap:14px;}
-.draw-buttons button{padding:10px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);
-    border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;
-    letter-spacing:2px;font-size:14px;}
-#lobby-screen{position:fixed;inset:0;display:none;flex-direction:column;z-index:210;
-    background:radial-gradient(circle at 50% 30%,rgba(255,200,100,0.10),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
+.draw-buttons button{padding:10px 22px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:14px;}
+#lobby-screen{position:fixed;inset:0;display:none;flex-direction:column;z-index:210;background:radial-gradient(circle at 50% 30%,rgba(255,200,100,0.10),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
 .lobby-header{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid #3a2e1c;flex-wrap:wrap;}
 .lobby-title{font-size:22px;font-weight:bold;color:#f7d774;letter-spacing:6px;margin-right:10px;}
-.lobby-input{flex:0 0 240px;padding:8px 12px;background:rgba(0,0,0,0.5);border:1px solid #6a4a22;
-    border-radius:6px;color:#f7d774;outline:none;letter-spacing:3px;font-size:14px;}
+.lobby-input{flex:0 0 240px;padding:8px 12px;background:rgba(0,0,0,0.5);border:1px solid #6a4a22;border-radius:6px;color:#f7d774;outline:none;letter-spacing:3px;font-size:14px;}
 .lobby-input::placeholder{color:#7a6a4a;letter-spacing:1px;}
-.lobby-btn{padding:8px 16px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;
-    color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:13px;}
+.lobby-btn{padding:8px 16px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:2px;font-size:13px;}
 .lobby-btn:hover{background:linear-gradient(180deg,#a58548,#5a4a32);}
 .lobby-btn.primary{background:linear-gradient(180deg,#c08b3a,#7a4a12);}
 .lobby-btn:disabled{opacity:0.45;cursor:not-allowed;}
 .lobby-body{flex:1;padding:22px 28px;display:flex;flex-direction:column;gap:14px;overflow:auto;}
 .room-list{display:flex;flex-direction:column;gap:10px;}
-.room-item{display:flex;align-items:center;gap:16px;padding:14px 18px;background:rgba(0,0,0,0.45);
-    border:1px solid #6a4a22;border-radius:8px;}
+.room-item{display:flex;align-items:center;gap:16px;padding:14px 18px;background:rgba(0,0,0,0.45);border:1px solid #6a4a22;border-radius:8px;}
 .room-item .rc{font-size:20px;color:#f7d774;font-weight:bold;letter-spacing:5px;min-width:150px;}
 .room-item .rs{font-size:12px;color:#c7b48a;}
 .room-item .grow{flex:1;}
 .room-item.playing{opacity:0.5;}
 .room-empty{color:#7a6a4a;font-size:13px;padding:26px;text-align:center;border:1px dashed #4a3a24;border-radius:8px;}
 .lobby-tip{font-size:12px;color:#a8966a;line-height:1.8;margin-top:auto;}
-#room-screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:210;
-    background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.10),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
-.room-box{width:440px;padding:26px;background:linear-gradient(180deg,#2a1a0c,#140a04);
-    border:2px solid #f7d774;border-radius:14px;box-shadow:0 0 40px rgba(247,215,116,0.3);}
+#room-screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:210;background:radial-gradient(circle at 50% 40%,rgba(255,200,100,0.10),transparent 55%),linear-gradient(180deg,#1a120c,#070504);}
+.room-box{width:440px;padding:26px;background:linear-gradient(180deg,#2a1a0c,#140a04);border:2px solid #f7d774;border-radius:14px;box-shadow:0 0 40px rgba(247,215,116,0.3);}
 .room-code-line{display:flex;align-items:center;gap:12px;margin-bottom:18px;font-size:14px;color:#a8966a;}
 .room-code-line b{font-size:26px;color:#f7d774;letter-spacing:8px;flex:1;}
 .room-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #3a2e1c;font-size:14px;color:#a8966a;}
 .room-row b{color:#f1d68a;}
 .room-actions{display:flex;gap:12px;margin-top:22px;justify-content:center;flex-wrap:wrap;}
 .room-msg{margin-top:14px;font-size:12px;color:#ffb347;text-align:center;min-height:18px;}
+#disconnect-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.9);z-index:500;}
+#disconnect-modal.show{display:flex;}
+.dc-box{padding:34px 44px;background:linear-gradient(180deg,#3a1a1a,#1a0808);border:3px solid #ff5555;border-radius:14px;text-align:center;box-shadow:0 0 60px rgba(255,80,80,0.5);}
+.dc-box h2{font-size:28px;color:#ff8888;letter-spacing:8px;margin-bottom:16px;}
+.dc-box p{font-size:14px;color:#e8d9b8;margin-bottom:22px;letter-spacing:2px;}
+.dc-box button{padding:10px 28px;background:linear-gradient(180deg,#8a3b3b,#4a1a1a);border:1px solid #ff8888;color:#fff;border-radius:4px;cursor:pointer;letter-spacing:3px;font-size:14px;}
 </style>
 </head>
 <body>
@@ -220,20 +171,8 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
     <div class="title-main">学好数理化</div>
     <div class="title-sub">卡牌对战测试版</div>
     <div class="menu-modes">
-        <div class="mode-btn local" id="btn-local">
-            <div class="inner">
-                <div class="mode-icon">🎲</div>
-                <div class="mode-name">本地对战</div>
-                <div class="mode-desc">人机对战</div>
-            </div>
-        </div>
-        <div class="mode-btn online" id="btn-online">
-            <div class="inner">
-                <div class="mode-icon">🌐</div>
-                <div class="mode-name">多人联机</div>
-                <div class="mode-desc">房间对战</div>
-            </div>
-        </div>
+        <div class="mode-btn local" id="btn-local"><div class="inner"><div class="mode-icon">🎲</div><div class="mode-name">本地对战</div><div class="mode-desc">人机对战</div></div></div>
+        <div class="mode-btn online" id="btn-online"><div class="inner"><div class="mode-icon">🌐</div><div class="mode-name">多人联机</div><div class="mode-desc">房间对战</div></div></div>
     </div>
 </div>
 <div id="lobby-screen">
@@ -247,16 +186,12 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
     </div>
     <div class="lobby-body">
         <div class="room-list" id="room-list"></div>
-        <div class="lobby-tip">提示：房主创建房间后把 6 位房间码发给好友，好友输入房间码后点「直接加入」即可。</div>
+        <div class="lobby-tip">房主创建房间后把 6 位房间码发给好友，好友输入房间码后点「直接加入」即可。</div>
     </div>
 </div>
 <div id="room-screen">
     <div class="room-box">
-        <div class="room-code-line">
-            <span>房间码</span>
-            <b id="room-code">------</b>
-            <button class="lobby-btn" id="btn-room-copy">复制</button>
-        </div>
+        <div class="room-code-line"><span>房间码</span><b id="room-code">------</b><button class="lobby-btn" id="btn-room-copy">复制</button></div>
         <div class="room-row"><span>房主</span><b id="room-host">房主</b></div>
         <div class="room-row"><span>客机</span><b id="room-guest">等待加入…</b></div>
         <div class="room-row"><span>状态</span><b id="room-status">等待中</b></div>
@@ -294,23 +229,14 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
             <div class="info-row"><span class="info-label">水</span><span class="info-value" style="font-size:12px;">储<span id="water-view">0</span> 杯<span id="beaker-view">0</span> 炮<span id="cannon-view">0</span>ml</span></div>
         </div>
     </div>
-    <div class="enemy-area">
-        <div class="enemy-hand" id="enemy-hand"></div>
-        <div style="color:#c7b48a;font-size:12px;">敌方指挥点：隐藏</div>
-    </div>
+    <div class="enemy-area"><div class="enemy-hand" id="enemy-hand"></div><div style="color:#c7b48a;font-size:12px;">敌方指挥点：隐藏</div></div>
     <div class="battle-grid" id="board"></div>
     <svg id="arrow-layer"></svg>
-    <div class="forced-slot-wrap">
-        <div class="slot-title">强制塞入槽(2格)</div>
-        <div class="forced-slots">
-            <div class="slot-card" id="slot1">槽1</div>
-            <div class="slot-card" id="slot2">槽2</div>
-        </div>
-    </div>
+    <div class="forced-slot-wrap"><div class="slot-title">强制塞入槽(2格)</div><div class="forced-slots"><div class="slot-card" id="slot1">槽1</div><div class="slot-card" id="slot2">槽2</div></div></div>
     <button class="btn-end" id="btn-end-turn">结束回合</button>
     <div class="hand-wrap"><div class="hand-area" id="hand-area"></div></div>
     <div class="ui-side-panel">
-        <div class="mode-tip" id="mode-tip">点击手牌→选择目标/位置。点击己方单位可选中：相邻格移动（消耗1K），相邻敌方目标攻击（每回合1次）。</div>
+        <div class="mode-tip" id="mode-tip">点击手牌→选择目标/位置。移动消耗1K。</div>
         <div class="log" id="log"></div>
     </div>
 </div>
@@ -328,20 +254,14 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
     </div>
 </div>
 <div id="branch-modal">
-    <div class="branch-box">
-        <h3 id="branch-title">选择研发分支</h3>
-        <div class="branch-list" id="branch-list"></div>
-    </div>
+    <div class="branch-box"><h3 id="branch-title">选择研发分支</h3><div class="branch-list" id="branch-list"></div></div>
 </div>
 <div id="draw-modal">
     <div class="draw-box">
         <h3>回合结束</h3>
         <p id="draw-desc">是否抽1张牌？</p>
         <div class="deck-info" id="draw-info">牌库剩余：0 张</div>
-        <div class="draw-buttons">
-            <button id="btn-draw-yes">抽牌</button>
-            <button id="btn-draw-no">不抽</button>
-        </div>
+        <div class="draw-buttons"><button id="btn-draw-yes">抽牌</button><button id="btn-draw-no">不抽</button></div>
     </div>
 </div>
 <div id="choice-modal">
@@ -352,18 +272,23 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
         <div class="choice-buttons"><button id="btn-choice-cancel">取消</button></div>
     </div>
 </div>
+<div id="disconnect-modal">
+    <div class="dc-box">
+        <h2>连接已断开</h2>
+        <p>服务器连接失败 / 对方已离线</p>
+        <button id="btn-dc-ok">返回主菜单</button>
+    </div>
+</div>
 <div id="tooltip"></div>
 
 <script>
 window.addEventListener('error', function(e){
-  const bar = document.getElementById('global-error-bar');
-  if(!bar) return;
+  const bar = document.getElementById('global-error-bar'); if(!bar) return;
   bar.style.display = 'block';
-  bar.textContent = '⚠ 页面脚本错误：' + (e.message || e.error || '未知错误');
+  bar.textContent = '⚠ 脚本错误：' + (e.message || e.error || '未知');
 });
 window.addEventListener('unhandledrejection', function(e){
-  const bar = document.getElementById('global-error-bar');
-  if(!bar) return;
+  const bar = document.getElementById('global-error-bar'); if(!bar) return;
   bar.style.display = 'block';
   bar.textContent = '⚠ Promise 错误：' + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
 });
@@ -380,20 +305,20 @@ CardDB.greatPhys = { id:'greatPhys', name:'伟大物理研发', cost:3, type:'sp
     onCast(){ openBranchChoice(['physSuit','extPhys'],'伟大物理研发'); return true; } };
 CardDB.physSuit = { id:'physSuit', name:'防护服', cost:0, type:'spell', attribute:'物理', rarity:'金', icon:'🥼',
     desc:'友方全部单位获得免疫，持续1回合',
-    onCast(){ forEachUnit(u=>{ if(u.isPlayerUnit) u.immune=true; }); GS.playerHQ.immune=true; log('防护服：友方全体获得免疫1回合','green'); return true; } };
+    onCast(){ forEachUnit(u=>{ if(u.isPlayerUnit) u.immune=true; }); GS.playerHQ.immune=true; log('防护服','green'); return true; } };
 CardDB.extPhys = { id:'extPhys', name:'扩展物理研发', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'🔬',
-    desc:'二级开发：二选一【220V交流电】/【高级物理研发】',
+    desc:'二级开发',
     onCast(){ openBranchChoice(['ac220v','advPhys'],'扩展物理研发'); return true; } };
 CardDB.ac220v = { id:'ac220v', name:'220V交流电', cost:0, type:'spell', attribute:'物理', rarity:'金', icon:'⚡',
-    desc:'对敌方所有目标造成4点伤害；后续2回合内敌方每打出一张卡牌，敌方总部受1伤、全体单位各受2伤',
+    desc:'敌方全体-4',
     onCast(){ GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 4);
         forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.max(0, u.def - 4); });
-        GS.ac220vTurn = 2; cleanupDead(); log('220V交流电','yellow'); return true; } };
+        GS.ac220vTurn = 2; cleanupDead(); log('220V','yellow'); return true; } };
 CardDB.advPhys = { id:'advPhys', name:'高级物理研发', cost:9, type:'spell', attribute:'物理', rarity:'金', icon:'🧪',
-    desc:'三级开发：二选一【核能链式反应】/【绝密物理研发】',
+    desc:'三级开发',
     onCast(){ openBranchChoice(['nukeChain','topSecretPhys'],'高级物理研发'); return true; } };
 CardDB.nukeChain = { id:'nukeChain', name:'核能链式反应', cost:6, type:'spell', attribute:'物理', rarity:'金', icon:'☢',
-    desc:'5×5造成8点伤害并生成3×3放射区（3回合）；敌方-3指挥点槽，接下来2回合无法抽牌', needTarget:true,
+    desc:'5×5伤害8', needTarget:true,
     onCast(cx,cy){
         for(let y=Math.max(0,cy-2); y<=Math.min(10,cy+2); y++)
             for(let x=Math.max(0,cx-2); x<=Math.min(10,cx+2); x++){
@@ -406,10 +331,9 @@ CardDB.nukeChain = { id:'nukeChain', name:'核能链式反应', cost:6, type:'sp
         GS.enemyNoDrawTurn = Math.max(GS.enemyNoDrawTurn, 2);
         cleanupDead(); log('核能链式反应！','red'); return true; } };
 CardDB.topSecretPhys = { id:'topSecretPhys', name:'绝密物理研发', cost:12, type:'spell', attribute:'物理', rarity:'金', icon:'🔒',
-    desc:'四级开发：二选一【核能热核聚变】/【核能可控核聚变】',
-    onCast(){ openBranchChoice(['nukeFusion','nukeControlled'],'绝密物理研发'); return true; } };
+    desc:'四级开发', onCast(){ openBranchChoice(['nukeFusion','nukeControlled'],'绝密物理研发'); return true; } };
 CardDB.nukeFusion = { id:'nukeFusion', name:'核能热核聚变', cost:15, type:'spell', attribute:'物理', rarity:'金', icon:'💥',
-    desc:'7×7造成15点伤害，生成5×5放射区4回合；后续3回合敌方开局-5K、无法抽牌、单位被压制', needTarget:true,
+    desc:'7×7伤害15', needTarget:true,
     onCast(cx,cy){
         for(let y=Math.max(0,cy-3); y<=Math.min(10,cy+3); y++)
             for(let x=Math.max(0,cx-3); x<=Math.min(10,cx+3); x++){
@@ -422,10 +346,10 @@ CardDB.nukeFusion = { id:'nukeFusion', name:'核能热核聚变', cost:15, type:
         forEachUnit(u=>{ if(!u.isPlayerUnit) u.suppress = true; });
         cleanupDead(); log('核能热核聚变！','red'); return true; } };
 CardDB.nukeControlled = { id:'nukeControlled', name:'核能可控核聚变', cost:15, type:'spell', attribute:'物理', rarity:'金', icon:'🌟',
-    desc:'指挥点槽上限24、手牌上限16，抽4张；常驻：奇数费-5、偶数费单位+3/+3、每回合开局抽2',
-    onCast(){ GS.playerKMax = 24; GS.handMax = 16; GS.controlledFusionBuff = true; for(let i=0;i<4;i++) drawCard(true); log('核能可控核聚变启动！','green'); return true; } };
+    desc:'KMax24，抽4张',
+    onCast(){ GS.playerKMax = 24; GS.handMax = 16; GS.controlledFusionBuff = true; for(let i=0;i<4;i++) drawCard(true); log('核聚变启动！','green'); return true; } };
 CardDB.physLab = { id:'physLab', name:'物理实验室', cost:12, type:'spell', attribute:'物理', rarity:'金', icon:'🏛',
-    desc:'移除牌库中银铜铁物理卡，重新洗入各一张，抽1张；从3张随机物理金卡中自选1张，5%额外获得伟大物理研发',
+    desc:'移除牌库银铜铁物理卡，重新洗入各一张；3张物理金卡自选1',
     onCast(){
         GS.playerDeck = GS.playerDeck.filter(c=> !(c.attribute==='物理' && ['银','铜','铁'].includes(c.rarity)));
         ['银','铜','铁'].forEach(r=>{
@@ -438,64 +362,60 @@ CardDB.physLab = { id:'physLab', name:'物理实验室', cost:12, type:'spell', 
         const goldPool = Object.values(CardDB).filter(c=>c.attribute==='物理' && c.rarity==='金' && c.id !== 'physLab' && c.id !== 'greatPhys');
         shuffle(goldPool); const choices = goldPool.slice(0,3).map(c=>c.id);
         openBranchChoice(choices, '物理实验室');
-        if(Math.random()<0.05){ addCardToHand(cloneCard(CardDB.greatPhys), true); log('物理实验室：额外获得【伟大物理研发】','green'); }
+        if(Math.random()<0.05){ addCardToHand(cloneCard(CardDB.greatPhys), true); }
         return true; } };
 CardDB.safetyWarn = { id:'safetyWarn', name:'安全警告', cost:0, type:'spell', attribute:'物理', rarity:'铁', icon:'⚠',
-    desc:'主动打出：接下来2回合敌方不能使用化学/物化卡牌',
+    desc:'敌方2回合内禁止化学/物化卡',
     onCast(){ GS.enemySafetyWarningSuppressTurn = 2; log('安全警告','yellow'); return true; } };
 CardDB.thermometer = { id:'thermometer', name:'温度计', cost:1, type:'spell', attribute:'物理', rarity:'铁', icon:'🌡',
-    desc:'测一单位温度：>43.2℃使其下场1回合；否则自身指挥点槽上限+1（每局最多+5）', needTarget:true,
+    desc:'>43.2℃下场1回合；否则KMax+1（每局最多+5）', needTarget:true,
     onCast(x,y){
-        if(GS.thermometerUsedCount >= 5){ log('温度计：已达上限','red'); return false; }
+        if(GS.thermometerUsedCount >= 5){ log('温度计上限','red'); return false; }
         const u = GS.field[y][x];
         if(u){ const t = u.isPlayerUnit ? GS.playerTemp : GS.enemyTemp;
             if(t > 43.2){ u.stun = true; log('温度计：晕厥','yellow'); }
-            else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：上限+1','green'); }
+            else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：KMax+1','green'); }
         } else { GS.playerKMax = Math.min(24, GS.playerKMax + 1); GS.thermometerUsedCount++; log('温度计：空测+1','green'); }
         return true; } };
 CardDB.eternalChem = { id:'eternalChem', name:'永恒化学研发', cost:3, type:'spell', attribute:'化学', rarity:'金', icon:'🧪', isResearch:true,
-    desc:'一级开发：二选一【热浓硫酸】/【扩展化学研发】',
+    desc:'一级开发',
     onCast(){ openBranchChoice(['hotAcid','extChem'],'永恒化学研发'); return true; } };
 CardDB.hotAcid = { id:'hotAcid', name:'热浓硫酸', cost:0, type:'spell', attribute:'化学', rarity:'铜', icon:'🧫',
-    desc:'对单个敌方单位造成6点伤害，扣敌方1指挥点槽', needTarget:true, volatile:2,
+    desc:'对单个敌方单位6伤，扣敌1K槽', needTarget:true, volatile:2,
     onCast(x,y){ const u = GS.field[y][x];
         if(u && !u.isPlayerUnit){ u.def = Math.max(0, u.def - 6);
             GS.enemyKMax = Math.max(1, GS.enemyKMax - 1); GS.enemyK = Math.min(GS.enemyK, GS.enemyKMax);
-            cleanupDead(); log('热浓硫酸命中','red'); }
+            cleanupDead(); log('热浓硫酸','red'); }
         return true; } };
 CardDB.extChem = { id:'extChem', name:'扩展化学研发', cost:6, type:'spell', attribute:'化学', rarity:'金', icon:'⚗',
-    desc:'二级开发：二选一【硝化爆破】/【高级化学研发】',
-    onCast(){ openBranchChoice(['nitroBlast','advChem'],'扩展化学研发'); return true; } };
+    desc:'二级开发', onCast(){ openBranchChoice(['nitroBlast','advChem'],'扩展化学研发'); return true; } };
 CardDB.nitroBlast = { id:'nitroBlast', name:'硝化爆破', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'💣',
-    desc:'获取【硝化甘油】、【易燃热锌】',
-    onCast(){ addCardToHand(cloneCard(CardDB.nitroGlycerin)); addCardToHand(cloneCard(CardDB.hotZinc)); log('硝化爆破','green'); return true; } };
+    desc:'获取硝化甘油+易燃热锌',
+    onCast(){ addCardToHand(cloneCard(CardDB.nitroGlycerin)); addCardToHand(cloneCard(CardDB.hotZinc)); return true; } };
 CardDB.nitroGlycerin = { id:'nitroGlycerin', name:'硝化甘油', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'🧨',
-    desc:'使敌方所有目标获得硝化甘油效果', volatile:3,
+    desc:'敌方全体硝化甘油', volatile:3,
     onCast(){ GS.enemyHQ.nitroGlycerin = (GS.enemyHQ.nitroGlycerin||0) + 1;
         forEachUnit(u=>{ if(!u.isPlayerUnit) u.nitroGlycerin = (u.nitroGlycerin||0) + 1; });
         log('硝化甘油','yellow'); return true; } };
 CardDB.hotZinc = { id:'hotZinc', name:'易燃热锌', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'🔥',
-    desc:'对敌方全体造成2点燃烧伤害', volatile:1,
+    desc:'敌方全体2伤', volatile:1,
     onCast(){ GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 2);
         forEachUnit(u=>{ if(!u.isPlayerUnit) dealDamage(u, 2); });
         cleanupDead(); log('易燃热锌','red'); return true; } };
 CardDB.advChem = { id:'advChem', name:'高级化学研发', cost:9, type:'spell', attribute:'化学', rarity:'金', icon:'🧪',
-    desc:'三级开发：二选一【化学武器】/【绝密化学研发】',
-    onCast(){ openBranchChoice(['chemWeapon','topSecretChem'],'高级化学研发'); return true; } };
+    desc:'三级开发', onCast(){ openBranchChoice(['chemWeapon','topSecretChem'],'高级化学研发'); return true; } };
 CardDB.chemWeapon = { id:'chemWeapon', name:'化学武器', cost:0, type:'spell', attribute:'化学', rarity:'金', icon:'☣',
-    desc:'从3张随机化学战剂自选1张，重复3次；化学卡费用-3',
+    desc:'3张随机化学战剂各选1，化学卡费用-3',
     onCast(){ GS.chemWeaponBuff = true;
         const pool = ['sarin','mustard','hcn','chlorine','vx','bz'];
         for(let i=0;i<3;i++){ shuffle(pool); const pick = pool.slice(0,3)[Math.floor(Math.random()*3)]; addCardToHand(cloneCard(CardDB[pick]), true); }
         log('化学武器','green'); return true; } };
 CardDB.topSecretChem = { id:'topSecretChem', name:'绝密化学研发', cost:12, type:'spell', attribute:'化学', rarity:'金', icon:'🔐',
-    desc:'四级开发：二选一【致命照射】/【永恒之星】',
-    onCast(){ openBranchChoice(['lethalRad','eternalStar'],'绝密化学研发'); return true; } };
+    desc:'四级开发', onCast(){ openBranchChoice(['lethalRad','eternalStar'],'绝密化学研发'); return true; } };
 CardDB.lethalRad = { id:'lethalRad', name:'致命照射', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'☢',
-    desc:'敌方总部每回合开局+1放射，敌方单位+1放射',
-    onCast(){ GS.lethalRadiationDebuff = true; log('致命照射','red'); return true; } };
+    desc:'敌方+1放射', onCast(){ GS.lethalRadiationDebuff = true; log('致命照射','red'); return true; } };
 CardDB.eternalStar = { id:'eternalStar', name:'永恒之星', cost:15, type:'spell', attribute:'化学', rarity:'金', icon:'✨',
-    desc:'友方全体+30防御，清除负面；总部常驻：每回合开局随机清除2友方负面',
+    desc:'友方全体+30，清负面；总部常驻清负面',
     onCast(){
         GS.playerHQ.defMax += 30; GS.playerHQ.def += 30; GS.playerHQ.immune = true;
         GS.playerHQ.cannotBeSuppressed = true; GS.playerHQ.radiate = 0; GS.playerHQ.stun = false; GS.playerHQ.suppress = false;
@@ -514,11 +434,11 @@ CardDB.chlorine = makeAgent('chlorine','氯气',1,5,'🟢','5层80%阵亡');
 CardDB.vx       = makeAgent('vx','维埃克斯',1,3,'🟣','无直接阵亡');
 CardDB.bz       = makeAgent('bz','毕兹',1,2,'💜','无直接阵亡');
 CardDB.heater = { id:'heater', name:'加热器', cost:3, type:'spell', attribute:'物化', rarity:'银', icon:'🔥',
-    desc:'可打出两次，每次敌方全体温度+3℃',
+    desc:'可打出两次，敌方温度+3℃',
     onCast(){ GS.enemyTemp += 3; log('加热器','red');
         if(!this._used){ this._used = true; return 'repeat'; } return true; } };
 CardDB.alcoholLamp = { id:'alcoholLamp', name:'酒精灯', cost:2, type:'spell', attribute:'物化', rarity:'铜', icon:'🕯',
-    desc:'投掷敌方目标，3%爆头消灭；命中2×2烈火', needTarget:true,
+    desc:'3%爆头消灭；未命中2×2烈火', needTarget:true,
     onCast(x,y){
         const head = Math.random() < 0.03;
         if(head){ const u = GS.field[y][x]; if(u) GS.field[y][x]=null; }
@@ -529,7 +449,7 @@ CardDB.alcoholLamp = { id:'alcoholLamp', name:'酒精灯', cost:2, type:'spell',
         }
         log('酒精灯','red'); return true; } };
 CardDB.beaker = { id:'beaker', name:'密封塞烧杯', cost:0, type:'spell', attribute:'物化', rarity:'铁', icon:'🧪',
-    desc:'储水上限900ml。满水可用：单点敌方单位封锁；或放置2×2水域', needTarget:true,
+    desc:'储水900ml。满水可用', needTarget:true,
     onCast(x,y){
         const inBeaker = GS.beakerWater||0;
         if(inBeaker >= 900){
@@ -537,15 +457,15 @@ CardDB.beaker = { id:'beaker', name:'密封塞烧杯', cost:0, type:'spell', att
                 const nx=x+dx, ny=y+dy;
                 if(nx>=0&&nx<11&&ny>=0&&ny<11) GS.waterZones.push({x:nx,y:ny,duration:1});
             }
-            GS.beakerWater = 0; log('烧杯：水域','green');
+            GS.beakerWater = 0; log('烧杯水域','green');
         } else {
             const u = GS.field[y][x];
-            if(u && !u.isPlayerUnit){ u.suppress = true; log(`烧杯：封锁`,'yellow'); }
-            else { log(`烧杯：水量不足`,'red'); return false; }
+            if(u && !u.isPlayerUnit){ u.suppress = true; log('烧杯封锁','yellow'); }
+            else { log('烧杯水量不足','red'); return false; }
         }
         return true; } };
 CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'❄',
-    desc:'温度降为37.4度，随机弃2张手牌',
+    desc:'温度降到37.4，随机弃2张',
     onCast(){ GS.playerTemp = 37.4;
         for(let i=0;i<2 && GS.playerHand.length>0;i++){
             const idx = Math.floor(Math.random()*GS.playerHand.length);
@@ -553,23 +473,23 @@ CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attri
         }
         log('冰凉贴','green'); return true; } };
 CardDB.airCannon = { id:'airCannon', name:'空气内能炮', cost:3, type:'spell', attribute:'化学', rarity:'银', icon:'💨',
-    desc:'合成：水+密封塞烧杯。每次消耗300ml水，对敌方全体造成4点伤害。可主动丢弃，丢弃后获得3点指挥点',
+    desc:'每次消耗300ml水，敌方全体4伤。可主动丢弃获得3K',
     onCast(){
         if(GS.castByEnemy){ log('客机无法装水','red'); return true; }
-        if(waterTotalUsable() < 300){ log(`水不足（${waterTotalUsable()}ml）`,'red'); return false; }
+        if(waterTotalUsable() < 300){ log('水不足','red'); return false; }
         consumeWater(300);
         GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 4);
         forEachUnit(u=>{ if(!u.isPlayerUnit) dealDamage(u, 4); });
         cleanupDead();
-        log(`空气内能炮（剩余水 储${GS.playerWater||0}／杯${GS.beakerWater||0}／炮${GS.cannonWater||0}）`,'red'); return 'repeat'; } };
+        log(`空气内能炮（水 储${GS.playerWater||0}／杯${GS.beakerWater||0}／炮${GS.cannonWater||0}）`,'red'); return 'repeat'; } };
 CardDB.water = { id:'water', name:'水', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'💧',
-    desc:'获得300ml水；单独打出恢复我方所有单位3血',
+    desc:'+300ml；单独打出友方+3',
     onCast(){
-        if(GS.castByEnemy){ forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.min(u.defMax, u.def + 3); }); log('敌方【水】','red'); return true; }
+        if(GS.castByEnemy){ forEachUnit(u=>{ if(!u.isPlayerUnit) u.def = Math.min(u.defMax, u.def + 3); }); return true; }
         applyWaterCard('playerWater'); return true; } };
 CardDB.chemTeacher = { id:'chemTeacher', name:'化学老师', cost:4, type:'unit', attribute:'化学', rarity:'铜', icon:'👩‍🔬',
     atk:4, def:5, defMax:5, canDeploy:true,
-    desc:'出场：随机获得3张基础化学卡',
+    desc:'出场获3张化学卡',
     onDeploy(){
         const baseChemIds = ['hotAcid','nitroGlycerin','hotZinc','sarin','mustard','hcn','chlorine','vx','bz','heater','alcoholLamp','beaker','water'];
         const isPlayer = this.isPlayerUnit !== false;
@@ -577,12 +497,12 @@ CardDB.chemTeacher = { id:'chemTeacher', name:'化学老师', cost:4, type:'unit
             const id = baseChemIds[Math.floor(Math.random()*baseChemIds.length)];
             const card = CardDB[id]; if(!card) continue;
             if(isPlayer) addCardToHand(cloneCard(card), true);
-            else if(GS.enemyHand.length < GS.handMax) GS.enemyHand.push(cloneCard(card));
+            else if(GS.enemyHand.length < 10) GS.enemyHand.push(cloneCard(card));
         }
-        log(isPlayer ? '化学老师：获得3张卡' : '敌方化学老师：获得3张卡', isPlayer ? 'green' : 'red'); } };
+        log(isPlayer ? '化学老师：获3卡' : '敌方化学老师：获3卡', isPlayer ? 'green' : 'red'); } };
 CardDB.physTeacher = { id:'physTeacher', name:'物理老师', cost:4, type:'unit', attribute:'物理', rarity:'铜', icon:'👨‍🔬',
     atk:3, def:6, defMax:6, canDeploy:true,
-    desc:'常驻：物理/物化卡伤害×1.1',
+    desc:'物理/物化卡伤害×1.1',
     onDeploy(){ log('物理老师上场','green'); } };
 
 /* ============================================================
@@ -592,17 +512,16 @@ const StatusRegistry = [
     { key:'stun', name:'眩晕', icon:'💫', check:o=>o.stun, fmt:()=>'' },
     { key:'suppress', name:'压制', icon:'⛓', check:o=>o.suppress, fmt:()=>'' },
     { key:'immune', name:'免疫', icon:'🛡', check:o=>o.immune, fmt:()=>'' },
-    { key:'cannotBeSuppressed', name:'无法抑制', icon:'🔒', check:o=>o.cannotBeSuppressed, fmt:()=>'' },
     { key:'gasSmoke', name:'气体烟雾中毒', icon:'🌫', check:o=>o.gasSmoke, fmt:()=>'' },
     { key:'gasSmokeAfter', name:'烟雾后遗症', icon:'💢', check:o=>(o.gasSmokeAftermath||0)>0, fmt:o=>`${o.gasSmokeAftermath}回合` },
     { key:'radiate', name:'放射', icon:'☢', check:o=>(o.radiate||0)>0, fmt:o=>`${o.radiate}层/6` },
     { key:'nitroGlycerin', name:'硝化甘油', icon:'🧨', check:o=>(o.nitroGlycerin||0)>0, fmt:o=>`${o.nitroGlycerin}层` },
-    { key:'poison_sarin', name:'沙林中毒', icon:'☠', check:o=>o.poison && o.poison.sarin>0, fmt:o=>`${o.poison.sarin}层/2` },
-    { key:'poison_mustard', name:'芥子气中毒', icon:'🟡', check:o=>o.poison && o.poison.mustard>0, fmt:o=>`${o.poison.mustard}层/4` },
-    { key:'poison_hcn', name:'氰化氢中毒', icon:'💨', check:o=>o.poison && o.poison.hcn>0, fmt:o=>`${o.poison.hcn}层/4` },
-    { key:'poison_chlorine', name:'氯气中毒', icon:'🟢', check:o=>o.poison && o.poison.chlorine>0, fmt:o=>`${o.poison.chlorine}层/5` },
-    { key:'poison_vx', name:'维埃克斯中毒', icon:'🟣', check:o=>o.poison && o.poison.vx>0, fmt:o=>`${o.poison.vx}层/3` },
-    { key:'poison_bz', name:'毕兹中毒', icon:'💜', check:o=>o.poison && o.poison.bz>0, fmt:o=>`${o.poison.bz}层/2` },
+    { key:'poison_sarin', name:'沙林', icon:'☠', check:o=>o.poison && o.poison.sarin>0, fmt:o=>`${o.poison.sarin}层` },
+    { key:'poison_mustard', name:'芥子气', icon:'🟡', check:o=>o.poison && o.poison.mustard>0, fmt:o=>`${o.poison.mustard}层` },
+    { key:'poison_hcn', name:'氰化氢', icon:'💨', check:o=>o.poison && o.poison.hcn>0, fmt:o=>`${o.poison.hcn}层` },
+    { key:'poison_chlorine', name:'氯气', icon:'🟢', check:o=>o.poison && o.poison.chlorine>0, fmt:o=>`${o.poison.chlorine}层` },
+    { key:'poison_vx', name:'维埃克斯', icon:'🟣', check:o=>o.poison && o.poison.vx>0, fmt:o=>`${o.poison.vx}层` },
+    { key:'poison_bz', name:'毕兹', icon:'💜', check:o=>o.poison && o.poison.bz>0, fmt:o=>`${o.poison.bz}层` },
 ];
 function renderStatusLines(obj){
     const owned = StatusRegistry.filter(s => s.check(obj));
@@ -617,9 +536,9 @@ const GameState = {
     turn:1, isPlayerTurn:true, isPlayerFirst:true,
     playerK:1, playerKMax:1, enemyK:1, enemyKMax:1,
     playerTemp:37.2, enemyTemp:37.2,
-    playerHQ:{ placed:true, x:1, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false },
+    playerHQ:{ x:1, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false },
     enemyHQ:{ x:10, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false },
-    handMax:10,
+    handMax:10, enemyHandMax:10,
     playerHand:[], enemyHand:[],
     playerDeck:[], enemyDeck:[],
     deckMax: 50,
@@ -628,12 +547,9 @@ const GameState = {
     discardPile:[], forcedSlot:[null,null],
     fatigueCount:0, enemyFatigueCount:0,
     enemySafetyWarningSuppressTurn:0,
-    chemLabActive:false, chemLabStage:0, chemLabStageTurn:0, chemLabStageDuration:0,
-    thermometerUsedCount:0,
+    thermometerUsedCount:0, enemyThermometerUsedCount:0,
     playerWater:0, beakerWater:0, cannonWater:0,
     enemyWater:0, enemyBeakerWater:0, enemyCannonWater:0,
-    enemyThermometerUsedCount:0,
-    enemySafetyWarningSuppressTurn:0,
     ac220vTurn:0, enemyAc220vTurn:0,
     enemyNoDrawTurn:0, enemyLoseKTurn:0,
     controlledFusionBuff:false, enemyControlledFusionBuff:false,
@@ -641,11 +557,12 @@ const GameState = {
     eternalStarBuff:false, enemyEternalStarBuff:false,
     physLabActive:false, enemyPhysLabActive:false,
     chemWeaponBuff:false, enemyChemWeaponBuff:false,
-    enemyChemLabActive:false, enemyChemLabStage:0,
     selectedCardIndex:null, pendingDeployCard:null, selectMode:null,
     selectedUnit:null, selectedHQ:null,
     castByEnemy:false, choiceOpen:false, lastDragEndAt:0, icePatchFromHeat:false,
-    gameOver:false, pendingEndTurn: false
+    gameOver:false, pendingEndTurn: false,
+    logQueue: [],
+    _inGuestOp:false,
 };
 const GS = GameState;
 let mainSubject = null;
@@ -660,6 +577,10 @@ function log(text,color=""){
     const div = document.createElement("div");
     if(color) div.className = "log-"+color;
     div.textContent = text; d.appendChild(div); d.scrollTop = d.scrollHeight;
+    if(net.mode === 'host' && net.gameInitialized){
+        if(!GS.logQueue) GS.logQueue = [];
+        if(GS.logQueue.length < 200) GS.logQueue.push({ text, color });
+    }
 }
 function showTooltip(x,y,html){ const t = document.getElementById("tooltip"); t.innerHTML = html; t.style.left=(x+12)+"px"; t.style.top=(y+12)+"px"; t.style.display="block"; }
 function hideTooltip(){ document.getElementById("tooltip").style.display="none"; }
@@ -683,21 +604,15 @@ function forceAddIcePatchToHand(){
     if(GS.playerHand.length >= GS.handMax){
         const idx = Math.floor(Math.random()*GS.playerHand.length);
         GS.discardPile.push(GS.playerHand.splice(idx,1)[0]);
-        log('手牌已满，随机弃1张','yellow');
     }
     GS.playerHand.push(cloneCard(CardDB.icePatch));
     GS.icePatchFromHeat = false;
     renderHand();
 }
-function hasTeacher(isPlayer, name){
-    let found = false;
-    forEachUnit(u=>{ if(u.isPlayerUnit===isPlayer && u.name===name) found = true; });
-    return found;
-}
 function dealDamage(u, amount){ if(u.gasSmokeAftermath > 0) amount = amount * 1.5; u.def = Math.max(0, u.def - amount); }
 function addCardToHand(card, forced=false){
     if(!card) return;
-    if(card.id === 'icePatch' && !GS.icePatchFromHeat){ log('冰凉贴只能由温度过高触发','yellow'); return; }
+    if(card.id === 'icePatch' && !GS.icePatchFromHeat) return;
     if(GS.playerHand.length >= GS.handMax){
         if(forced){
             if(GS.forcedSlot[0]) GS.forcedSlot[1] = GS.forcedSlot[0];
@@ -797,7 +712,6 @@ const BASE_DECK_LIST = [
     { id:'greatPhys',    count:2 },
     { id:'eternalChem',  count:2 },
 ];
-
 function buildDeckForSubject(subject){
     const deck = [];
     BASE_DECK_LIST.forEach(({id, count})=>{
@@ -808,20 +722,13 @@ function buildDeckForSubject(subject){
     shuffle(deck);
     return deck;
 }
-
 function initDeck(){
-    // 房主牌库
     const hostSubj = mainSubject || 'physics';
     GS.playerDeck = buildDeckForSubject(hostSubj);
-
-    // 客机牌库（联机模式下根据客机主科生成；本地模式也用 hostSubj）
-    let guestSubj = guestSubject;
-    if(!guestSubj) guestSubj = hostSubj;
+    const guestSubj = guestSubject || hostSubj;
     GS.enemyDeck = buildDeckForSubject(guestSubj);
-
     GS.deckMax = 50;
 }
-
 function drawCard(isPlayer){
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
@@ -835,7 +742,6 @@ function drawCard(isPlayer){
     if(isPlayer) renderHand();
     return card;
 }
-
 function drawStartingHand(isPlayer, count){
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
@@ -850,7 +756,6 @@ function drawStartingHand(isPlayer, count){
         hand.push(card); added++;
     }
 }
-
 function ensureRoleCardInHand(isPlayer){
     const hand = isPlayer ? GS.playerHand : GS.enemyHand;
     const deck = isPlayer ? GS.playerDeck : GS.enemyDeck;
@@ -859,10 +764,6 @@ function ensureRoleCardInHand(isPlayer){
     const idx = deck.findIndex(c=>roleNames.includes(c.name));
     if(idx >= 0){
         const card = deck.splice(idx,1)[0]; hand.push(card);
-        if(hand.length > GS.handMax){
-            const removeIdx = hand.findIndex(c=>!roleNames.includes(c.name));
-            if(removeIdx >= 0){ const removed = hand.splice(removeIdx,1)[0]; deck.push(removed); shuffle(deck); }
-        }
     }
 }
 function randomEnemyDeployPos(){
@@ -875,80 +776,40 @@ function randomEnemyDeployPos(){
 }
 
 /* ============================================================
-   ============== 视角交换（客机施法时使用） ====================
+   ============== 视角交换（客机操作执行） ====================
    ============================================================ */
-function withGuestPerspective(fn){
-    // 保存
+function withGuestResources(fn){
+    GS._inGuestOp = true;
     const s = {
-        playerK: GS.playerK, playerKMax: GS.playerKMax, playerTemp: GS.playerTemp,
-        playerHQ: GS.playerHQ, enemyK: GS.enemyK, enemyKMax: GS.enemyKMax, enemyTemp: GS.enemyTemp,
-        enemyHQ: GS.enemyHQ,
+        playerHand: GS.playerHand, playerDeck: GS.playerDeck,
         playerWater: GS.playerWater, beakerWater: GS.beakerWater, cannonWater: GS.cannonWater,
-        enemyWater: GS.enemyWater || 0, enemyBeakerWater: GS.enemyBeakerWater || 0, enemyCannonWater: GS.enemyCannonWater || 0,
-        ac220vTurn: GS.ac220vTurn, enemyAc220vTurn: GS.enemyAc220vTurn || 0,
-        controlledFusionBuff: GS.controlledFusionBuff, enemyControlledFusionBuff: GS.enemyControlledFusionBuff || false,
-        eternalStarBuff: GS.eternalStarBuff, enemyEternalStarBuff: GS.enemyEternalStarBuff || false,
-        lethalRadiationDebuff: GS.lethalRadiationDebuff, enemyLethalRadiationDebuff: GS.enemyLethalRadiationDebuff || false,
-        chemWeaponBuff: GS.chemWeaponBuff, enemyChemWeaponBuff: GS.enemyChemWeaponBuff || false,
-        physLabActive: GS.physLabActive, enemyPhysLabActive: GS.enemyPhysLabActive || false,
-        chemLabActive: GS.chemLabActive, enemyChemLabActive: GS.enemyChemLabActive || false,
-        chemLabStage: GS.chemLabStage, enemyChemLabStage: GS.enemyChemLabStage || 0,
-        chemLabStageTurn: GS.chemLabStageTurn, enemyChemLabStageTurn: GS.enemyChemLabStageTurn || 0,
-        chemLabStageDuration: GS.chemLabStageDuration, enemyChemLabStageDuration: GS.enemyChemLabStageDuration || 0,
-        handMax: GS.handMax, enemyHandMax: GS.enemyHandMax || 10,
-        enemySafetyWarningSuppressTurn: GS.enemySafetyWarningSuppressTurn,
-        playerSafetyWarningSuppressTurn: GS.playerSafetyWarningSuppressTurn || 0,
+        playerK: GS.playerK, playerKMax: GS.playerKMax,
     };
-    // 交换
-    GS.playerK = s.enemyK; GS.enemyK = s.playerK;
-    GS.playerKMax = s.enemyKMax; GS.enemyKMax = s.playerKMax;
-    GS.playerTemp = s.enemyTemp; GS.enemyTemp = s.playerTemp;
-    GS.playerHQ = s.enemyHQ; GS.enemyHQ = s.playerHQ;
-    GS.playerWater = s.enemyWater; GS.enemyWater = s.playerWater;
-    GS.beakerWater = s.enemyBeakerWater; GS.enemyBeakerWater = s.beakerWater;
-    GS.cannonWater = s.enemyCannonWater; GS.enemyCannonWater = s.cannonWater;
-    GS.ac220vTurn = s.enemyAc220vTurn; GS.enemyAc220vTurn = s.ac220vTurn;
-    GS.controlledFusionBuff = s.enemyControlledFusionBuff; GS.enemyControlledFusionBuff = s.controlledFusionBuff;
-    GS.eternalStarBuff = s.enemyEternalStarBuff; GS.enemyEternalStarBuff = s.eternalStarBuff;
-    GS.lethalRadiationDebuff = s.enemyLethalRadiationDebuff; GS.enemyLethalRadiationDebuff = s.lethalRadiationDebuff;
-    GS.chemWeaponBuff = s.enemyChemWeaponBuff; GS.enemyChemWeaponBuff = s.chemWeaponBuff;
-    GS.physLabActive = s.enemyPhysLabActive; GS.enemyPhysLabActive = s.physLabActive;
-    GS.chemLabActive = s.enemyChemLabActive; GS.enemyChemLabActive = s.chemLabActive;
-    GS.chemLabStage = s.enemyChemLabStage; GS.enemyChemLabStage = s.chemLabStage;
-    GS.chemLabStageTurn = s.enemyChemLabStageTurn; GS.enemyChemLabStageTurn = s.chemLabStageTurn;
-    GS.chemLabStageDuration = s.enemyChemLabStageDuration; GS.enemyChemLabStageDuration = s.chemLabStageDuration;
-    GS.handMax = s.enemyHandMax; GS.enemyHandMax = s.handMax;
-    GS.enemySafetyWarningSuppressTurn = s.playerSafetyWarningSuppressTurn;
-    GS.playerSafetyWarningSuppressTurn = s.enemySafetyWarningSuppressTurn;
-    // 反转 field 归属
-    forEachUnit(u => u.isPlayerUnit = !u.isPlayerUnit);
-
-    let result;
-    try { result = fn(); }
+    GS.playerHand = GS.enemyHand;
+    GS.playerDeck = GS.enemyDeck;
+    GS.playerWater = GS.enemyWater || 0;
+    GS.beakerWater = GS.enemyBeakerWater || 0;
+    GS.cannonWater = GS.enemyCannonWater || 0;
+    GS.playerK = GS.enemyK;
+    GS.playerKMax = GS.enemyKMax;
+    try { fn(); }
     finally {
-        // 恢复
-        forEachUnit(u => u.isPlayerUnit = !u.isPlayerUnit);
-        GS.playerK = s.playerK; GS.enemyK = s.enemyK;
-        GS.playerKMax = s.playerKMax; GS.enemyKMax = s.enemyKMax;
-        GS.playerTemp = s.playerTemp; GS.enemyTemp = s.enemyTemp;
-        GS.playerHQ = s.playerHQ; GS.enemyHQ = s.enemyHQ;
-        GS.playerWater = s.playerWater; GS.beakerWater = s.beakerWater; GS.cannonWater = s.cannonWater;
-        GS.enemyWater = s.enemyWater; GS.enemyBeakerWater = s.enemyBeakerWater; GS.enemyCannonWater = s.enemyCannonWater;
-        GS.ac220vTurn = s.ac220vTurn; GS.enemyAc220vTurn = s.enemyAc220vTurn;
-        GS.controlledFusionBuff = s.controlledFusionBuff; GS.enemyControlledFusionBuff = s.enemyControlledFusionBuff;
-        GS.eternalStarBuff = s.eternalStarBuff; GS.enemyEternalStarBuff = s.enemyEternalStarBuff;
-        GS.lethalRadiationDebuff = s.lethalRadiationDebuff; GS.enemyLethalRadiationDebuff = s.enemyLethalRadiationDebuff;
-        GS.chemWeaponBuff = s.chemWeaponBuff; GS.enemyChemWeaponBuff = s.enemyChemWeaponBuff;
-        GS.physLabActive = s.physLabActive; GS.enemyPhysLabActive = s.enemyPhysLabActive;
-        GS.chemLabActive = s.chemLabActive; GS.enemyChemLabActive = s.enemyChemLabActive;
-        GS.chemLabStage = s.chemLabStage; GS.enemyChemLabStage = s.enemyChemLabStage;
-        GS.chemLabStageTurn = s.chemLabStageTurn; GS.enemyChemLabStageTurn = s.enemyChemLabStageTurn;
-        GS.chemLabStageDuration = s.chemLabStageDuration; GS.enemyChemLabStageDuration = s.enemyChemLabStageDuration;
-        GS.handMax = s.handMax; GS.enemyHandMax = s.enemyHandMax;
-        GS.enemySafetyWarningSuppressTurn = s.enemySafetyWarningSuppressTurn;
-        GS.playerSafetyWarningSuppressTurn = s.playerSafetyWarningSuppressTurn;
+        GS.enemyHand = GS.playerHand;
+        GS.enemyDeck = GS.playerDeck;
+        GS.enemyWater = GS.playerWater;
+        GS.enemyBeakerWater = GS.beakerWater;
+        GS.enemyCannonWater = GS.cannonWater;
+        GS.enemyK = GS.playerK;
+        GS.enemyKMax = GS.playerKMax;
+        GS.playerHand = s.playerHand;
+        GS.playerDeck = s.playerDeck;
+        GS.playerWater = s.playerWater;
+        GS.beakerWater = s.beakerWater;
+        GS.cannonWater = s.cannonWater;
+        GS.playerK = s.playerK;
+        GS.playerKMax = s.playerKMax;
+        GS._inGuestOp = false;
     }
-    return result;
 }
 
 /* ============================================================
@@ -1038,6 +899,7 @@ function renderBoard(){
     scheduleSnapshot();
 }
 function renderHand(){
+    if(GS._inGuestOp) return;
     const area = document.getElementById("hand-area"); if(!area) return;
     area.innerHTML = "";
     GS.playerHand.forEach((card, idx)=>{
@@ -1160,8 +1022,18 @@ function syncState(){
     setTxt("en-temp", GS.enemyTemp.toFixed(1) + "℃");
     setTxt("turn-num", GS.turn);
     let phase = GS.isPlayerTurn ? "我方行动" : "敌方行动";
-    if(net.mode === 'guest') phase = GS.isPlayerTurn ? "你的行动" : "等待房主…";
-    if(net.mode === 'host' && net.started && !GS.isPlayerTurn) phase = "等待客机…";
+    if(net.mode === 'guest'){
+        const myFirst = GS.isPlayerFirst;
+        if(GS.isPlayerTurn) phase = "你的行动（你" + (myFirst ? "先手" : "后手") + "）";
+        else phase = "等待房主…";
+    } else if(net.mode === 'host'){
+        const myFirst = GS.isPlayerFirst;
+        if(GS.isPlayerTurn) phase = "我方行动（你" + (myFirst ? "先手" : "后手") + "）";
+        else phase = "等待客机…";
+    } else {
+        if(GS.isPlayerTurn) phase = "我方行动（你" + (GS.isPlayerFirst ? "先手" : "后手") + "）";
+        else phase = "敌方行动";
+    }
     setTxt("phase-text", phase);
     setTxt("water-view", GS.playerWater||0);
     setTxt("beaker-view", GS.beakerWater||0);
@@ -1174,7 +1046,7 @@ function syncState(){
     const hint = document.getElementById("main-subject-hint");
     if(hint){
         if(net.mode === 'single' && mainSubject) hint.innerText = '主科：' + (mainSubject === 'physics' ? '物理' : '化学');
-        else if(net.mode === 'host' || net.mode === 'guest') hint.innerText = '联机 · 房间 ' + net.roomCode;
+        else if(net.mode === 'host' || net.mode === 'guest') hint.innerText = '房间 ' + net.roomCode;
         else hint.innerText = '';
     }
 }
@@ -1202,7 +1074,7 @@ function tryCombineWaterBeaker(idx){
     GS.beakerWater = 0;
     const r = fillCannon(loaded);
     GS.playerHand.push(cloneCard(CardDB.airCannon));
-    log(`合成成功：空气内能炮`,'green');
+    log('合成成功：空气内能炮','green');
     renderHand(); renderBoard(); syncState(); return true;
 }
 function onCellClick(x,y){
@@ -1228,21 +1100,20 @@ function onCellClick(x,y){
             if(isEnemyHQ(x,y)){
                 if(u.hasAttacked){ log('本回合已攻击','red'); return; }
                 GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - u.atk);
-                log(`【${u.name}】攻击敌方总部 -${u.atk}`,'green');
+                log(`【${u.name}】攻总部-${u.atk}`,'green');
                 u.hasAttacked = true; u.hqAttackCount = (u.hqAttackCount||0) + 1;
-                if(u.hqAttackCount > 2){ log(`攻击总部超2次，被消灭`,'red'); GS.field[su.y][su.x] = null; GS.selectedUnit = null; }
+                if(u.hqAttackCount > 2){ log(`攻击总部超2次被消灭`,'red'); GS.field[su.y][su.x] = null; GS.selectedUnit = null; }
                 cleanupDead(); renderBoard(); syncState(); checkGameOver(); return;
             }
             const t = GS.field[y][x];
             if(t && !t.isPlayerUnit){
                 if(u.hasAttacked){ log('本回合已攻击','red'); return; }
                 dealDamage(t, u.atk);
-                log(`【${u.name}】攻击【${t.name}】-${u.atk}`,'green');
+                log(`【${u.name}】攻【${t.name}】-${u.atk}`,'green');
                 u.hasAttacked = true; cleanupDead(); renderBoard(); syncState(); checkGameOver(); return;
             }
             if(!t && !isHQ(x,y)){
-                // ★ 移动消耗 1K
-                if(GS.playerK < 1){ log('指挥点不足，无法移动','red'); GS.selectedUnit = null; renderBoard(); return; }
+                if(GS.playerK < 1){ log('指挥点不足','red'); GS.selectedUnit = null; renderBoard(); return; }
                 GS.playerK -= 1;
                 GS.field[y][x] = u; GS.field[su.y][su.x] = null; GS.selectedUnit = {x:x, y:y};
                 log(`【${u.name}】移动（-1K）`,'yellow');
@@ -1284,7 +1155,7 @@ function onCellClick(x,y){
         renderHand(); renderBoard(); syncState(); checkGameOver(); return;
     }
 
-    if(isPlayerHQ(x,y) && !GS.playerHQ.hasMoved){ GS.selectedHQ = 'player'; log('选中总部，点击相邻空格移动（-1K）','yellow'); renderBoard(); return; }
+    if(isPlayerHQ(x,y) && !GS.playerHQ.hasMoved){ GS.selectedHQ = 'player'; log('选中总部，相邻移动-1K','yellow'); renderBoard(); return; }
 
     const u = GS.field[y][x];
     if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】：移动-1K，攻击每回合1次`,'yellow'); renderBoard(); return; }
@@ -1432,7 +1303,7 @@ function openBranchChoice(ids, title){
         item.onclick = ()=>{ modal.classList.remove("show"); addCardToHand(cloneCard(card), true); log(`获得【${card.name}】`,'green'); renderHand(); };
         list.appendChild(item);
     });
-    if(list.children.length === 0) list.innerHTML = `<div class="branch-item"><div class="bd">受主科限制，无可选分支</div></div>`;
+    if(list.children.length === 0) list.innerHTML = `<div class="branch-item"><div class="bd">无可选分支</div></div>`;
     modal.classList.add("show");
 }
 function showSubjectChoice(callback){
@@ -1440,20 +1311,20 @@ function showSubjectChoice(callback){
     document.getElementById("branch-title").innerText = "请选择主科";
     list.innerHTML = "";
     const choices = [
-        { id:'physics',   name:'物理', icon:'⚛', desc:'只能携带物理系金卡；化学系金卡不可用' },
-        { id:'chemistry', name:'化学', icon:'🧪', desc:'只能携带化学系金卡；物理系金卡不可用' }
+        { id:'physics',   name:'物理', icon:'⚛', desc:'只能携带物理系金卡' },
+        { id:'chemistry', name:'化学', icon:'🧪', desc:'只能携带化学系金卡' }
     ];
     choices.forEach(c=>{
         const item = document.createElement("div"); item.className = "branch-item";
         item.innerHTML = `<div class="bn">${c.icon} ${c.name}</div><div class="bd">${c.desc}</div>`;
-        item.onclick = ()=>{ mainSubject = c.id; modal.classList.remove("show"); log(`主科选择：${c.name}`,'green'); if(callback) callback(); };
+        item.onclick = ()=>{ mainSubject = c.id; modal.classList.remove("show"); if(callback) callback(); };
         list.appendChild(item);
     });
     modal.classList.add("show");
 }
 
 /* ============================================================
-   ============== 温度机制 =====================================
+   ============== 温度 / 区域 / 中毒 ==========================
    ============================================================ */
 function checkTemperatureDebuff(side){
     const isPlayer = side === "player";
@@ -1470,10 +1341,6 @@ function checkTemperatureDebuff(side){
         }
     }
 }
-
-/* ============================================================
-   ============== 区域 =========================================
-   ============================================================ */
 function applyZones(){
     GS.fireZones.forEach(f=>{
         const u = GS.field[f.y]?.[f.x];
@@ -1542,8 +1409,6 @@ function settlePoisonOnHQ(hq, isPlayer){
                 else GS.enemyK = Math.max(0, GS.enemyK - Math.floor(x/2)); break;
             case 'hcn': hq.def = Math.max(0, hq.def - x); break;
             case 'chlorine': hq.def = Math.max(0, hq.def - 0.25*x); break;
-            case 'vx': break;
-            case 'bz': break;
         }
     }
 }
@@ -1579,13 +1444,11 @@ function settleEndOfTurn(isPlayer){
     clampTemp(); tickZones();
     forEachUnit(u=>{ if(u.gasSmokeAftermath > 0) u.gasSmokeAftermath--; });
 }
-
 function settleStartOfTurn(isPlayer){
     const prefix = isPlayer ? "我方" : "敌方";
     const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
 
     if(isPlayer){
-        // ★ 指挥点：KMax+1（封顶12，或已有的更高上限），K恢复满
         if(GS.controlledFusionBuff){
             GS.playerKMax = Math.max(GS.playerKMax, 24);
             GS.playerK = GS.playerKMax;
@@ -1610,7 +1473,7 @@ function settleStartOfTurn(isPlayer){
 
     if(!isPlayer){
         if(GS.enemyNoDrawTurn > 0){ GS.enemyNoDrawTurn--; log('敌方无法抽牌','green'); }
-        if(GS.enemyLoseKTurn > 0){ GS.enemyK = Math.max(0, GS.enemyK - 5); GS.enemyLoseKTurn--; log('敌方开局-5K','green'); }
+        if(GS.enemyLoseKTurn > 0){ GS.enemyK = Math.max(0, GS.enemyK - 5); GS.enemyLoseKTurn--; }
         if(GS.lethalRadiationDebuff){
             GS.enemyHQ.radiate = Math.min(6, GS.enemyHQ.radiate + 1);
             forEachUnit(u=>{ if(!u.isPlayerUnit) u.radiate = Math.min(6, (u.radiate||0)+1); });
@@ -1653,29 +1516,26 @@ function settleStartOfTurn(isPlayer){
 }
 
 /* ============================================================
-   ============== 单位行动 / AI ================================
+   ============== 单位攻击 / AI ================================
    ============================================================ */
 function unitAttack(u, tx, ty){
     if(isPlayerHQ(tx,ty)){
         GS.playerHQ.def = Math.max(0, GS.playerHQ.def - u.atk);
         log(`敌方【${u.name}】攻击我方总部 -${u.atk}`,'red');
         u.hqAttackCount = (u.hqAttackCount||0) + 1;
-        if(u.hqAttackCount > 2){ log(`敌方单位攻击总部超2次，被消灭`,'red'); forEachUnit((unit,ux,uy)=>{ if(unit === u) GS.field[uy][ux] = null; }); }
+        if(u.hqAttackCount > 2){ log(`敌方单位攻击总部超2次被消灭`,'red'); forEachUnit((unit,ux,uy)=>{ if(unit === u) GS.field[uy][ux] = null; }); }
     } else if(isEnemyHQ(tx,ty)){
         GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - u.atk);
         log(`我方【${u.name}】攻击敌方总部 -${u.atk}`,'green');
         u.hqAttackCount = (u.hqAttackCount||0) + 1;
-        if(u.hqAttackCount > 2){ log(`我方单位攻击总部超2次，被消灭`,'red'); forEachUnit((unit,ux,uy)=>{ if(unit === u) GS.field[uy][ux] = null; }); }
+        if(u.hqAttackCount > 2){ log(`我方单位攻击总部超2次被消灭`,'red'); forEachUnit((unit,ux,uy)=>{ if(unit === u) GS.field[uy][ux] = null; }); }
     } else {
         const t = GS.field[ty][tx];
-        if(t){ dealDamage(t, u.atk); log(`${u.isPlayerUnit?'我方':'敌方'}【${u.name}】攻击【${t.name}】-${u.atk}`, u.isPlayerUnit?'green':'red'); }
+        if(t){ dealDamage(t, u.atk); log(`${u.isPlayerUnit?'我方':'敌方'}【${u.name}】攻【${t.name}】-${u.atk}`, u.isPlayerUnit?'green':'red'); }
     }
 }
-
 function enemyTurn(){
     if(GS.gameOver) return;
-
-    /* ★ 联机模式：客机回合，让客机自己操作（不自动抽牌） */
     if(net.mode === 'host'){
         log("—— 客机回合开始 ——","red");
         settleStartOfTurn(false);
@@ -1684,18 +1544,14 @@ function enemyTurn(){
             setTimeout(()=>{ if(!GS.gameOver) endEnemyTurn(); }, 700);
             return;
         }
-        // 不自动抽牌，等客机自己发 drawCard
         net.guestTurnActive = true;
         renderBoard(); syncState(); pushSnapshot();
         return;
     }
-
-    // 单机 AI 模式
     log("—— 敌方回合开始 ——","red");
     settleStartOfTurn(false);
     if(GS.enemyHQ.stun || GS.enemyHQ.suppress){ log("敌方总部被压制，跳过回合","green"); setTimeout(endEnemyTurn, 600); return; }
     if(GS.enemyNoDrawTurn <= 0){ drawCard(false); }
-
     let guard = 0;
     while(guard++ < 6){
         let played = false;
@@ -1731,7 +1587,6 @@ function enemyTurn(){
         }
         if(!played) break;
     }
-
     const snapshot = [];
     forEachUnit((u,x,y)=>{ if(!u.isPlayerUnit) snapshot.push({u,x,y}); });
     snapshot.forEach(({u,x,y})=>{
@@ -1761,7 +1616,6 @@ function enemyTurn(){
     renderBoard(); syncState(); cleanupDead(); checkGameOver();
     setTimeout(endEnemyTurn, 800);
 }
-
 function endEnemyTurn(){
     if(GS.gameOver) return;
     log("—— 敌方回合结束 ——","red");
@@ -1772,11 +1626,9 @@ function endEnemyTurn(){
     renderHand(); renderBoard(); renderForcedSlotUI(); syncState(); checkGameOver();
     if(net.mode === 'host' && net.started) pushSnapshot();
 }
-
 function endTurn(){
     if(net.mode === 'guest'){
         if(!GS.isPlayerTurn || GS.gameOver) return;
-        // 客机端：先弹抽牌选择
         const handCount = GS.playerHand.length;
         if(handCount <= 1){
             sendAction({type:'drawCard'});
@@ -1794,7 +1646,6 @@ function endTurn(){
     if(handCount <= 1){ log('手牌不足2张，强制抽牌','yellow'); drawCard(true); finishEndTurn(); }
     else { GS.pendingEndTurn = 'host'; showDrawModal(); }
 }
-
 function finishEndTurn(){
     checkGameOver();
     if(GS.gameOver) return;
@@ -1814,11 +1665,11 @@ function hideDrawModal(){ document.getElementById("draw-modal").classList.remove
    ============== 启动 / 结束 ==================================
    ============================================================ */
 function startGame(){
-    GS.turn = 1; GS.isPlayerTurn = true; GS.isPlayerFirst = Math.random() < 0.5;
-    // ★ 指挥点：初始1/1
+    GS.turn = 1; GS.isPlayerFirst = Math.random() < 0.5;
+    GS.isPlayerTurn = GS.isPlayerFirst;
     GS.playerK = 1; GS.playerKMax = 1; GS.enemyK = 1; GS.enemyKMax = 1;
     GS.playerTemp = 37.2; GS.enemyTemp = 37.2;
-    GS.playerHQ = { placed:true, x:1, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false };
+    GS.playerHQ = { x:1, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false };
     GS.enemyHQ = { x:10, y:6, def:30, defMax:30, radiate:0, stun:false, suppress:false, immune:false, nitroGlycerin:0, cannotBeSuppressed:false, poison:{}, hasMoved:false };
     GS.handMax = 10; GS.enemyHandMax = 10;
     GS.playerHand = []; GS.enemyHand = [];
@@ -1829,9 +1680,6 @@ function startGame(){
     GS.discardPile = []; GS.forcedSlot = [null,null];
     GS.fatigueCount = 0; GS.enemyFatigueCount = 0;
     GS.enemySafetyWarningSuppressTurn = 0;
-    GS.playerSafetyWarningSuppressTurn = 0;
-    GS.chemLabActive = false; GS.chemLabStage = 0; GS.chemLabStageTurn = 0; GS.chemLabStageDuration = 0;
-    GS.enemyChemLabActive = false; GS.enemyChemLabStage = 0;
     GS.thermometerUsedCount = 0; GS.enemyThermometerUsedCount = 0;
     GS.playerWater = 0; GS.beakerWater = 0; GS.cannonWater = 0;
     GS.enemyWater = 0; GS.enemyBeakerWater = 0; GS.enemyCannonWater = 0;
@@ -1846,6 +1694,7 @@ function startGame(){
     GS.selectedUnit = null; GS.selectedHQ = null;
     GS.castByEnemy = false; GS.choiceOpen = false; GS.lastDragEndAt = 0; GS.icePatchFromHeat = false;
     GS.gameOver = false; GS.pendingEndTurn = false;
+    GS.logQueue = [];
     const logEl = document.getElementById("log"); if(logEl) logEl.innerHTML = "";
     document.getElementById("branch-modal").classList.remove("show");
     document.getElementById("draw-modal").classList.remove("show");
@@ -1866,13 +1715,11 @@ function startGame(){
     settleStartOfTurn(true);
     renderBoard(); renderHand(); renderForcedSlotUI(); syncState();
 }
-
 function checkGameOver(){
     if(GS.gameOver) return;
     if(GS.playerHQ.def <= 0){ GS.gameOver = true; showResultModal(false); }
     else if(GS.enemyHQ.def <= 0){ GS.gameOver = true; showResultModal(true); }
 }
-
 function showResultModal(isWin){
     if(net.mode === 'host' && net.started){
         net.started = false;
@@ -1912,6 +1759,7 @@ const net = {
   guestReady: false,
   myReady: false,
   started: false,
+  gameInitialized: false,
   guestTurnActive: false,
   hostRematch: false,
   guestRematch: false,
@@ -1922,7 +1770,8 @@ const net = {
   busy: false,
   hostSubject: null,
   guestSubject: null,
-  awaitingGuestSubject: false,
+  disconnectShown: false,
+  _pollErrors: 0,
 };
 
 const roomRegistry = new Map();
@@ -1939,7 +1788,6 @@ function initSupabase() {
   });
   return supabaseClient;
 }
-
 function genRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let s = '';
@@ -1951,6 +1799,23 @@ function setRoomMsg(t, color){
   const e = $('room-msg'); if (!e) return;
   e.textContent = t || '';
   e.style.color = color || '#ffb347';
+}
+
+function showDisconnect() {
+  if (net.disconnectShown) return;
+  net.disconnectShown = true;
+  document.getElementById('disconnect-modal').classList.add('show');
+}
+function forceLeaveToMain() {
+  try { leaveRoom(true); } catch(e) {}
+  document.getElementById('disconnect-modal').classList.remove('show');
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('room-screen').style.display = 'none';
+  document.getElementById('lobby-screen').style.display = 'none';
+  document.getElementById('main-menu').style.display = 'flex';
+  net.disconnectShown = false;
+  mainSubject = null;
+  guestSubject = null;
 }
 
 /* ============ 大厅 ============ */
@@ -1975,7 +1840,7 @@ async function refreshRooms() {
   const cutoff = Date.now() - 30000;
   const { data, error } = await sb.from('game_rooms')
     .select('*').gt('host_ping', cutoff).order('updated_at', { ascending: false });
-  if (error) { return; }
+  if (error) return;
   roomRegistry.clear();
   (data || []).forEach(r => {
     roomRegistry.set(r.code, {
@@ -1993,7 +1858,7 @@ function renderRoomList() {
     .filter(r => !kw || r.code.includes(kw))
     .sort((a, b) => (b.ts || 0) - (a.ts || 0));
   if (items.length === 0) {
-    box.innerHTML = `<div class="room-empty">${kw ? '没有找到匹配的房间码' : '暂无房间。点「创建房间」开一个，或输入房间码后点「直接加入」。'}</div>`;
+    box.innerHTML = `<div class="room-empty">${kw ? '没有找到匹配的房间码' : '暂无房间。'}</div>`;
     return;
   }
   box.innerHTML = '';
@@ -2040,8 +1905,11 @@ async function createRoom() {
   net.guestReady = false;
   net.myReady = false;
   net.started = false;
+  net.gameInitialized = false;
   net.hostSubject = null;
   net.guestSubject = null;
+  net.disconnectShown = false;
+  net._pollErrors = 0;
 
   openRoomScreen();
   setRoomMsg('房间已创建，等待客机加入…');
@@ -2082,8 +1950,11 @@ async function joinRoom(code) {
   net.guestReady = false;
   net.myReady = false;
   net.started = false;
+  net.gameInitialized = false;
   net.hostSubject = null;
   net.guestSubject = null;
+  net.disconnectShown = false;
+  net._pollErrors = 0;
 
   openRoomScreen();
   setRoomMsg('已加入房间 ' + code + '，等待房主…');
@@ -2124,18 +1995,23 @@ async function pollRoom() {
   try {
     const { data: room, error } = await sb.from('game_rooms')
       .select('*').eq('code', net.roomCode).maybeSingle();
-    if (error) { net.busy = false; return; }
+    if (error) {
+      net._pollErrors = (net._pollErrors||0) + 1;
+      if(net._pollErrors > 5 && !net.disconnectShown) showDisconnect();
+      net.busy = false; return;
+    }
+    net._pollErrors = 0;
     if (!room) {
-      if (!net.isHost) {
+      if (!net.isHost && !net.disconnectShown) {
         setRoomMsg('房主已解散房间', '#ff9a9a');
-        setTimeout(() => leaveRoom(true), 900);
+        showDisconnect();
       }
       net.busy = false; return;
     }
     const now = Date.now();
 
     if (net.isHost) {
-      const guestActive = room.guest_name && (now - (room.guest_ping || 0) < 8000);
+      const guestActive = room.guest_name && (now - (room.guest_ping || 0) < 6000);
       const newGuest = guestActive ? room.guest_name : '';
       const newReady = guestActive ? !!room.guest_ready : false;
       if (net.guestName !== newGuest || net.guestReady !== newReady) {
@@ -2147,11 +2023,13 @@ async function pollRoom() {
         else if (newGuest && newReady) setRoomMsg('客机已准备，可开始');
         renderRoomScreen();
       }
+      if (net.gameInitialized && !guestActive && !net.disconnectShown) {
+        showDisconnect();
+      }
     } else {
-      const hostActive = (now - (room.host_ping || 0)) < 15000;
-      if (!hostActive && net.hostNameConnected) {
-        setRoomMsg('房主已离线', '#ff9a9a');
-        setTimeout(() => leaveRoom(true), 900);
+      const hostActive = (now - (room.host_ping || 0)) < 10000;
+      if (!hostActive && !net.disconnectShown) {
+        showDisconnect();
         net.busy = false; return;
       }
       if (hostActive && !net.hostNameConnected) {
@@ -2162,14 +2040,6 @@ async function pollRoom() {
         net.guestReady = !!room.guest_ready;
         net.myReady = !!room.guest_ready;
         renderRoomScreen();
-      }
-      if (room.started && !net.started) {
-        net.started = true;
-        $('room-screen').style.display = 'none';
-        $('game-screen').style.display = 'block';
-        $('result-modal').classList.remove('show');
-        GS.gameOver = false;
-        log('进入对局…', 'green');
       }
     }
 
@@ -2224,41 +2094,41 @@ function handleRoomMessage(m) {
       }
       break;
     case 'start':
-      if (!net.isHost && !net.started) {
-        // 客机收到 start：弹主科选择
+      if (!net.isHost && !net.gameInitialized) {
         net.hostSubject = m.hostSubject;
         showSubjectChoice(function(){
           net.guestSubject = mainSubject;
           roomSend({ t: 'guestSubject', subject: mainSubject });
-          setRoomMsg('已选择主科，等待房主开始…');
+          $('room-screen').style.display = 'none';
+          $('game-screen').style.display = 'block';
+          document.getElementById('log').innerHTML = '';
+          log('已选择主科：' + (mainSubject === 'physics' ? '物理' : '化学'), 'green');
+          log('等待房主开始对局…', 'yellow');
         });
       }
       break;
     case 'guestSubject':
-      if (net.isHost && !net.started) {
+      if (net.isHost && !net.gameInitialized) {
         net.guestSubject = m.subject;
-        // 双方主科都有了，开始游戏
-        guestSubject = m.subject;  // 客机的主科
-        mainSubject = net.hostSubject;  // 房主的主科
+        guestSubject = m.subject;
+        mainSubject = net.hostSubject;
         net.started = true;
-        $('room-screen').style.display = 'none';
-        $('game-screen').style.display = 'block';
-        $('result-modal').classList.remove('show');
-        GS.gameOver = false;
-        log('进入对局…', 'green');
+        net.gameInitialized = true;
         startGame();
         pushSnapshot();
       }
       break;
     case 'snapshot':
       if (!net.isHost) {
-        // 客机从房间切到游戏界面
-        if ($('room-screen').style.display !== 'none') {
-          $('room-screen').style.display = 'none';
-          $('game-screen').style.display = 'block';
-          log('进入对局…', 'green');
+        if (!net.gameInitialized) {
+          net.gameInitialized = true;
+          net.started = true;
         }
         applySnapshot(m.data);
+        if ($('game-screen').style.display !== 'block') {
+          $('room-screen').style.display = 'none';
+          $('game-screen').style.display = 'block';
+        }
       }
       break;
     case 'action':
@@ -2268,6 +2138,7 @@ function handleRoomMessage(m) {
       if (!net.isHost) {
         GS.gameOver = true;
         net.started = false;
+        net.gameInitialized = false;
         showResultModal(!!m.win);
       }
       break;
@@ -2279,23 +2150,25 @@ function handleRoomMessage(m) {
       if (!net.isHost) {
         net.started = true;
         net.hostRematch = net.guestRematch = false;
-        $('result-modal').classList.remove('show');
+        document.getElementById('result-modal').classList.remove('show');
         $('room-screen').style.display = 'none';
         $('game-screen').style.display = 'block';
         GS.gameOver = false;
         log('—— 新对局开始 ——', 'green');
-        // 客机等房主推送新快照
       }
       break;
     case 'leave':
       if (net.isHost && m.isGuest) {
-        net.guestName = '';
-        net.guestReady = false;
-        renderRoomScreen();
-        setRoomMsg('客机已离开房间', '#ff9a9a');
+        if (net.gameInitialized) {
+          if (!net.disconnectShown) showDisconnect();
+        } else {
+          net.guestName = '';
+          net.guestReady = false;
+          renderRoomScreen();
+          setRoomMsg('客机已离开房间', '#ff9a9a');
+        }
       } else if (!net.isHost && m.isHost) {
-        setRoomMsg('房主已解散房间', '#ff9a9a');
-        setTimeout(() => leaveRoom(true), 900);
+        if (!net.disconnectShown) showDisconnect();
       }
       break;
   }
@@ -2314,7 +2187,7 @@ function renderRoomScreen() {
   $('room-host').textContent = net.isHost ? '房主（你）' : '房主';
   $('room-guest').textContent = net.isHost ? (net.guestName || '等待加入…') : '你';
   let st = '等待中';
-  if (net.started) st = '对局中';
+  if (net.gameInitialized) st = '对局中';
   else if (net.isHost && net.guestName && net.guestReady) st = '客机已准备，可开始';
   else if (net.isHost && net.guestName) st = '客机未准备';
   else if (!net.isHost && net.myReady) st = '已准备，等待房主开始';
@@ -2344,11 +2217,14 @@ async function toggleReady() {
 async function hostStartGame() {
   if (!net.isHost) return;
   if (!net.guestName || !net.guestReady) { setRoomMsg('需要客机先点「准备」', '#ff9a9a'); return; }
-  // 房主先选主科
   showSubjectChoice(function(){
     net.hostSubject = mainSubject;
+    $('room-screen').style.display = 'none';
+    $('game-screen').style.display = 'block';
+    document.getElementById('log').innerHTML = '';
+    log('已选择主科：' + (mainSubject === 'physics' ? '物理' : '化学'), 'green');
+    log('等待客机选择主科…', 'yellow');
     roomSend({ t: 'start', hostSubject: mainSubject });
-    setRoomMsg('已发送开始信号，等待客机选主科…');
   });
 }
 
@@ -2358,6 +2234,7 @@ async function leaveRoom(silent) {
   if (net.inRoom && net.roomCode && sb) {
     try {
       if (net.isHost) {
+        roomSend({ t: 'leave', isHost: true });
         await sb.from('game_events').delete().eq('room_code', net.roomCode);
         await sb.from('game_rooms').delete().eq('code', net.roomCode);
       } else {
@@ -2374,6 +2251,7 @@ async function leaveRoom(silent) {
   net.guestReady = false;
   net.myReady = false;
   net.started = false;
+  net.gameInitialized = false;
   net.inRoom = false;
   net.mode = 'single';
   net.hostRematch = net.guestRematch = false;
@@ -2384,8 +2262,7 @@ async function leaveRoom(silent) {
   $('room-screen').style.display = 'none';
   $('game-screen').style.display = 'none';
   $('result-modal').classList.remove('show');
-  // ★ 始终回主菜单，防止黑屏
-  $('main-menu').style.display = 'flex';
+  if (!silent) $('main-menu').style.display = 'flex';
   mainSubject = null;
   guestSubject = null;
 }
@@ -2394,6 +2271,7 @@ async function leaveRoom(silent) {
 function pushSnapshot() {
   if (net.mode !== 'host' || !net.started) return;
   roomSend({ t: 'snapshot', data: buildSnapshot() });
+  GS.logQueue = [];
 }
 function sendAction(a) {
   if (net.mode !== 'guest') return;
@@ -2419,6 +2297,7 @@ function checkRematch() {
     document.getElementById('result-modal').classList.remove('show');
     startGame();
     net.started = true;
+    net.gameInitialized = true;
     setTimeout(() => pushSnapshot(), 300);
     log('—— 新对局开始 ——', 'green');
   }
@@ -2427,6 +2306,7 @@ function backToRoomFromResult() {
   document.getElementById('result-modal').classList.remove('show');
   document.getElementById('game-screen').style.display = 'none';
   net.started = false;
+  net.gameInitialized = false;
   net.myReady = false;
   if (net.isHost) { net.guestReady = false; }
   else { roomSend({ t: 'ready', ready: false }); }
@@ -2436,7 +2316,7 @@ function backToRoomFromResult() {
 
 /* ============ 快照构建 / 应用 ============ */
 function mirrorHQObj(hq, mirror){
-    return { placed:true, x: mirror ? 10 - hq.x : hq.x, y: hq.y,
+    return { x: mirror ? 10 - hq.x : hq.x, y: hq.y,
         def: hq.def, defMax: hq.defMax,
         radiate: hq.radiate||0, stun: !!hq.stun, suppress: !!hq.suppress,
         immune: !!hq.immune, nitroGlycerin: hq.nitroGlycerin||0,
@@ -2461,7 +2341,9 @@ function buildSnapshot(){
         const u = GS.field[y][x];
         if(u) field[y][10-x] = mirrorUnit(u, true);
     }
-    return { turn: GS.turn, isPlayerTurn: !GS.isPlayerTurn,
+    return { turn: GS.turn,
+        isPlayerTurn: !GS.isPlayerTurn,
+        isPlayerFirst: !GS.isPlayerFirst,
         playerK: GS.enemyK, playerKMax: GS.enemyKMax,
         enemyK: GS.playerK, enemyKMax: GS.playerKMax,
         playerTemp: GS.enemyTemp, enemyTemp: GS.playerTemp,
@@ -2477,11 +2359,14 @@ function buildSnapshot(){
         radiateZones: GS.radiateZones.map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
         poisonZones: GS.poisonZones.map(z=>({x:10-z.x, y:z.y, radius:z.radius, duration:z.duration, type:z.type})),
         waterZones: (GS.waterZones||[]).map(z=>({x:10-z.x, y:z.y, duration:z.duration})),
+        logQueue: (GS.logQueue||[]).slice(),
         gameOver: GS.gameOver };
 }
 function applySnapshot(d){
     if(!d) return;
-    GS.turn = d.turn; GS.isPlayerTurn = d.isPlayerTurn;
+    GS.turn = d.turn;
+    GS.isPlayerTurn = d.isPlayerTurn;
+    GS.isPlayerFirst = d.isPlayerFirst;
     GS.playerK = d.playerK; GS.playerKMax = d.playerKMax;
     GS.enemyK = d.enemyK; GS.enemyKMax = d.enemyKMax;
     GS.playerTemp = d.playerTemp; GS.enemyTemp = d.enemyTemp;
@@ -2500,6 +2385,17 @@ function applySnapshot(d){
     GS.enemyDeck = new Array(d.enemyDeckCount||0);
     GS.playerWater = 0; GS.beakerWater = 0; GS.cannonWater = 0;
     GS.gameOver = !!d.gameOver;
+    // 输出房主同步过来的日志
+    if(d.logQueue && d.logQueue.length > 0){
+        const logEl = document.getElementById('log');
+        for(const item of d.logQueue){
+            const div = document.createElement('div');
+            if(item.color) div.className = 'log-' + item.color;
+            div.textContent = item.text;
+            logEl.appendChild(div);
+        }
+        logEl.scrollTop = logEl.scrollHeight;
+    }
     resetSelection();
     renderBoard(); renderHand(); syncState();
 }
@@ -2508,6 +2404,8 @@ function applySnapshot(d){
 function guestCardClick(idx){
     if(!GS.isPlayerTurn || GS.gameOver) return;
     const card = GS.playerHand[idx]; if(!card) return;
+    if(card.id === 'water'){ openGuestWaterChoice(idx); return; }
+    if(card.id === 'beaker'){ openGuestBeakerChoice(idx); return; }
     const cost = card.cost || 0;
     if(cost > GS.playerK){ log('指挥点不足','red'); return; }
     if(GS.selectedCardIndex === idx){ resetSelection(); renderHand(); renderBoard(); return; }
@@ -2516,6 +2414,26 @@ function guestCardClick(idx){
     else if(card.needTarget){ GS.selectMode = 'target'; log('选择目标','yellow'); }
     else { sendAction({ type:'cast', idx }); resetSelection(); }
     renderHand(); renderBoard();
+}
+function openGuestWaterChoice(idx){
+    const hasBeaker = GS.playerHand.some(c => c.id === 'beaker');
+    const hasCannon = GS.playerHand.some(c => c.id === 'airCannon');
+    const opts = [
+        { label:'💧 直接打出', desc:'储水+300ml，友方全体+3', run:()=>sendAction({type:'guestOp', fn:'beginCardUse', args:[idx]}) }
+    ];
+    if(hasBeaker) opts.push({ label:'⊕ 合成空气内能炮', desc:'消耗【水】+【密封塞烧杯】', run:()=>sendAction({type:'guestOp', fn:'tryCombineWaterBeaker', args:[idx]}) });
+    if(hasBeaker) opts.push({ label:'🧪 灌入烧杯', desc:'烧杯+300ml', run:()=>sendAction({type:'guestOp', fn:'playWaterInto', args:[idx, 'beakerWater']}) });
+    if(hasCannon) opts.push({ label:'💨 装填炮', desc:'炮+300ml', run:()=>sendAction({type:'guestOp', fn:'playWaterInto', args:[idx, 'cannonWater']}) });
+    showChoice('【水】的用法', '选择用法', opts);
+}
+function openGuestBeakerChoice(idx){
+    const hasWater = GS.playerHand.some(c => c.id === 'water');
+    const hasCannon = GS.playerHand.some(c => c.id === 'airCannon');
+    const opts = [ { label:'🧪 单独使用', desc:'满900ml可用水域', run:()=>sendAction({type:'guestOp', fn:'beginCardUse', args:[idx]}) } ];
+    if(hasWater) opts.push({ label:'⊕ 合成空气内能炮', desc:'消耗【水】+【密封塞烧杯】', run:()=>sendAction({type:'guestOp', fn:'tryCombineWaterBeaker', args:[idx]}) });
+    if(hasWater) opts.push({ label:'💧 用水卡灌水', desc:'烧杯+300ml', run:()=>{ const wi = GS.playerHand.findIndex(c=>c.id==='water'); if(wi>=0) sendAction({type:'guestOp', fn:'playWaterInto', args:[wi, 'beakerWater']}); } });
+    if(hasCannon) opts.push({ label:'💨 把水装入炮', desc:'装不下的留在烧杯', run:()=>sendAction({type:'guestOp', fn:'loadBeakerIntoCannon', args:[]}) });
+    showChoice('【密封塞烧杯】的用法', '选择用法', opts);
 }
 function guestCellClick(x,y){
     if(!GS.isPlayerTurn || GS.gameOver) return;
@@ -2544,18 +2462,14 @@ function guestCellClick(x,y){
     if(u && u.isPlayerUnit && !u.stun){ GS.selectedUnit = {x,y}; log(`选中【${u.name}】`,'yellow'); renderBoard(); }
 }
 
-/* ============ 主机：执行客机动作（用视角交换） ============ */
+/* ============ 主机：执行客机动作 ============ */
 function hostHandleGuestAction(a){
     if(!a || !net.started) return;
     if(!net.guestTurnActive && a.type !== 'endTurn' && a.type !== 'drawCard') return;
 
     switch(a.type){
-        case 'drawCard': {
-            drawCard(false);
-            renderBoard(); syncState();
-            pushSnapshot();
-            return;
-        }
+        case 'drawCard':
+            drawCard(false); renderBoard(); syncState(); pushSnapshot(); return;
         case 'deploy': {
             const card = GS.enemyHand[a.idx];
             if(!card || card.type !== 'unit' || !card.canDeploy) return;
@@ -2572,10 +2486,7 @@ function hostHandleGuestAction(a){
                 hasAttacked:false, hqAttackCount:0
             };
             GS.field[y][x] = unit;
-            if(card.onDeploy){
-                // onDeploy 内部会自己判断 isPlayerUnit，所以不用交换视角
-                card.onDeploy.call(unit);
-            }
+            if(card.onDeploy) card.onDeploy.call(unit);
             GS.enemyHand.splice(a.idx,1);
             log(`客机部署【${card.name}】`,'red');
             break;
@@ -2588,15 +2499,22 @@ function hostHandleGuestAction(a){
             const x = a.x === undefined ? 0 : 10 - a.x;
             const y = a.y === undefined ? 0 : a.y;
             GS.enemyK -= c;
-            // ★ 用视角交换执行卡牌效果
-            const ret = withGuestPerspective(() => {
-                GS.castByEnemy = true;
-                try { return card.onCast ? card.onCast.call(card, x, y) : true; }
-                finally { GS.castByEnemy = false; }
-            });
+            GS.castByEnemy = true;
+            let ret;
+            try { ret = card.onCast ? card.onCast.call(card, x, y) : true; }
+            finally { GS.castByEnemy = false; }
             if(ret === false){ GS.enemyK += c; return; }
             log(`客机打出【${card.name}】`,'red');
             if(ret !== 'repeat') GS.enemyHand.splice(a.idx,1);
+            break;
+        }
+        case 'guestOp': {
+            const fnName = a.fn;
+            const fns = ['beginCardUse','tryCombineWaterBeaker','playWaterInto','loadBeakerIntoCannon','pourReserveIntoBeaker','discardAirCannon'];
+            if(!fns.includes(fnName)) return;
+            withGuestResources(() => {
+                try { window[fnName].apply(null, a.args || []); } catch(e){ console.warn(e); }
+            });
             break;
         }
         case 'move': {
@@ -2606,7 +2524,6 @@ function hostHandleGuestAction(a){
             if(!u || u.isPlayerUnit) return;
             if(Math.abs(ux-x) + Math.abs(uy-y) !== 1) return;
             if(GS.field[y][x] || isHQ(x,y)) return;
-            // ★ 移动消耗1K
             if(GS.enemyK < 1) return;
             GS.enemyK -= 1;
             GS.field[y][x] = u; GS.field[uy][ux] = null;
@@ -2623,7 +2540,7 @@ function hostHandleGuestAction(a){
             if(!t || t.isPlayerUnit) return;
             dealDamage(t, u.atk);
             u.hasAttacked = true;
-            log(`客机【${u.name}】攻击【${t.name}】-${u.atk}`,'red');
+            log(`客机【${u.name}】攻【${t.name}】-${u.atk}`,'red');
             break;
         }
         case 'attackHQ': {
@@ -2635,7 +2552,7 @@ function hostHandleGuestAction(a){
             u.hasAttacked = true;
             u.hqAttackCount = (u.hqAttackCount||0) + 1;
             log(`客机【${u.name}】攻击我方总部 -${u.atk}`,'red');
-            if(u.hqAttackCount > 2){ log(`客机单位攻击总部超2次，被消灭`,'red'); GS.field[uy][ux] = null; }
+            if(u.hqAttackCount > 2){ log(`客机单位攻击总部超2次被消灭`,'red'); GS.field[uy][ux] = null; }
             break;
         }
         case 'endTurn': {
@@ -2647,8 +2564,7 @@ function hostHandleGuestAction(a){
         }
         default: return;
     }
-    cleanupDead();
-    renderBoard(); syncState(); checkGameOver();
+    cleanupDead(); renderBoard(); syncState(); checkGameOver();
     pushSnapshot();
 }
 
@@ -2669,7 +2585,10 @@ function bindAllEvents() {
     net.mode = 'single';
     $id("main-menu").style.display = "none";
     $id("game-screen").style.display = "block";
-    showSubjectChoice(function(){ startGame(); });
+    showSubjectChoice(function(){
+      log('主科选择：' + (mainSubject === 'physics' ? '物理' : '化学'), 'green');
+      startGame();
+    });
   });
   safeOn("btn-online", "click", openLobby);
   safeOn("btn-lobby-back", "click", function(){
@@ -2709,10 +2628,10 @@ function bindAllEvents() {
 
   safeOn("btn-back-menu", "click", function(){
     if(net.mode === 'host' || net.mode === 'guest'){
-      if(confirm("离开房间？当前对局进度会丢失。")){ leaveRoom(); }
+      if(confirm("离开房间？")){ leaveRoom(); }
       return;
     }
-    if(confirm("返回主菜单？当前对局进度会丢失。")){
+    if(confirm("返回主菜单？")){
       $id("game-screen").style.display = "none";
       $id("main-menu").style.display = "flex";
       $id("result-modal").classList.remove("show");
@@ -2737,7 +2656,6 @@ function bindAllEvents() {
     if(!mode) return;
     hideDrawModal(); GS.pendingEndTurn = false;
     if(mode === 'guest'){
-      // 客机抽牌：发 drawCard，再发 endTurn
       sendAction({type:'drawCard'});
       sendAction({type:'endTurn'});
     } else {
@@ -2748,12 +2666,11 @@ function bindAllEvents() {
     const mode = GS.pendingEndTurn;
     if(!mode) return;
     hideDrawModal(); GS.pendingEndTurn = false;
-    if(mode === 'guest'){
-      sendAction({type:'endTurn'});
-    } else {
-      log('放弃抽牌','yellow'); finishEndTurn();
-    }
+    if(mode === 'guest'){ sendAction({type:'endTurn'}); }
+    else { log('放弃抽牌','yellow'); finishEndTurn(); }
   });
+
+  safeOn("btn-dc-ok", "click", forceLeaveToMain);
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindAllEvents);
