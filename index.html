@@ -163,6 +163,12 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 .dc-box p{font-size:13px;color:#e8d9b8;margin-bottom:22px;letter-spacing:2px;line-height:1.7;}
 .dc-box button{padding:10px 28px;background:linear-gradient(180deg,#8a6d3b,#4a3a24);border:1px solid #f1d68a;color:#fff7d6;border-radius:4px;cursor:pointer;letter-spacing:3px;font-size:14px;}
 </style>
+<script src="https://fastly.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+if (!window.supabase || !window.supabase.createClient) {
+  document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+}
+</script>
 </head>
 <body>
 <div id="global-error-bar"></div>
@@ -282,34 +288,6 @@ body{background:#000;color:#e8e8e8;min-height:100vh;overflow:hidden;}
 <div id="tooltip"></div>
 
 <script>
-/* ===== Supabase SDK 多 CDN 兜底加载 ===== */
-(function(){
-  const cdns = [
-    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-    'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
-    'https://cdn.bootcdn.net/ajax/libs/supabase-js/2.39.0/supabase.min.js',
-    'https://cdn.staticfile.org/supabase-js/2.39.0/supabase.min.js',
-  ];
-  window.__supabaseReady = false;
-  window.__supabasePromise = (async function(){
-    for (const url of cdns) {
-      if (window.supabase) { window.__supabaseReady = true; return true; }
-      try {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = url;
-          s.async = false;
-          s.onload = resolve;
-          s.onerror = () => reject(new Error('load fail: ' + url));
-          document.head.appendChild(s);
-        });
-        if (window.supabase) { window.__supabaseReady = true; return true; }
-      } catch(e) { /* 下一个 */ }
-    }
-    return false;
-  })();
-})();
-
 window.addEventListener('error', function(e){
   const bar = document.getElementById('global-error-bar'); if(!bar) return;
   bar.style.display = 'block';
@@ -413,8 +391,17 @@ CardDB.thermometer = { id:'thermometer', name:'温度计', cost:1, type:'spell',
 CardDB.eternalChem = { id:'eternalChem', name:'永恒化学研发', cost:3, type:'spell', attribute:'化学', rarity:'金', icon:'🧪', isResearch:true,
     desc:'一级开发', onCast(){ openBranchChoice(['hotAcid','extChem'],'永恒化学研发'); return true; } };
 CardDB.hotAcid = { id:'hotAcid', name:'热浓硫酸', cost:0, type:'spell', attribute:'化学', rarity:'铜', icon:'🧫',
-    desc:'对单个敌方单位6伤，扣敌1K槽', needTarget:true, volatile:2,
-    onCast(x,y){ const u = GS.field[y][x];
+    desc:'对单个敌方单位6伤，扣敌1K槽；可对敌方总部使用', needTarget:true, volatile:2,
+    onCast(x,y){
+        // 打敌方总部
+        if(isEnemyHQ(x,y)){
+            GS.enemyHQ.def = Math.max(0, GS.enemyHQ.def - 6);
+            GS.enemyKMax = Math.max(1, GS.enemyKMax - 1);
+            GS.enemyK = Math.min(GS.enemyK, GS.enemyKMax);
+            cleanupDead(); log('热浓硫酸命中总部 -6','red');
+            return true;
+        }
+        const u = GS.field[y][x];
         if(u && !u.isPlayerUnit){ u.def = Math.max(0, u.def - 6);
             GS.enemyKMax = Math.max(1, GS.enemyKMax - 1); GS.enemyK = Math.min(GS.enemyK, GS.enemyKMax);
             cleanupDead(); log('热浓硫酸','red'); }
@@ -498,10 +485,19 @@ CardDB.beaker = { id:'beaker', name:'密封塞烧杯', cost:0, type:'spell', att
         return true; } };
 CardDB.icePatch = { id:'icePatch', name:'冰凉贴', cost:0, type:'spell', attribute:'化学', rarity:'铁', icon:'❄',
     desc:'温度降到37.4，随机弃2张',
-    onCast(){ GS.playerTemp = 37.4;
-        for(let i=0;i<2 && GS.playerHand.length>0;i++){
-            const idx = Math.floor(Math.random()*GS.playerHand.length);
-            GS.discardPile.push(GS.playerHand.splice(idx,1)[0]);
+    onCast(){
+        // 判断操作哪边手牌：AI 打出用 enemyHand；房主或客机（withGuestView 已交换）用 playerHand
+        let hand, targetTempKey;
+        if(GS.castByEnemy && !GS._inGuestOp){
+            hand = GS.enemyHand; targetTempKey = 'enemyTemp';
+        } else {
+            hand = GS.playerHand; targetTempKey = 'playerTemp';
+        }
+        if(targetTempKey === 'enemyTemp') GS.enemyTemp = 37.4;
+        else GS.playerTemp = 37.4;
+        for(let i=0;i<2 && hand.length>0;i++){
+            const idx = Math.floor(Math.random()*hand.length);
+            GS.discardPile.push(hand.splice(idx,1)[0]);
         }
         logP('冰凉贴','green'); return true; } };
 CardDB.airCannon = { id:'airCannon', name:'空气内能炮', cost:3, type:'spell', attribute:'化学', rarity:'银', icon:'💨',
@@ -732,7 +728,6 @@ const BASE_DECK_LIST = [
     { id:'water',        count:6 },
     { id:'beaker',       count:8 },
     { id:'alcoholLamp',  count:6 },
-    { id:'icePatch',     count:4 },
     { id:'chemTeacher',  count:3 },
     { id:'physTeacher',  count:3 },
     { id:'heater',       count:3 },
@@ -745,7 +740,7 @@ const BASE_DECK_LIST = [
     { id:'greatPhys',    count:1 },
     { id:'eternalChem',  count:1 },
 ];
-/* 总数：6+5+6+8+6+4+3+3+3+1+1+1+1+1+1+1+1 = 52 */
+/* 总数：6+5+6+8+6+3+3+3+1+1+1+1+1+1+1+1 = 48，用水填到 55 */
 function buildDeckForSubject(subject){
     const deck = [];
     BASE_DECK_LIST.forEach(({id, count})=>{
@@ -753,7 +748,6 @@ function buildDeckForSubject(subject){
         if(!cardAllowedBySubject(card, subject)) return;
         for(let i=0;i<count;i++) deck.push(cloneCard(card));
     });
-    // 补齐到 55 张，用水卡填充
     while(deck.length < 55){
         deck.push(cloneCard(CardDB.water));
     }
@@ -789,6 +783,7 @@ function drawStartingHand(isPlayer, count){
         const card = deck.shift();
         if(isChemAgent(card)){ deck.push(card); shuffle(deck); continue; }
         if(card.isResearch){ deck.push(card); shuffle(deck); continue; }
+        if(card.id === 'icePatch'){ deck.push(card); shuffle(deck); continue; }
         if(card.rarity === '金' && goldCount >= 1){ deck.push(card); shuffle(deck); continue; }
         if(card.rarity === '金') goldCount++;
         hand.push(card); added++;
@@ -1057,7 +1052,6 @@ function renderHand(){
             const c = document.createElement("div"); c.className = "enemy-card-back"; enemyArea.appendChild(c);
         }
     }
-    // 更新手牌数显示
     const hc = document.getElementById("my-hand-count");
     if (hc) hc.innerText = GS.playerHand.length;
 }
@@ -1400,12 +1394,21 @@ function checkTemperatureDebuff(side){
     const hq = isPlayer ? GS.playerHQ : GS.enemyHQ;
     const prefix = isPlayer ? "我方" : "敌方";
     if(temp >= 40.9 && temp < 246.8){ hq.def = Math.max(0, hq.def - 1); logP(`${prefix}温度过高-1`,'red'); }
-    if(temp >= 246.8){ if(isPlayer){ forceAddIcePatchToHand(); logP('温度过高！塞入冰凉贴','red'); } }
-    if(temp > 46.8 && temp < 246.8 && isPlayer){
-        if(!GS.playerHand.some(c=>c.id==='icePatch')){
-            GS.icePatchFromHeat = true;
-            try{ forceAddIcePatchToHand(); } finally { GS.icePatchFromHeat = false; }
-            logP('温度>46.8℃！塞入冰凉贴','red');
+    if(temp > 46.8 && temp < 246.8){
+        if(isPlayer){
+            if(!GS.playerHand.some(c=>c.id==='icePatch')){
+                GS.icePatchFromHeat = true;
+                try{ forceAddIcePatchToHand(); } finally { GS.icePatchFromHeat = false; }
+                logP('温度>46.8℃！塞入冰凉贴','red');
+            }
+        } else {
+            if(!GS.enemyHand.some(c=>c.id==='icePatch')){
+                if(GS.enemyHand.length >= GS.enemyHandMax){
+                    GS.enemyHand.splice(Math.floor(Math.random()*GS.enemyHand.length), 1);
+                }
+                GS.enemyHand.push(cloneCard(CardDB.icePatch));
+                logP('敌方温度>46.8℃！塞入冰凉贴','red');
+            }
         }
     }
 }
@@ -1815,23 +1818,15 @@ let lobbyTimer = null;
 let roomPollTimer = null;
 let roomPingTimer = null;
 
-const net = {
-  mode: 'single', roomCode: '', isHost: false,
-  myId: Math.random().toString(36).slice(2, 10),
-  hostName: '房主', guestName: '', guestReady: false, myReady: false,
-  started: false, gameInitialized: false, guestTurnActive: false,
-  hostRematch: false, guestRematch: false, inRoom: false, connected: false,
-  hostNameConnected: false, lastEventTime: 0, busy: false,
-  hostSubject: null, guestSubject: null, disconnectShown: false,
-  _pollErrors: 0, seenEventIds: new Set(),
-};
-const roomRegistry = new Map();
+function getSupabase() { return supabaseClient; }
 
-async function initSupabase() {
+async function ensureSupabase() {
   if (supabaseClient) return supabaseClient;
-  // 等待多 CDN 加载完成
-  if (window.__supabasePromise) {
-    try { await window.__supabasePromise; } catch(e) {}
+  // 等待 <script> 加载（同步 script 标签通常会立刻可用，但保险起见）
+  let tries = 0;
+  while ((!window.supabase || !window.supabase.createClient) && tries < 50) {
+    await new Promise(r => setTimeout(r, 100));
+    tries++;
   }
   if (!window.supabase || !window.supabase.createClient) {
     const bar = document.getElementById('global-error-bar');
@@ -1843,6 +1838,20 @@ async function initSupabase() {
   });
   return supabaseClient;
 }
+
+const net = {
+  mode: 'single', roomCode: '', isHost: false,
+  myId: Math.random().toString(36).slice(2, 10),
+  hostName: '房主', guestName: '', guestReady: false, myReady: false,
+  started: false, gameInitialized: false, guestTurnActive: false,
+  hostRematch: false, guestRematch: false, inRoom: false, connected: false,
+  hostNameConnected: false, lastEventTime: 0, busy: false,
+  hostSubject: null, guestSubject: null, disconnectShown: false,
+  _pollErrors: 0, seenEventIds: new Set(),
+  _guestMiss: 0, _hostMiss: 0,
+};
+const roomRegistry = new Map();
+
 function genRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let s = '';
@@ -1874,7 +1883,7 @@ function forceLeaveToMain() {
   guestSubject = null;
 }
 async function openLobby() {
-  const sb = await initSupabase();
+  const sb = await ensureSupabase();
   if (!sb) return;
   $('main-menu').style.display = 'none';
   $('lobby-screen').style.display = 'flex';
@@ -1884,7 +1893,7 @@ async function openLobby() {
 function startLobbyPolling() { stopLobbyPolling(); refreshRooms(); lobbyTimer = setInterval(refreshRooms, 2000); }
 function stopLobbyPolling() { if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; } }
 async function refreshRooms() {
-  const sb = await initSupabase(); if (!sb) return;
+  const sb = getSupabase(); if (!sb) return;
   const cutoff = Date.now() - 30000;
   const { data, error } = await sb.from('game_rooms')
     .select('*').gt('host_ping', cutoff).order('updated_at', { ascending: false });
@@ -1919,7 +1928,7 @@ function renderRoomList() {
   });
 }
 async function createRoom() {
-  const sb = await initSupabase(); if (!sb) return;
+  const sb = await ensureSupabase(); if (!sb) return;
   const code = genRoomCode(); const now = Date.now();
   try {
     await sb.from('game_events').delete().eq('room_code', code);
@@ -1935,6 +1944,7 @@ async function createRoom() {
   net.started = false; net.gameInitialized = false;
   net.hostSubject = null; net.guestSubject = null;
   net.disconnectShown = false; net._pollErrors = 0; net.seenEventIds = new Set();
+  net._guestMiss = 0; net._hostMiss = 0;
   openRoomScreen();
   setRoomMsg('房间已创建，等待客机加入…');
   startRoomPolling();
@@ -1945,7 +1955,7 @@ function joinRoomByCode() {
   joinRoom(code);
 }
 async function joinRoom(code) {
-  const sb = await initSupabase(); if (!sb) return;
+  const sb = await ensureSupabase(); if (!sb) return;
   const { data: room, error } = await sb.from('game_rooms').select('*').eq('code', code).maybeSingle();
   if (error || !room) { alert('房间不存在或已关闭'); return; }
   if (Date.now() - (room.host_ping || 0) > 20000) { alert('房主已离线'); return; }
@@ -1962,15 +1972,21 @@ async function joinRoom(code) {
   net.started = false; net.gameInitialized = false;
   net.hostSubject = null; net.guestSubject = null;
   net.disconnectShown = false; net._pollErrors = 0;
+  net._guestMiss = 0; net._hostMiss = 0;
   openRoomScreen();
   setRoomMsg('已加入房间 ' + code + '，等待房主…');
   startRoomPolling();
 }
-function startRoomPolling() { stopRoomPolling(); roomPollTimer = setInterval(pollRoom, 600); roomPingTimer = setInterval(sendPing, 3000); pollRoom(); }
+function startRoomPolling() {
+  stopRoomPolling();
+  roomPollTimer = setInterval(pollRoom, 900);
+  roomPingTimer = setInterval(sendPing, 3000);
+  pollRoom();
+}
 function stopRoomPolling() { if (roomPollTimer) { clearInterval(roomPollTimer); roomPollTimer = null; } if (roomPingTimer) { clearInterval(roomPingTimer); roomPingTimer = null; } }
 async function sendPing() {
   if (!net.inRoom || !net.roomCode) return;
-  const sb = await initSupabase(); if (!sb) return;
+  const sb = getSupabase(); if (!sb) return;
   const now = Date.now();
   try {
     if (net.isHost) await sb.from('game_rooms').update({ host_ping: now, updated_at: now }).eq('code', net.roomCode);
@@ -1980,14 +1996,13 @@ async function sendPing() {
 async function pollRoom() {
   if (!net.inRoom || !net.roomCode) return;
   if (net.busy) return;
+  const sb = getSupabase(); if (!sb) return;
   net.busy = true;
-  const sb = await initSupabase();
-  if (!sb) { net.busy = false; return; }
   try {
     const { data: room, error } = await sb.from('game_rooms').select('*').eq('code', net.roomCode).maybeSingle();
     if (error) {
       net._pollErrors = (net._pollErrors||0) + 1;
-      if(net._pollErrors > 5 && !net.disconnectShown) showDisconnect();
+      if(net._pollErrors > 8 && !net.disconnectShown) showDisconnect('网络连接不稳定<br>点击下方按钮返回主菜单');
       net.busy = false; return;
     }
     net._pollErrors = 0;
@@ -2000,7 +2015,7 @@ async function pollRoom() {
     }
     const now = Date.now();
     if (net.isHost) {
-      const guestActive = room.guest_name && (now - (room.guest_ping || 0) < 6000);
+      const guestActive = room.guest_name && (now - (room.guest_ping || 0) < 15000);
       const newGuest = guestActive ? room.guest_name : '';
       const newReady = guestActive ? !!room.guest_ready : false;
       if (net.guestName !== newGuest || net.guestReady !== newReady) {
@@ -2011,17 +2026,28 @@ async function pollRoom() {
         else if (newGuest && newReady) setRoomMsg('客机已准备，可开始');
         renderRoomScreen();
       }
-      if (net.gameInitialized && !guestActive && !net.disconnectShown) {
-        showDisconnect('对手已离开对局<br>点击下方按钮返回主菜单');
+      if (net.gameInitialized) {
+        if (!guestActive) {
+          net._guestMiss = (net._guestMiss||0) + 1;
+          if (net._guestMiss >= 5 && !net.disconnectShown) {
+            showDisconnect('对手已离开对局<br>点击下方按钮返回主菜单');
+          }
+        } else {
+          net._guestMiss = 0;
+        }
       }
     } else {
-      const hostActive = (now - (room.host_ping || 0)) < 10000;
-      if (!hostActive && !net.disconnectShown) {
-        showDisconnect('与房主的连接已断开<br>点击下方按钮返回主菜单');
-        net.busy = false; return;
-      }
+      const hostActive = (now - (room.host_ping || 0)) < 20000;
       if (hostActive && !net.hostNameConnected) { net.hostNameConnected = true; setRoomMsg('已连接到房主'); }
       if (net.guestReady !== !!room.guest_ready) { net.guestReady = !!room.guest_ready; net.myReady = !!room.guest_ready; renderRoomScreen(); }
+      if (!hostActive) {
+        net._hostMiss = (net._hostMiss||0) + 1;
+        if (net._hostMiss >= 5 && !net.disconnectShown) {
+          showDisconnect('与房主的连接已断开<br>点击下方按钮返回主菜单');
+        }
+      } else {
+        net._hostMiss = 0;
+      }
     }
     const cutoff = Date.now() - 60000;
     const { data: events } = await sb.from('game_events').select('*')
@@ -2044,7 +2070,7 @@ async function pollRoom() {
 }
 async function roomSend(payload) {
   if (!net.inRoom || !net.roomCode) return;
-  const sb = await initSupabase(); if (!sb) return;
+  const sb = getSupabase(); if (!sb) return;
   try {
     await sb.from('game_events').insert({
       room_code: net.roomCode, sender: net.myId,
@@ -2167,7 +2193,7 @@ function renderRoomScreen() {
 }
 async function toggleReady() {
   if (net.isHost) return;
-  const sb = await initSupabase(); if (!sb) return;
+  const sb = getSupabase(); if (!sb) return;
   net.myReady = !net.myReady;
   try { await sb.from('game_rooms').update({ guest_ready: net.myReady }).eq('code', net.roomCode); } catch (e) {}
   renderRoomScreen();
@@ -2185,7 +2211,7 @@ async function hostStartGame() {
   });
 }
 async function leaveRoom(silent) {
-  const sb = await initSupabase();
+  const sb = getSupabase();
   stopRoomPolling();
   if (net.inRoom && net.roomCode && sb) {
     try {
@@ -2333,7 +2359,6 @@ function applySnapshot(d){
     }
     resetSelection();
     renderBoard(); renderHand(); syncState();
-    // 立即弹窗
     if (!wasGameOver && GS.gameOver && !document.getElementById('result-modal').classList.contains('show')) {
         const isWin = GS.enemyHQ.def <= 0;
         showResultModal(isWin);
